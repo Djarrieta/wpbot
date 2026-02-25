@@ -1,8 +1,8 @@
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "my_verify_token";
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "";
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || "";
-const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID || "852509677955861";
-const GRAPH_API_BASE_URL = process.env.GRAPH_API_BASE_URL || "https://graph.facebook.com";
-const GRAPH_API_VERSION = process.env.GRAPH_API_VERSION || "v22.0";
+const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID || "";
+const GRAPH_API_BASE_URL = process.env.GRAPH_API_BASE_URL || "";
+const GRAPH_API_VERSION = process.env.GRAPH_API_VERSION || "";
 
 const server = Bun.serve({
   port: process.env.PORT || 3000,
