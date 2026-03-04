@@ -1,4 +1,4 @@
-import { MessagingService, type IncomingMessage } from "./messagingService";
+import { MessagingService, type IncomingMessage } from "./core/messagingService";
 
 export class TelegramService extends MessagingService {
   private botToken: string;

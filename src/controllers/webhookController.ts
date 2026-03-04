@@ -1,10 +1,12 @@
-import { MessagingService } from "../services/messagingService";
+import { MessagingService, ResponseService } from "../services";
 
 export class WebhookController {
   private readonly messagingService: MessagingService;
+  private readonly responseService?: ResponseService;
 
-  constructor(messagingService: MessagingService) {
+  constructor(messagingService: MessagingService, responseService?: ResponseService) {
     this.messagingService = messagingService;
+    this.responseService = responseService;
   }
 
   handleVerification(req: Request): Response {
@@ -30,10 +32,17 @@ export class WebhookController {
       const message = this.messagingService.parseIncomingMessage(body);
 
       if (message) {
-        await this.messagingService.sendMessage(
-          message.from,
-          `Echo: ${message.text}`
-        );
+        let responseText: string;
+
+        if (this.responseService) {
+          // Use LLM/MCP to generate response
+          responseText = await this.responseService.generateResponse(message.text);
+        } else {
+          // Simple echo fallback
+          responseText = `Echo: ${message.text}`;
+        }
+
+        await this.messagingService.sendMessage(message.from, responseText);
       }
 
       return new Response("OK", { status: 200 });

@@ -1,4 +1,4 @@
-import { MessagingService, type IncomingMessage, type VerificationResult } from "./messagingService";
+import { MessagingService, type IncomingMessage, type VerificationResult } from "./core/messagingService";
 
 export class WhatsAppService extends MessagingService {
   private accessToken: string;

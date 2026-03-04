@@ -12,5 +12,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@langchain/openai": "^1.2.12",
+    "mcp-use": "^1.21.0"
   }
 }

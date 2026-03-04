@@ -1,7 +1,6 @@
 import { WebhookController } from "./controllers/webhookController";
 import { HealthController } from "./controllers/healthController";
-import { WhatsAppService } from "./services/whatsappService";
-import { TelegramService } from "./services/telegramService";
+import { WhatsAppService, TelegramService, MCPService } from "./services";
 
 type Handler = (req: Request) => Response | Promise<Response>;
 
@@ -22,8 +21,13 @@ const telegramService = new TelegramService(
   Bun.env.TELEGRAM_BOT_TOKEN!,
   Bun.env.TELEGRAM_BASE_URL
 );
-const whatsappWebhook = new WebhookController(whatsappService);
-const telegramWebhook = new WebhookController(telegramService);
+const mcpService = new MCPService(
+  Number(Bun.env.MCP_MAX_STEPS) || 8
+);
+
+// Pass mcpService as responseService to enable LLM-powered responses
+const whatsappWebhook = new WebhookController(whatsappService, mcpService);
+const telegramWebhook = new WebhookController(telegramService, mcpService);
 const health = new HealthController();
 
 const routes: Route[] = [
