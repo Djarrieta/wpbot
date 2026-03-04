@@ -3,7 +3,7 @@ import { HealthController } from "./controllers/healthController";
 import { WhatsAppService } from "./services/whatsappService";
 import { TelegramService } from "./services/telegramService";
 import { MCPService } from "./services/mcpService";
-import { DeepSeekLLMService } from "./services/llmService";
+import { DeepSeekLLMProvider } from "./services/llmProvider";
 
 type Handler = (req: Request) => Response | Promise<Response>;
 
@@ -24,13 +24,18 @@ const telegramService = new TelegramService(
   Bun.env.TELEGRAM_BOT_TOKEN!,
   Bun.env.TELEGRAM_BASE_URL
 );
-const llmService = new DeepSeekLLMService();
+const llmProvider = new DeepSeekLLMProvider(
+  Bun.env.DEEPSEEK_API_KEY!,
+  Bun.env.DEEPSEEK_MODEL!,
+  Bun.env.DEEPSEEK_BASE_URL
+);
 const mcpService = new MCPService(
-  llmService,
+  llmProvider,
+  Bun.env.MCP_CONFIG_PATH!,
   Number(Bun.env.MCP_MAX_STEPS) || 8
 );
 
-// Pass mcpService as responseService to enable LLM-powered responses
+// Pass mcpService as responseGenerator to enable LLM-powered responses
 const whatsappWebhook = new WebhookController(whatsappService, mcpService);
 const telegramWebhook = new WebhookController(telegramService, mcpService);
 const health = new HealthController();

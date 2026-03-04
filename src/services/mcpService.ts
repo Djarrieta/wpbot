@@ -1,19 +1,21 @@
 import { MCPAgent, MCPClient } from "mcp-use";
 import { readFile } from "fs/promises";
 import path from "path";
-import { ResponseService } from "./core/responseService";
-import { LLMService } from "./core/llmService";
+import { ResponseGenerator } from "./core/responseGenerator";
+import { LLMProvider } from "./core/llmProvider";
 
 let agent: MCPAgent | null = null;
 let client: MCPClient | null = null;
 
-export class MCPService extends ResponseService {
+export class MCPService extends ResponseGenerator {
   private maxSteps: number;
-  private llmService: LLMService;
+  private llmProvider: LLMProvider;
+  private configPath: string;
 
-  constructor(llmService: LLMService, maxSteps: number = 8) {
+  constructor(llmProvider: LLMProvider, configPath: string, maxSteps: number) {
     super();
-    this.llmService = llmService;
+    this.llmProvider = llmProvider;
+    this.configPath = configPath;
     this.maxSteps = maxSteps;
   }
 
@@ -24,7 +26,7 @@ export class MCPService extends ResponseService {
       const config = await this.loadMCPConfig();
       client = MCPClient.fromDict(config);
 
-      const llm = this.llmService.getInstance();
+      const llm = this.llmProvider.getInstance();
 
       agent = new MCPAgent({ llm, client, maxSteps: this.maxSteps });
     }
@@ -34,14 +36,14 @@ export class MCPService extends ResponseService {
 
   private async loadMCPConfig(): Promise<any> {
     const cwd = process.cwd();
-    const file = path.join(cwd, "src/mcpConfig/mcp.config.json");
+    const file = path.join(cwd, this.configPath);
 
     let raw: string;
     try {
       raw = await readFile(file, "utf8");
     } catch (err) {
       throw new Error(
-        "Required mcp.config.json not found in src/mcpConfig/. Please create it to define mcpServers."
+        `Required MCP config not found at ${this.configPath}. Please create it to define mcpServers.`
       );
     }
 
@@ -50,18 +52,18 @@ export class MCPService extends ResponseService {
       parsed = JSON.parse(raw);
     } catch (err) {
       throw new Error(
-        "Invalid JSON in mcp.config.json: " + (err as Error).message
+        `Invalid JSON in ${this.configPath}: ` + (err as Error).message
       );
     }
 
     if (!parsed || typeof parsed !== "object") {
       throw new Error(
-        "mcp.config.json must contain a JSON object at the top level"
+        `${this.configPath} must contain a JSON object at the top level`
       );
     }
     if (!parsed.mcpServers || typeof parsed.mcpServers !== "object") {
       throw new Error(
-        "mcp.config.json must include a 'mcpServers' object mapping server names to their definitions"
+        `${this.configPath} must include a 'mcpServers' object mapping server names to their definitions`
       );
     }
     return parsed;

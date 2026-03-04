@@ -1,13 +1,13 @@
 import { MessagingService } from "../services/core/messagingService";
-import { ResponseService } from "../services/core/responseService";
+import { ResponseGenerator } from "../services/core/responseGenerator";
 
 export class WebhookController {
   private readonly messagingService: MessagingService;
-  private readonly responseService?: ResponseService;
+  private readonly responseGenerator?: ResponseGenerator;
 
-  constructor(messagingService: MessagingService, responseService?: ResponseService) {
+  constructor(messagingService: MessagingService, responseGenerator?: ResponseGenerator) {
     this.messagingService = messagingService;
-    this.responseService = responseService;
+    this.responseGenerator = responseGenerator;
   }
 
   handleVerification(req: Request): Response {
@@ -35,9 +35,9 @@ export class WebhookController {
       if (message) {
         let responseText: string;
 
-        if (this.responseService) {
+        if (this.responseGenerator) {
           // Use LLM/MCP to generate response
-          responseText = await this.responseService.generateResponse(message.text);
+          responseText = await this.responseGenerator.generateResponse(message.text);
         } else {
           // Simple echo fallback
           responseText = `Echo: ${message.text}`;

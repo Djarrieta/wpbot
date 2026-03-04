@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 
-export abstract class LLMService {
+export abstract class LLMProvider {
   protected instance: ChatOpenAI | null = null;
 
   abstract getInstance(): ChatOpenAI;
