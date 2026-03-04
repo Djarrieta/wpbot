@@ -1,5 +1,6 @@
 import { WebhookController } from "./controllers/webhookController";
 import { HealthController } from "./controllers/healthController";
+import { WhatsAppService } from "./services/whatsappService";
 
 type Handler = (req: Request) => Response | Promise<Response>;
 
@@ -9,7 +10,13 @@ interface Route {
   handler: Handler;
 }
 
-const webhook = new WebhookController();
+const messagingService = new WhatsAppService(
+  Bun.env.WHATSAPP_ACCESS_TOKEN!,
+  Bun.env.WHATSAPP_PHONE_NUMBER_ID!,
+  Bun.env.WHATSAPP_BASE_URL!,
+  Bun.env.WHATSAPP_API_VERSION!
+);
+const webhook = new WebhookController(messagingService);
 const health = new HealthController();
 
 const routes: Route[] = [

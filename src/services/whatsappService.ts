@@ -1,8 +1,23 @@
-export class WhatsAppService {
-  private readonly accessToken = process.env.WHATSAPP_ACCESS_TOKEN || "";
-  private readonly phoneNumberId = process.env.PHONE_NUMBER_ID || "";
-  private readonly baseUrl = process.env.GRAPH_API_BASE_URL || "";
-  private readonly apiVersion = process.env.GRAPH_API_VERSION || "";
+import { MessagingService } from "./messagingService";
+
+export class WhatsAppService extends MessagingService {
+  private accessToken: string;
+  private phoneNumberId: string;
+  private baseUrl: string;
+  private apiVersion: string;
+
+  constructor(
+    accessToken: string,
+    phoneNumberId: string,
+    baseUrl: string,
+    apiVersion: string
+  ) {
+    super();
+    this.accessToken = accessToken;
+    this.phoneNumberId = phoneNumberId;
+    this.baseUrl = baseUrl;
+    this.apiVersion = apiVersion;
+  }
 
   async sendMessage(to: string, text: string) {
     const url = `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`;

@@ -1,8 +1,13 @@
+import { MessagingService } from "../services/messagingService";
 import { WhatsAppService } from "../services/whatsappService";
 
 export class WebhookController {
   private readonly verifyToken = process.env.VERIFY_TOKEN || "";
-  private readonly whatsapp = new WhatsAppService();
+  private readonly messagingService: MessagingService;
+
+  constructor(messagingService: MessagingService) {
+    this.messagingService = messagingService;
+  }
 
   handleVerification(req: Request): Response {
     const url = new URL(req.url);
@@ -31,7 +36,7 @@ export class WebhookController {
           const echoText =
             msgType === "text" ? message.text.body : `Received a ${msgType} message`;
 
-          await this.whatsapp.sendMessage(from, `Echo: ${echoText}`);
+          await this.messagingService.sendMessage(from, `Echo: ${echoText}`);
         }
       }
 
