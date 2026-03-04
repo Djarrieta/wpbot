@@ -1,8 +1,8 @@
 import { MCPAgent, MCPClient } from "mcp-use";
 import { readFile } from "fs/promises";
 import path from "path";
-import { ResponseGenerator } from "./core/responseGenerator";
-import { LLMProvider } from "./core/llmProvider";
+import { ResponseGenerator } from "../core/responseGenerator";
+import { LLMProvider } from "../core/llmProvider";
 
 let agent: MCPAgent | null = null;
 let client: MCPClient | null = null;

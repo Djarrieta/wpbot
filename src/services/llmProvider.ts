@@ -1,5 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { LLMProvider } from "./core/llmProvider";
+import { LLMProvider } from "../core/llmProvider";
 
 export class DeepSeekLLMProvider extends LLMProvider {
   private apiKey: string;

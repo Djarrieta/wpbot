@@ -1,5 +1,5 @@
-import { MessagingService } from "../services/core/messagingService";
-import { ResponseGenerator } from "../services/core/responseGenerator";
+import { MessagingService } from "../core/messagingService";
+import { ResponseGenerator } from "../core/responseGenerator";
 
 export class WebhookController {
   private readonly messagingService: MessagingService;

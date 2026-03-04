@@ -4,14 +4,7 @@ import { WhatsAppService } from "./services/whatsappService";
 import { TelegramService } from "./services/telegramService";
 import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
-
-type Handler = (req: Request) => Response | Promise<Response>;
-
-interface Route {
-  method: string;
-  pathname: string;
-  handler: Handler;
-}
+import type { Route } from "./core/types";
 
 const whatsappService = new WhatsAppService(
   Bun.env.WHATSAPP_ACCESS_TOKEN!,
