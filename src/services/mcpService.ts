@@ -2,16 +2,18 @@ import { MCPAgent, MCPClient } from "mcp-use";
 import { readFile } from "fs/promises";
 import path from "path";
 import { ResponseService } from "./core/responseService";
-import { getLLMInstance } from "./llmService";
+import { LLMService } from "./core/llmService";
 
 let agent: MCPAgent | null = null;
 let client: MCPClient | null = null;
 
 export class MCPService extends ResponseService {
   private maxSteps: number;
+  private llmService: LLMService;
 
-  constructor(maxSteps: number = 8) {
+  constructor(llmService: LLMService, maxSteps: number = 8) {
     super();
+    this.llmService = llmService;
     this.maxSteps = maxSteps;
   }
 
@@ -22,7 +24,7 @@ export class MCPService extends ResponseService {
       const config = await this.loadMCPConfig();
       client = MCPClient.fromDict(config);
 
-      const llm = getLLMInstance();
+      const llm = this.llmService.getInstance();
 
       agent = new MCPAgent({ llm, client, maxSteps: this.maxSteps });
     }

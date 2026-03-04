@@ -1,6 +1,9 @@
 import { WebhookController } from "./controllers/webhookController";
 import { HealthController } from "./controllers/healthController";
-import { WhatsAppService, TelegramService, MCPService } from "./services";
+import { WhatsAppService } from "./services/whatsappService";
+import { TelegramService } from "./services/telegramService";
+import { MCPService } from "./services/mcpService";
+import { DeepSeekLLMService } from "./services/llmService";
 
 type Handler = (req: Request) => Response | Promise<Response>;
 
@@ -21,7 +24,9 @@ const telegramService = new TelegramService(
   Bun.env.TELEGRAM_BOT_TOKEN!,
   Bun.env.TELEGRAM_BASE_URL
 );
+const llmService = new DeepSeekLLMService();
 const mcpService = new MCPService(
+  llmService,
   Number(Bun.env.MCP_MAX_STEPS) || 8
 );
 

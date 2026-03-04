@@ -1,4 +1,5 @@
-import { MessagingService, ResponseService } from "../services";
+import { MessagingService } from "../services/core/messagingService";
+import { ResponseService } from "../services/core/responseService";
 
 export class WebhookController {
   private readonly messagingService: MessagingService;
