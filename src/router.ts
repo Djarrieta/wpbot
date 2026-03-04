@@ -1,6 +1,7 @@
 import { WebhookController } from "./controllers/webhookController";
 import { HealthController } from "./controllers/healthController";
 import { WhatsAppService } from "./services/whatsappService";
+import { TelegramService } from "./services/telegramService";
 
 type Handler = (req: Request) => Response | Promise<Response>;
 
@@ -10,18 +11,25 @@ interface Route {
   handler: Handler;
 }
 
-const messagingService = new WhatsAppService(
+const whatsappService = new WhatsAppService(
   Bun.env.WHATSAPP_ACCESS_TOKEN!,
   Bun.env.WHATSAPP_PHONE_NUMBER_ID!,
   Bun.env.WHATSAPP_BASE_URL!,
-  Bun.env.WHATSAPP_API_VERSION!
+  Bun.env.WHATSAPP_API_VERSION!,
+  Bun.env.WHATSAPP_VERIFY_TOKEN
 );
-const webhook = new WebhookController(messagingService);
+const telegramService = new TelegramService(
+  Bun.env.TELEGRAM_BOT_TOKEN!,
+  Bun.env.TELEGRAM_BASE_URL
+);
+const whatsappWebhook = new WebhookController(whatsappService);
+const telegramWebhook = new WebhookController(telegramService);
 const health = new HealthController();
 
 const routes: Route[] = [
-  { method: "GET", pathname: "/webhook", handler: (req) => webhook.handleVerification(req) },
-  { method: "POST", pathname: "/webhook", handler: (req) => webhook.handleEvent(req) },
+  { method: "GET", pathname: "/webhook", handler: (req) => whatsappWebhook.handleVerification(req) },
+  { method: "POST", pathname: "/webhook", handler: (req) => whatsappWebhook.handleEvent(req) },
+  { method: "POST", pathname: "/telegram", handler: (req) => telegramWebhook.handleEvent(req) },
   { method: "GET", pathname: "/", handler: (req) => health.handle(req) },
 ];
 
