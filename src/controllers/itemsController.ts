@@ -1,7 +1,8 @@
 import { Repository } from '../core/repository';
+import type { CrudController } from '../core/types';
 import type { Item } from '../services/itemsSQLite';
 
-export class ItemsController {
+export class ItemsController implements CrudController {
   private itemsService: Repository<Item>;
 
   constructor(itemsService: Repository<Item>) {

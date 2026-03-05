@@ -7,7 +7,7 @@ import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
 import { ItemsSQLite } from "./services/itemsSQLite";
 import { MCP_CONFIG_PATH } from "./constants";
-import type { Route } from "./core/types";
+import type { Route, ResourceRoute } from "./core/types";
 
 const whatsappService = new WhatsAppService(
   Bun.env.WHATSAPP_ACCESS_TOKEN!,
@@ -43,22 +43,42 @@ const routes: Route[] = [
   { method: "POST", pathname: "/webhook", handler: (req) => whatsappWebhook.handleEvent(req) },
   { method: "POST", pathname: "/telegram", handler: (req) => telegramWebhook.handleEvent(req) },
   { method: "GET", pathname: "/", handler: (req) => health.handle(req) },
-  { method: "GET", pathname: "/items", handler: (req) => items.getAll(req) },
-  { method: "POST", pathname: "/items", handler: (req) => items.create(req) },
 ];
+
+// Register CRUD resources here - add new modules by adding to this array
+const resources: ResourceRoute[] = [
+  { basePath: "/items", controller: items },
+  // Add more resources: { basePath: "/products", controller: products },
+];
+
+function handleResourceRoutes(method: string, pathname: string, req: Request): Response | Promise<Response> | null {
+  for (const resource of resources) {
+    // Match exact basePath for collection routes
+    if (pathname === resource.basePath) {
+      if (method === "GET") return resource.controller.getAll(req);
+      if (method === "POST") return resource.controller.create(req);
+    }
+
+    // Match basePath/:id for item routes
+    const idMatch = pathname.match(new RegExp(`^${resource.basePath}/(\\d+)$`));
+    if (idMatch) {
+      const id = parseInt(idMatch[1]!, 10);
+      if (method === "GET") return resource.controller.getById(req, id);
+      if (method === "PUT") return resource.controller.update(req, id);
+      if (method === "DELETE") return resource.controller.delete(req, id);
+    }
+  }
+  return null;
+}
 
 export function router(req: Request): Response | Promise<Response> {
   const { pathname } = new URL(req.url);
 
-  // Handle /items/:id routes
-  const itemsMatch = pathname.match(/^\/items\/(\d+)$/);
-  if (itemsMatch) {
-    const id = parseInt(itemsMatch[1]!, 10);
-    if (req.method === "GET") return items.getById(req, id);
-    if (req.method === "PUT") return items.update(req, id);
-    if (req.method === "DELETE") return items.delete(req, id);
-  }
+  // Try resource routes first
+  const resourceResponse = handleResourceRoutes(req.method, pathname, req);
+  if (resourceResponse) return resourceResponse;
 
+  // Fall back to static routes
   const route = routes.find(
     (r) => r.method === req.method && r.pathname === pathname
   );
