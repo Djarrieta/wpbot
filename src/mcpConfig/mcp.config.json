@@ -5,7 +5,7 @@
       "args": [
         "-y",
         "@executeautomation/database-server",
-        "./sqlite.db"
+        "{{DB_PATH}}"
       ]
     }
   }

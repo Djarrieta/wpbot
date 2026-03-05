@@ -47,6 +47,8 @@ export class MCPService extends ResponseGenerator {
       );
     }
 
+    raw = this.interpolateConfigPlaceholders(raw);
+
     let parsed: any;
     try {
       parsed = JSON.parse(raw);
