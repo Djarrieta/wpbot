@@ -1,7 +1,7 @@
 import { router } from "./src/router";
 
 const server = Bun.serve({
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 4000,
   fetch: router,
 });
 
