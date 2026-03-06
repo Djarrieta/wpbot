@@ -1,12 +1,46 @@
 import { Repository } from '../core/repository';
 import type { CrudController } from '../core/types';
 import type { Item } from '../services/itemsSQLite';
+import type { ItemsSQLite } from '../services/itemsSQLite';
 
 export class ItemsController implements CrudController {
   private itemsService: Repository<Item>;
 
   constructor(itemsService: Repository<Item>) {
     this.itemsService = itemsService;
+  }
+
+  /**
+   * Build a system prompt with assistant capabilities and schema information
+   */
+  buildPrompt(userMessage: string): string {
+    const schemaText = (this.itemsService as ItemsSQLite).text?.() ?? 
+      '{id: number, name: string, quantity: number}';
+    
+    return `
+Eres un asistente de base de datos SQLite. Tienes las siguientes capacidades:
+
+HERRAMIENTAS DISPONIBLES:
+- read_query: Ejecutar consultas SELECT para leer datos de la base de datos
+- write_query: Ejecutar consultas INSERT, UPDATE, DELETE para modificar datos
+- create_table: Crear nuevas tablas en la base de datos
+- list_tables: Listar todas las tablas disponibles
+- describe_table: Obtener el esquema de una tabla específica
+
+ESQUEMA DE LA BASE DE DATOS:
+Hay una tabla llamada "items" con las siguientes columnas:
+${schemaText}
+
+INSTRUCCIONES:
+- Responde siempre en español
+- Usa las herramientas disponibles para consultar o modificar la base de datos
+- Formatea los resultados de manera clara y legible
+
+MENSAJE DEL USUARIO:
+${userMessage}
+
+RESPUESTA DEL ASISTENTE:
+`;
   }
 
   /**

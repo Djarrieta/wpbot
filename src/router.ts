@@ -31,12 +31,12 @@ const mcpService = new MCPService(
   Number(Bun.env.MCP_MAX_STEPS) || 8
 );
 
-// Pass mcpService as responseGenerator to enable LLM-powered responses
-const whatsappWebhook = new WebhookController(whatsappService, mcpService);
-const telegramWebhook = new WebhookController(telegramService, mcpService);
 const health = new HealthController();
 const itemsService = new ItemsSQLite();
 const items = new ItemsController(itemsService);
+
+const whatsappWebhook = new WebhookController(whatsappService, mcpService, items);
+const telegramWebhook = new WebhookController(telegramService, mcpService, items);
 
 const routes: Route[] = [
   { method: "GET", pathname: "/webhook", handler: (req) => whatsappWebhook.handleVerification(req) },

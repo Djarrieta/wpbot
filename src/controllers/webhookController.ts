@@ -1,13 +1,20 @@
 import { MessagingService } from "../core/messagingService";
 import { ResponseGenerator } from "../core/responseGenerator";
+import { ItemsController } from "./itemsController";
 
 export class WebhookController {
   private readonly messagingService: MessagingService;
   private readonly responseGenerator?: ResponseGenerator;
+  private readonly itemsController?: ItemsController;
 
-  constructor(messagingService: MessagingService, responseGenerator?: ResponseGenerator) {
+  constructor(
+    messagingService: MessagingService, 
+    responseGenerator?: ResponseGenerator,
+    itemsController?: ItemsController
+  ) {
     this.messagingService = messagingService;
     this.responseGenerator = responseGenerator;
+    this.itemsController = itemsController;
   }
 
   handleVerification(req: Request): Response {
@@ -32,23 +39,25 @@ export class WebhookController {
 
       const message = this.messagingService.parseIncomingMessage(body);
 
+      let responseText: string = "OK";
       if (message) {
-        let responseText: string;
 
         if (this.responseGenerator) {
-          // Use LLM/MCP to generate response
-          responseText = await this.responseGenerator.generateResponse(message.text);
+          const prompt = this.itemsController 
+            ? this.itemsController.buildPrompt(message.text)
+            : message.text;
+          responseText = await this.responseGenerator.generateResponse(prompt);
         } else {
           // Simple echo fallback
           responseText = `Echo: ${message.text}`;
           
+          
         }
-        return new Response("OK", { status: 200,statusText:responseText });
-
-       // await this.messagingService.sendMessage(message.from, responseText);
+        
+        // await this.messagingService.sendMessage(message.from, responseText);
       }
+      return new Response(responseText, { status: 200, statusText: "OK" });
 
-      return new Response("OK", { status: 200, });
     } catch (error) {
       console.error("Error processing webhook:", error);
       return new Response("OK", { status: 200 }); // Always return 200 to avoid retries

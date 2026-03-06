@@ -1,0 +1,51 @@
+# Health Check
+curl -X GET http://localhost:4000/
+
+# List All Items
+curl -X GET http://localhost:4000/items
+
+# Create Item
+curl -X POST http://localhost:4000/items \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test Item", "quantity": 10}'
+
+# Get Item by ID
+curl -X GET http://localhost:4000/items/1
+
+# Update Item
+curl -X PUT http://localhost:4000/items/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Updated Item", "quantity": 20}'
+
+# Delete Item
+curl -X DELETE http://localhost:4000/items/1
+
+# Telegram Webhook Test
+curl -X POST http://localhost:4000/telegram \
+  -H "Content-Type: application/json" \
+  -d '{
+    "update_id": 123456789,
+    "message": {
+      "message_id": 1,
+      "from": {
+        "id": 12345678,
+        "first_name": "Test",
+        "username": "testuser"
+      },
+      "chat": {
+        "id": 12345678,
+        "first_name": "Test",
+        "type": "private"
+      },
+      "date": 1709740800,
+      "text": "what tools do you have available?"
+    }
+  }'
+
+# WhatsApp Webhook Verification
+curl -X GET "http://localhost:4000/webhook?hub.mode=subscribe&hub.verify_token=YOUR_VERIFY_TOKEN&hub.challenge=test_challenge"
+
+# WhatsApp Webhook Test
+curl -X POST http://localhost:4000/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"object": "whatsapp_business_account", "entry": [{"id": "123456789", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "1234567890", "phone_number_id": "123456789"}, "messages": [{"from": "1234567890", "id": "wamid.test123", "timestamp": "1709740800", "text": {"body": "Hello from WhatsApp!"}, "type": "text"}]}, "field": "messages"}]}]}'
