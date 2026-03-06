@@ -74,4 +74,7 @@ export class ItemsSQLite extends Repository<Item> {
   close(): void {
     this.db.close();
   }
+  text(): string {
+    return '{id: number, name: string, quantity: number }';
+  }
 }

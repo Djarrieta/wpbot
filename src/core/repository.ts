@@ -10,4 +10,5 @@ export abstract class Repository<T extends BaseEntity> {
   abstract update(id: number, entity: Partial<Omit<T, 'id'>>): T | null;
   abstract delete(id: number): boolean;
   abstract close(): void;
+  abstract text(): string;
 }

@@ -41,12 +41,14 @@ export class WebhookController {
         } else {
           // Simple echo fallback
           responseText = `Echo: ${message.text}`;
+          
         }
+        return new Response("OK", { status: 200,statusText:responseText });
 
-        await this.messagingService.sendMessage(message.from, responseText);
+       // await this.messagingService.sendMessage(message.from, responseText);
       }
 
-      return new Response("OK", { status: 200 });
+      return new Response("OK", { status: 200, });
     } catch (error) {
       console.error("Error processing webhook:", error);
       return new Response("OK", { status: 200 }); // Always return 200 to avoid retries
