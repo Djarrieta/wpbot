@@ -14,8 +14,7 @@ export class ItemsController implements CrudController {
    * Build a system prompt with assistant capabilities and schema information
    */
   buildPrompt(userMessage: string): string {
-    const schemaText = (this.itemsService as ItemsSQLite).text?.() ?? 
-      '{id: number, name: string, quantity: number}';
+    const schemaText = (this.itemsService as ItemsSQLite).text?.()
     
     return `
 Eres un asistente de base de datos SQLite. Tienes las siguientes capacidades:

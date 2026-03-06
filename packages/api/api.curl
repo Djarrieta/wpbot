@@ -7,7 +7,7 @@ curl -X GET http://localhost:4000/items
 # Create Item
 curl -X POST http://localhost:4000/items \
   -H "Content-Type: application/json" \
-  -d '{"name": "Test Item", "quantity": 10}'
+  -d '{"name": "asdf", "quantity": 10}'
 
 # Get Item by ID
 curl -X GET http://localhost:4000/items/1
@@ -38,7 +38,7 @@ curl -X POST http://localhost:4000/telegram \
         "type": "private"
       },
       "date": 1709740800,
-      "text": "what tools do you have available?"
+      "text": "crea un nuevo item llamado moto con cantidad 1"
     }
   }'
 

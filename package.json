@@ -1,20 +1,10 @@
 {
   "name": "wpbot",
-  "module": "index.ts",
-  "type": "module",
   "private": true,
+  "workspaces": ["packages/*"],
   "scripts": {
-    "start": "bun run index.ts",
-    "dev": "bun --watch run index.ts"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "5"
-  },
-  "dependencies": {
-    "@langchain/openai": "1.2.12",
-    "mcp-use": "1.21.0"
+    "dev": "bun run --filter '*' dev",
+    "dev:api": "bun run --filter @wpbot/api dev",
+    "dev:web": "bun run --filter @wpbot/web dev"
   }
 }
