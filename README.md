@@ -1,16 +1,66 @@
 # wpbot
 
-To install dependencies:
+A monorepo with an AI assistant API, a web dashboard, and messaging bots for WhatsApp and Telegram. The API uses MCP + LLM to generate responses backed by a SQLite database. The messaging packages forward user messages to the API and relay responses back.
+
+## Packages
+
+| Package           | Port | Description                                                   |
+| ----------------- | ---- | ------------------------------------------------------------- |
+| `@wpbot/api`      | 4000 | Core assistant API (`POST /assistant`), items CRUD, MCP + LLM |
+| `@wpbot/web`      | 4001 | React dashboard for managing items                            |
+| `@wpbot/whatsapp` | 4002 | WhatsApp bot (webhook-based)                                  |
+| `@wpbot/telegram` | —    | Telegram bot (Telegraf, long polling)                         |
+
+## Setup
 
 ```bash
 bun install
+cp .env.example .env
+# Fill in your API keys and tokens in .env
 ```
 
-To run:
+## Environment Variables
+
+Configured in the root `.env` (symlinked into each package):
+
+| Variable                   | Description                         |
+| -------------------------- | ----------------------------------- |
+| `PORT`                     | API server port (default: 4000)     |
+| `WEB_PORT`                 | Web dev server port (default: 4001) |
+| `WHATSAPP_PORT`            | WhatsApp bot port (default: 4002)   |
+| `WHATSAPP_ACCESS_TOKEN`    | Meta WhatsApp Cloud API token       |
+| `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp phone number ID            |
+| `WHATSAPP_BASE_URL`        | WhatsApp API base URL               |
+| `WHATSAPP_API_VERSION`     | WhatsApp API version (e.g. v22.0)   |
+| `WHATSAPP_VERIFY_TOKEN`    | Webhook verification token          |
+| `TELEGRAM_BOT_TOKEN`       | Telegram bot token from BotFather   |
+| `DEEPSEEK_API_KEY`         | DeepSeek / LLM API key              |
+| `DEEPSEEK_MODEL`           | LLM model name                      |
+| `DEEPSEEK_BASE_URL`        | Custom OpenAI-compatible base URL   |
+| `MCP_MAX_STEPS`            | Max MCP agent steps (default: 8)    |
+
+## Running
 
 ```bash
-bun run index.ts
+# All packages
+bun run dev
+
+# Individual packages
+bun run dev:api
+bun run dev:web
+bun run dev:whatsapp
+bun run dev:telegram
+
+# API + Web + Telegram (no WhatsApp)
+bun run dev:no-whatsapp
 ```
 
-This project was created using `bun init` in bun v1.3.9. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
-# wpbot
+## API Endpoints
+
+- `GET /` — Health check
+- `POST /assistant` — Send `{ "message": "..." }`, get `{ "response": "..." }`
+- `GET /items` — List all items
+- `POST /items` — Create item `{ "name": "...", "quantity": 0 }`
+- `GET /items/:id` — Get item by ID
+- `PUT /items/:id` — Update item
+- `DELETE /items/:id` — Delete item

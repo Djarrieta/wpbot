@@ -1,25 +1,12 @@
-import { WebhookController } from "./controllers/webhookController";
 import { HealthController } from "./controllers/healthController";
+import { AssistantController } from "./controllers/assistantController";
 import { ItemsController } from "./controllers/itemsController";
-import { WhatsAppService } from "./services/whatsappService";
-import { TelegramService } from "./services/telegramService";
 import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
 import { ItemsSQLite } from "./services/itemsSQLite";
 import { MCP_CONFIG_PATH } from "./constants";
 import type { Route, ResourceRoute } from "./core/types";
 
-const whatsappService = new WhatsAppService(
-  Bun.env.WHATSAPP_ACCESS_TOKEN!,
-  Bun.env.WHATSAPP_PHONE_NUMBER_ID!,
-  Bun.env.WHATSAPP_BASE_URL!,
-  Bun.env.WHATSAPP_API_VERSION!,
-  Bun.env.WHATSAPP_VERIFY_TOKEN
-);
-const telegramService = new TelegramService(
-  Bun.env.TELEGRAM_BOT_TOKEN!,
-  Bun.env.TELEGRAM_BASE_URL
-);
 const llmProvider = new DeepSeekLLMProvider(
   Bun.env.DEEPSEEK_API_KEY!,
   Bun.env.DEEPSEEK_MODEL!,
@@ -35,13 +22,10 @@ const health = new HealthController();
 const itemsService = new ItemsSQLite();
 const items = new ItemsController(itemsService);
 
-const whatsappWebhook = new WebhookController(whatsappService, mcpService, items);
-const telegramWebhook = new WebhookController(telegramService, mcpService, items);
+const assistant = new AssistantController(mcpService, items);
 
 const routes: Route[] = [
-  { method: "GET", pathname: "/webhook", handler: (req) => whatsappWebhook.handleVerification(req) },
-  { method: "POST", pathname: "/webhook", handler: (req) => whatsappWebhook.handleEvent(req) },
-  { method: "POST", pathname: "/telegram", handler: (req) => telegramWebhook.handleEvent(req) },
+  { method: "POST", pathname: "/assistant", handler: (req) => assistant.handle(req) },
   { method: "GET", pathname: "/", handler: (req) => health.handle(req) },
 ];
 

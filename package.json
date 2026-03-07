@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "bun run --filter '*' dev",
     "dev:api": "bun run --filter @wpbot/api dev",
-    "dev:web": "bun run --filter @wpbot/web dev"
+    "dev:web": "bun run --filter @wpbot/web dev",
+    "dev:whatsapp": "bun run --filter @wpbot/whatsapp dev",
+    "dev:telegram": "bun run --filter @wpbot/telegram dev",
+    "dev:no-whatsapp": "bun run --filter '@wpbot/{api,web,telegram}' dev"
   }
 }
