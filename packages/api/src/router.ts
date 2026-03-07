@@ -4,7 +4,7 @@ import { ItemsController } from "./controllers/itemsController";
 import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
 import { ItemsSQLite } from "./services/itemsSQLite";
-import { MCP_CONFIG_PATH } from "./constants";
+import { MCP_CONFIG_READONLY } from "./constants";
 import type { Route, ResourceRoute } from "./core/types";
 
 const llmProvider = new DeepSeekLLMProvider(
@@ -14,7 +14,7 @@ const llmProvider = new DeepSeekLLMProvider(
 );
 const mcpService = new MCPService(
   llmProvider,
-  MCP_CONFIG_PATH,
+  MCP_CONFIG_READONLY,
   Number(Bun.env.MCP_MAX_STEPS) || 8
 );
 

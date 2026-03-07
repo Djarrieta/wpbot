@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "python3",
+      "args": [
+        "scripts/sqlite_readonly_mcp.py",
+        "--db-path",
+        "{{DB_PATH}}"
+      ]
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-     "sqlite": {
+    "sqlite": {
       "command": "npx",
       "args": [
         "-y",
