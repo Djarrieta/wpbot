@@ -71,16 +71,17 @@ RESPUESTA DEL ASISTENTE:
     try {
       const body = await req.json() as Omit<Item, 'id'>;
       
-      if (!body.name || body.quantity === undefined) {
+      if (!body.name || !body.description || body.price === undefined) {
         return Response.json(
-          { error: 'name and quantity are required' },
+          { error: 'name, description and price are required' },
           { status: 400 }
         );
       }
 
       const item = this.itemsService.create({
         name: body.name,
-        quantity: body.quantity,
+        description: body.description,
+        price: body.price,
       });
       
       return Response.json(item, { status: 201 });

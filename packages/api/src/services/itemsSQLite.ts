@@ -5,7 +5,8 @@ import { Repository } from '../core/repository';
 export type Item = {
   id?: number;
   name: string;
-  quantity: number;
+  description: string;
+  price: number;
 };
 
 export class ItemsSQLite extends Repository<Item> {
@@ -22,21 +23,23 @@ export class ItemsSQLite extends Repository<Item> {
       CREATE TABLE IF NOT EXISTS items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        quantity INTEGER NOT NULL DEFAULT 0
+        description TEXT NOT NULL DEFAULT '',
+        price REAL NOT NULL DEFAULT 0
       )
     `);
   }
 
   create(item: Omit<Item, 'id'>): Item {
     const stmt = this.db.prepare(`
-      INSERT INTO items (name, quantity)
-      VALUES (?, ?)
+      INSERT INTO items (name, description, price)
+      VALUES (?, ?, ?)
     `);
-    const result = stmt.run(item.name, item.quantity);
+    const result = stmt.run(item.name, item.description, item.price);
     return {
       id: Number(result.lastInsertRowid),
       name: item.name,
-      quantity: item.quantity,
+      description: item.description,
+      price: item.price,
     };
   }
 
@@ -55,15 +58,16 @@ export class ItemsSQLite extends Repository<Item> {
     if (!existing) return null;
 
     const name = item.name ?? existing.name;
-    const quantity = item.quantity ?? existing.quantity;
+    const description = item.description ?? existing.description;
+    const price = item.price ?? existing.price;
 
     this.db.prepare(`
       UPDATE items 
-      SET name = ?, quantity = ? 
+      SET name = ?, description = ?, price = ? 
       WHERE id = ?
-    `).run(name, quantity, id);
+    `).run(name, description, price, id);
 
-    return { id, name, quantity };
+    return { id, name, description, price };
   }
 
   delete(id: number): boolean {
@@ -75,6 +79,6 @@ export class ItemsSQLite extends Repository<Item> {
     this.db.close();
   }
   text(): string {
-    return '{id: number, name: string, quantity: number }';
+    return '{id: number, name: string, description: string, price: number }';
   }
 }
