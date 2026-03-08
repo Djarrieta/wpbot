@@ -3,11 +3,11 @@ import { ItemsController } from "./itemsController";
 
 export class AssistantController {
   private readonly responseGenerator: ResponseGenerator;
-  private readonly itemsController?: ItemsController;
+  private readonly itemsController: ItemsController;
 
   constructor(
     responseGenerator: ResponseGenerator,
-    itemsController?: ItemsController
+    itemsController: ItemsController
   ) {
     this.responseGenerator = responseGenerator;
     this.itemsController = itemsController;
@@ -24,9 +24,7 @@ export class AssistantController {
         );
       }
 
-      const prompt = this.itemsController
-        ? this.itemsController.buildPrompt(body.message)
-        : body.message;
+      const prompt = this.itemsController.buildPrompt(body.message);
 
       const response = await this.responseGenerator.generateResponse(prompt);
 
