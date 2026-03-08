@@ -8,6 +8,10 @@ export default defineConfig({
   server: {
     port: parseInt(process.env.WEB_PORT || '4001'),
     proxy: {
+      '/api': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
       '/items': {
         target: 'http://localhost:4000',
         changeOrigin: true,

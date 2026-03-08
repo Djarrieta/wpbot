@@ -27,6 +27,17 @@ const assistant = new AssistantController(mcpService, items);
 const routes: Route[] = [
   { method: "POST", pathname: "/assistant", handler: (req) => assistant.handle(req) },
   { method: "GET", pathname: "/", handler: (req) => health.handle(req) },
+  {
+    method: "GET",
+    pathname: "/api/stats",
+    handler: () => {
+      const allItems = itemsService.getAll();
+      const totalItems = allItems.length;
+      const totalValue = allItems.reduce((sum, item) => sum + item.price, 0);
+      const avgPrice = totalItems > 0 ? totalValue / totalItems : 0;
+      return Response.json({ totalItems, totalValue, avgPrice });
+    },
+  },
 ];
 
 // Register CRUD resources here - add new modules by adding to this array

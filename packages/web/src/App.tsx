@@ -1,13 +1,16 @@
-import { ItemsPage } from "./components/ItemsPage";
+import { Routes, Route } from "react-router-dom";
+import { Layout } from "./components/Layout";
+import { Dashboard } from "./pages/Dashboard";
+import { ItemsPage } from "./pages/ItemsPage";
 
 function App() {
   return (
-    <div className="max-w-6xl mx-auto p-6 flex flex-col items-center min-h-screen">
-      <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
-        wpbot Dashboard
-      </h1>
-      <ItemsPage />
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/items" element={<ItemsPage />} />
+      </Route>
+    </Routes>
   );
 }
 

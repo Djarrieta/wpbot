@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import type { Item } from "../types";
 import * as api from "../api/items";
-import { Table } from "./Table";
-import { Button } from "./Button";
-import { Modal } from "./Modal";
-import { ItemForm } from "./ItemForm";
+import { Table } from "../components/Table";
+import { Button } from "../components/Button";
+import { Modal } from "../components/Modal";
+import { ItemForm } from "../components/ItemForm";
 
 export function ItemsPage() {
   const [items, setItems] = useState<Item[]>([]);
