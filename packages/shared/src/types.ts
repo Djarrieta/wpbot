@@ -12,5 +12,12 @@ export type User = {
   phone: string;
 };
 
+export type Inventory = {
+  id?: number;
+  item_id: number;
+  quantity: number;
+  location: string;
+};
+
 /** Utility: make `id` required (for entities returned from the API) */
 export type WithId<T extends { id?: number }> = T & { id: number };
