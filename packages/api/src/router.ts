@@ -1,9 +1,11 @@
 import { HealthController } from "./controllers/healthController";
 import { AssistantController } from "./controllers/assistantController";
 import { ItemsController } from "./controllers/itemsController";
+import { UsersController } from "./controllers/usersController";
 import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
 import { ItemsSQLite } from "./services/itemsSQLite";
+import { UsersSQLite } from "./services/usersSQLite";
 import { MCP_CONFIG_READONLY } from "./constants";
 import type { Route, ResourceRoute } from "./core/types";
 
@@ -21,6 +23,8 @@ const mcpService = new MCPService(
 const health = new HealthController();
 const itemsService = new ItemsSQLite();
 const items = new ItemsController(itemsService);
+const usersService = new UsersSQLite();
+const users = new UsersController(usersService);
 
 const assistant = new AssistantController(mcpService, items);
 
@@ -43,7 +47,7 @@ const routes: Route[] = [
 // Register CRUD resources here - add new modules by adding to this array
 const resources: ResourceRoute[] = [
   { basePath: "/items", controller: items },
-  // Add more resources: { basePath: "/products", controller: products },
+  { basePath: "/users", controller: users },
 ];
 
 function handleResourceRoutes(method: string, pathname: string, req: Request): Response | Promise<Response> | null {

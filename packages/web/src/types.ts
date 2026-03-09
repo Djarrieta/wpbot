@@ -4,3 +4,10 @@ export type Item = {
   description: string;
   price: number;
 };
+
+export type User = {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+};
