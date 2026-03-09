@@ -27,8 +27,8 @@ const routes: Route[] = [
   {
     method: "GET",
     pathname: "/api/stats",
-    handler: () => {
-      const allItems = itemsService.getAll();
+    handler: async () => {
+      const allItems = await itemsService.getAll();
       const totalItems = allItems.length;
       const totalValue = allItems.reduce((sum, item) => sum + item.price, 0);
       const avgPrice = totalItems > 0 ? totalValue / totalItems : 0;

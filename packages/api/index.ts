@@ -1,4 +1,7 @@
 import { router } from "./src/router";
+import { initModules } from "./src/modules";
+
+await initModules();
 
 const server = Bun.serve({
   port: Bun.env.PORT || 4000,

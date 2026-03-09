@@ -1,11 +1,11 @@
 {
   "mcpServers": {
-    "sqlite": {
+    "postgres": {
       "command": "npx",
       "args": [
         "-y",
-        "@executeautomation/database-server",
-        "{{DB_PATH}}"
+        "@modelcontextprotocol/server-postgres",
+        "{{PG_CONNECTION_STRING}}"
       ]
     }
   }

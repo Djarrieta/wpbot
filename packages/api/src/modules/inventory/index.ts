@@ -5,6 +5,10 @@ import { InventoryController } from './controller';
 const service = createInventoryRepository();
 const controller = new InventoryController(service);
 
+export async function init() {
+  await service.initializeTable();
+}
+
 export { service, controller };
 export type { Inventory } from './service';
 export { InventoryController } from './controller';

@@ -13,11 +13,11 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
   }
 
   async getAll(_req: Request): Promise<Response> {
-    return Response.json(this.service.getAll());
+    return Response.json(await this.service.getAll());
   }
 
   async getById(_req: Request, id: number): Promise<Response> {
-    const entity = this.service.getById(id);
+    const entity = await this.service.getById(id);
     if (!entity) {
       return Response.json({ error: `${this.entityName} not found` }, { status: 404 });
     }
@@ -38,7 +38,7 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
         );
       }
 
-      const entity = this.service.create(body);
+      const entity = await this.service.create(body);
       return Response.json(entity, { status: 201 });
     } catch {
       return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
@@ -48,7 +48,7 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
   async update(req: Request, id: number): Promise<Response> {
     try {
       const body = await req.json() as Partial<Omit<T, 'id'>>;
-      const entity = this.service.update(id, body);
+      const entity = await this.service.update(id, body);
       if (!entity) {
         return Response.json({ error: `${this.entityName} not found` }, { status: 404 });
       }
@@ -59,7 +59,7 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
   }
 
   async delete(_req: Request, id: number): Promise<Response> {
-    const deleted = this.service.delete(id);
+    const deleted = await this.service.delete(id);
     if (!deleted) {
       return Response.json({ error: `${this.entityName} not found` }, { status: 404 });
     }

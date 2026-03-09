@@ -3,12 +3,12 @@ export interface BaseEntity {
 }
 
 export abstract class Repository<T extends BaseEntity> {
-  abstract initializeTable(): void;
-  abstract create(entity: Omit<T, 'id'>): T;
-  abstract getAll(): T[];
-  abstract getById(id: number): T | null;
-  abstract update(id: number, entity: Partial<Omit<T, 'id'>>): T | null;
-  abstract delete(id: number): boolean;
-  abstract close(): void;
+  abstract initializeTable(): Promise<void>;
+  abstract create(entity: Omit<T, 'id'>): Promise<T>;
+  abstract getAll(): Promise<T[]>;
+  abstract getById(id: number): Promise<T | null>;
+  abstract update(id: number, entity: Partial<Omit<T, 'id'>>): Promise<T | null>;
+  abstract delete(id: number): Promise<boolean>;
+  abstract close(): Promise<void>;
   abstract text(): string;
 }

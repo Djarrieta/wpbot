@@ -5,6 +5,10 @@ import { ItemsController } from './controller';
 const service = createItemsRepository();
 const controller = new ItemsController(service);
 
+export async function init() {
+  await service.initializeTable();
+}
+
 export { service, controller };
 export type { Item } from './service';
 export { ItemsController } from './controller';

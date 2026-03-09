@@ -1,10 +1,14 @@
 import type { ResourceRoute } from '../core/types';
-import items from './items';
-import users from './users';
-import inventory from './inventory';
+import items, { init as initItems } from './items';
+import users, { init as initUsers } from './users';
+import inventory, { init as initInventory } from './inventory';
 
 export const modules: ResourceRoute[] = [
   items,
   users,
   inventory,
 ];
+
+export async function initModules() {
+  await Promise.all([initItems(), initUsers(), initInventory()]);
+}

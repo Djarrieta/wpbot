@@ -5,6 +5,10 @@ import { UsersController } from './controller';
 const service = createUsersRepository();
 const controller = new UsersController(service);
 
+export async function init() {
+  await service.initializeTable();
+}
+
 export { service, controller };
 export type { User } from './service';
 export { UsersController } from './controller';
