@@ -1,14 +1,14 @@
-import type { User } from "../types";
-import { usersApi } from "../api/users";
-import { CrudPage } from "../components/CrudPage";
-import { UserForm } from "../components/UserForm";
+import type { User, WithId } from "@wpbot/shared";
+import { CrudPage } from "../../components/CrudPage";
+import { UserForm } from "./Form";
+import { api } from "./api";
 
 export function UsersPage() {
   return (
-    <CrudPage<User>
+    <CrudPage<WithId<User>>
       entityName="User"
       entityNamePlural="Users"
-      api={usersApi}
+      api={api}
       columns={[
         { key: "id", header: "ID" },
         { key: "name", header: "Name" },

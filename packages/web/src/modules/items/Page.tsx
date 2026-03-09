@@ -1,14 +1,14 @@
-import type { Item } from "../types";
-import { itemsApi } from "../api/items";
-import { CrudPage } from "../components/CrudPage";
-import { ItemForm } from "../components/ItemForm";
+import type { Item, WithId } from "@wpbot/shared";
+import { CrudPage } from "../../components/CrudPage";
+import { ItemForm } from "./Form";
+import { api } from "./api";
 
 export function ItemsPage() {
   return (
-    <CrudPage<Item>
+    <CrudPage<WithId<Item>>
       entityName="Item"
       entityNamePlural="Items"
-      api={itemsApi}
+      api={api}
       columns={[
         { key: "id", header: "ID" },
         { key: "name", header: "Name" },

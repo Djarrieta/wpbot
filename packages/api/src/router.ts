@@ -1,13 +1,11 @@
 import { HealthController } from "./controllers/healthController";
 import { AssistantController } from "./controllers/assistantController";
-import { ItemsController } from "./controllers/itemsController";
-import { UsersController } from "./controllers/usersController";
 import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
-import { createItemsRepository } from "./services/itemsSQLite";
-import { createUsersRepository } from "./services/usersSQLite";
 import { MCP_CONFIG_READONLY } from "./constants";
-import type { Route, ResourceRoute } from "./core/types";
+import { modules } from "./modules";
+import { controller as itemsController, service as itemsService } from "./modules/items";
+import type { Route } from "./core/types";
 
 const llmProvider = new DeepSeekLLMProvider(
   Bun.env.DEEPSEEK_API_KEY!,
@@ -21,12 +19,7 @@ const mcpService = new MCPService(
 );
 
 const health = new HealthController();
-const itemsService = createItemsRepository();
-const items = new ItemsController(itemsService);
-const usersService = createUsersRepository();
-const users = new UsersController(usersService);
-
-const assistant = new AssistantController(mcpService, items);
+const assistant = new AssistantController(mcpService, itemsController);
 
 const routes: Route[] = [
   { method: "POST", pathname: "/assistant", handler: (req) => assistant.handle(req) },
@@ -44,21 +37,13 @@ const routes: Route[] = [
   },
 ];
 
-// Register CRUD resources here - add new modules by adding to this array
-const resources: ResourceRoute[] = [
-  { basePath: "/items", controller: items },
-  { basePath: "/users", controller: users },
-];
-
 function handleResourceRoutes(method: string, pathname: string, req: Request): Response | Promise<Response> | null {
-  for (const resource of resources) {
-    // Match exact basePath for collection routes
+  for (const resource of modules) {
     if (pathname === resource.basePath) {
       if (method === "GET") return resource.controller.getAll(req);
       if (method === "POST") return resource.controller.create(req);
     }
 
-    // Match basePath/:id for item routes
     const idMatch = pathname.match(new RegExp(`^${resource.basePath}/(\\d+)$`));
     if (idMatch) {
       const id = parseInt(idMatch[1]!, 10);
@@ -73,11 +58,9 @@ function handleResourceRoutes(method: string, pathname: string, req: Request): R
 export function router(req: Request): Response | Promise<Response> {
   const { pathname } = new URL(req.url);
 
-  // Try resource routes first
   const resourceResponse = handleResourceRoutes(req.method, pathname, req);
   if (resourceResponse) return resourceResponse;
 
-  // Fall back to static routes
   const route = routes.find(
     (r) => r.method === req.method && r.pathname === pathname
   );

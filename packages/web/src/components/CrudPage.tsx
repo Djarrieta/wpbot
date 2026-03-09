@@ -2,7 +2,7 @@ import { useEffect, useCallback, useState, type ComponentType } from "react";
 import { Table } from "./Table";
 import { Button } from "./Button";
 import { Modal } from "./Modal";
-import type { ApiClient } from "../api/createApiClient";
+import type { ApiClient } from "../lib/createApiClient";
 
 interface Column<T> {
   key: keyof T;

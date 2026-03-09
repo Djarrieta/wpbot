@@ -1,5 +1,5 @@
-import type { User } from "../types";
-import { GenericForm, type FormField } from "./GenericForm";
+import type { User, WithId } from "@wpbot/shared";
+import { GenericForm, type FormField } from "../../components/GenericForm";
 
 const fields: FormField[] = [
   {
@@ -20,12 +20,12 @@ const fields: FormField[] = [
 ];
 
 interface UserFormProps {
-  initial?: User;
+  initial?: WithId<User>;
   onSubmit: (data: Omit<User, "id">) => void;
   onCancel: () => void;
   loading?: boolean;
 }
 
 export function UserForm(props: UserFormProps) {
-  return <GenericForm<User> fields={fields} {...props} />;
+  return <GenericForm<WithId<User>> fields={fields} {...props} />;
 }

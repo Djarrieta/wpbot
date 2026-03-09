@@ -1,5 +1,5 @@
-import type { Item } from "../types";
-import { GenericForm, type FormField } from "./GenericForm";
+import type { Item, WithId } from "@wpbot/shared";
+import { GenericForm, type FormField } from "../../components/GenericForm";
 
 const fields: FormField[] = [
   {
@@ -27,12 +27,12 @@ const fields: FormField[] = [
 ];
 
 interface ItemFormProps {
-  initial?: Item;
+  initial?: WithId<Item>;
   onSubmit: (data: Omit<Item, "id">) => void;
   onCancel: () => void;
   loading?: boolean;
 }
 
 export function ItemForm(props: ItemFormProps) {
-  return <GenericForm<Item> fields={fields} {...props} />;
+  return <GenericForm<WithId<Item>> fields={fields} {...props} />;
 }

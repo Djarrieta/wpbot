@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@langchain/openai": "1.2.12",
+    "@wpbot/shared": "workspace:*",
     "mcp-use": "1.21.0"
   }
 }

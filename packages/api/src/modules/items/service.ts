@@ -1,11 +1,7 @@
-import { SQLiteRepository } from '../core/sqliteRepository';
+import { SQLiteRepository } from '../../core/sqliteRepository';
+import type { Item } from '@wpbot/shared';
 
-export type Item = {
-  id?: number;
-  name: string;
-  description: string;
-  price: number;
-};
+export type { Item };
 
 export function createItemsRepository() {
   return new SQLiteRepository<Item>('items', [

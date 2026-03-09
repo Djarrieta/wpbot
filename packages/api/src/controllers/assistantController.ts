@@ -1,5 +1,5 @@
 import { ResponseGenerator } from "../core/responseGenerator";
-import { ItemsController } from "./itemsController";
+import { ItemsController } from "../modules/items/controller";
 
 export class AssistantController {
   private readonly responseGenerator: ResponseGenerator;

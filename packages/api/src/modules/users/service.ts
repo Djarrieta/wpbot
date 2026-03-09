@@ -1,11 +1,7 @@
-import { SQLiteRepository } from '../core/sqliteRepository';
+import { SQLiteRepository } from '../../core/sqliteRepository';
+import type { User } from '@wpbot/shared';
 
-export type User = {
-  id?: number;
-  name: string;
-  email: string;
-  phone: string;
-};
+export type { User };
 
 export function createUsersRepository() {
   return new SQLiteRepository<User>('users', [
