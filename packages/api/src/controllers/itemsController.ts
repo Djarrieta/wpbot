@@ -1,21 +1,15 @@
-import { Repository } from '../core/repository';
-import type { CrudController } from '../core/types';
+import { GenericCrudController } from '../core/crudController';
+import type { Repository } from '../core/repository';
 import type { Item } from '../services/itemsSQLite';
-import type { ItemsSQLite } from '../services/itemsSQLite';
 
-export class ItemsController implements CrudController {
-  private itemsService: Repository<Item>;
-
+export class ItemsController extends GenericCrudController<Item> {
   constructor(itemsService: Repository<Item>) {
-    this.itemsService = itemsService;
+    super(itemsService, 'Item', ['name', 'description', 'price']);
   }
 
-  /**
-   * Build a system prompt with assistant capabilities and schema information
-   */
   buildPrompt(userMessage: string): string {
-    const schemaText = (this.itemsService as ItemsSQLite).text?.()
-    
+    const schemaText = this.service.text();
+
     return `
 Eres un asistente de base de datos SQLite. Solo tienes permisos de LECTURA.
 
@@ -43,81 +37,5 @@ ${userMessage}
 
 RESPUESTA DEL ASISTENTE:
 `;
-  }
-
-  /**
-   * GET /items - Get all items
-   */
-  async getAll(_req: Request): Promise<Response> {
-    const items = this.itemsService.getAll();
-    return Response.json(items);
-  }
-
-  /**
-   * GET /items/:id - Get item by ID
-   */
-  async getById(req: Request, id: number): Promise<Response> {
-    const item = this.itemsService.getById(id);
-    if (!item) {
-      return Response.json({ error: 'Item not found' }, { status: 404 });
-    }
-    return Response.json(item);
-  }
-
-  /**
-   * POST /items - Create new item
-   */
-  async create(req: Request): Promise<Response> {
-    try {
-      const body = await req.json() as Omit<Item, 'id'>;
-      
-      if (!body.name || !body.description || body.price === undefined) {
-        return Response.json(
-          { error: 'name, description and price are required' },
-          { status: 400 }
-        );
-      }
-
-      const item = this.itemsService.create({
-        name: body.name,
-        description: body.description,
-        price: body.price,
-      });
-      
-      return Response.json(item, { status: 201 });
-    } catch (error) {
-      return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
-    }
-  }
-
-  /**
-   * PUT /items/:id - Update item
-   */
-  async update(req: Request, id: number): Promise<Response> {
-    try {
-      const body = await req.json() as Partial<Omit<Item, 'id'>>;
-      const item = this.itemsService.update(id, body);
-      
-      if (!item) {
-        return Response.json({ error: 'Item not found' }, { status: 404 });
-      }
-      
-      return Response.json(item);
-    } catch (error) {
-      return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
-    }
-  }
-
-  /**
-   * DELETE /items/:id - Delete item
-   */
-  async delete(_req: Request, id: number): Promise<Response> {
-    const deleted = this.itemsService.delete(id);
-    
-    if (!deleted) {
-      return Response.json({ error: 'Item not found' }, { status: 404 });
-    }
-    
-    return Response.json({ success: true });
   }
 }

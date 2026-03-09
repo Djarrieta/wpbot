@@ -25,77 +25,188 @@ root/ update dependencies
 
 # Adding a New CRUD Module
 
-When creating a new module (e.g., `users`, `products`, `orders`), follow these steps. Replace `{module}` with your entity name (singular for types, plural for files/routes).
+The project uses generic abstractions to minimize boilerplate. When creating a new module (e.g., `products`, `orders`), replace `{Module}` with the singular name and `{modules}` with the plural.
 
-## 1. API package (`packages/api`)
+## Shared Abstractions
 
-### 1.1 SQLite Service — `src/services/{modules}SQLite.ts`
+These generic files power all modules — do NOT duplicate their logic:
 
-- Define the entity type (e.g., `export type User = { id?: number; name: string; ... }`)
-- Create a class extending `Repository<T>` from `src/core/repository.ts`
-- Implement all abstract methods: `initializeTable`, `create`, `getAll`, `getById`, `update`, `delete`, `close`, `text`
-- Use `DB_PATH` from `src/constants.ts` for the database path
+- **`packages/api/src/core/sqliteRepository.ts`** — `SQLiteRepository<T>`: generic SQLite CRUD. Takes a table name and column definitions.
+- **`packages/api/src/core/crudController.ts`** — `GenericCrudController<T>`: generic REST controller. Takes a repository, entity name, and required fields.
+- **`packages/api/src/core/repository.ts`** — `Repository<T>` abstract base class and `BaseEntity` interface.
+- **`packages/web/src/api/createApiClient.ts`** — `createApiClient<T>(basePath, name)`: generic fetch wrapper returning `{ fetchAll, create, update, delete }`.
+- **`packages/web/src/components/GenericForm.tsx`** — `GenericForm<T>`: data-driven form from a `FormField[]` config.
+- **`packages/web/src/components/CrudPage.tsx`** — `CrudPage<T>`: full CRUD page (table + create/edit/delete modals) from config.
 
-### 1.2 Controller — `src/controllers/{modules}Controller.ts`
+## Steps to Add a New Module
 
-- Create a class implementing `CrudController` from `src/core/types.ts`
-- Inject `Repository<T>` via constructor
-- Implement: `getAll`, `getById`, `create`, `update`, `delete`
-- Add input validation in `create` for required fields
+### 1. API — Define entity type + repository factory (`src/services/{modules}SQLite.ts`)
 
-### 1.3 Router — `src/router.ts`
+```ts
+import { SQLiteRepository } from "../core/sqliteRepository";
 
-- Import the new service and controller
-- Instantiate both (service first, then controller with service injected)
-- Add a new entry to the `resources` array: `{ basePath: "/{modules}", controller: instance }`
+export type Product = { id?: number; name: string; sku: string; price: number };
 
-## 2. Web package (`packages/web`)
+export function createProductsRepository() {
+  return new SQLiteRepository<Product>("products", [
+    { name: "name", type: "TEXT", constraints: "NOT NULL" },
+    { name: "sku", type: "TEXT", constraints: "NOT NULL DEFAULT ''" },
+    { name: "price", type: "REAL", constraints: "NOT NULL DEFAULT 0" },
+  ]);
+}
+```
 
-### 2.1 Type — `src/types.ts`
+### 2. API — Controller (`src/controllers/{modules}Controller.ts`)
 
-- Add the frontend entity type (with `id: number` required, matching the API type)
+For simple CRUD with no extra methods:
 
-### 2.2 API Client — `src/api/{modules}.ts`
+```ts
+import { GenericCrudController } from "../core/crudController";
+import type { Repository } from "../core/repository";
+import type { Product } from "../services/productsSQLite";
 
-- Export CRUD functions: `fetch{Modules}`, `create{Module}`, `update{Module}`, `delete{Module}`
-- Use `const BASE = "/{modules}"` as the base URL
+export class ProductsController extends GenericCrudController<Product> {
+  constructor(service: Repository<Product>) {
+    super(service, "Product", ["name", "sku", "price"]);
+  }
+}
+```
 
-### 2.3 Form Component — `src/components/{Module}Form.tsx`
+To add custom methods, add them in the subclass (see `ItemsController.buildPrompt()` for an example).
 
-- Create a form with fields matching the entity
-- Accept props: `initial?`, `onSubmit`, `onCancel`, `loading?`
-- Use the shared `Button` component
+### 3. API — Register in router (`src/router.ts`)
 
-### 2.4 Page — `src/pages/{Modules}Page.tsx`
+```ts
+import { ProductsController } from "./controllers/productsController";
+import { createProductsRepository } from "./services/productsSQLite";
 
-- Full CRUD page using `Table`, `Button`, `Modal`, and the form component
-- Handle states: loading, error, saving
-- Include create/edit/delete modals
+const productsService = createProductsRepository();
+const products = new ProductsController(productsService);
 
-### 2.5 App Routes — `src/App.tsx`
+// Add to resources array:
+{ basePath: "/products", controller: products },
+```
 
-- Import the new page component
-- Add a `<Route path="/{modules}" element={<{Modules}Page />} />` inside the Layout route
+### 4. Web — Add type (`src/types.ts`)
 
-### 2.6 Sidebar Navigation — `src/components/Layout.tsx`
+```ts
+export type Product = { id: number; name: string; sku: string; price: number };
+```
 
-- Add an entry to the `navItems` array: `{ to: "/{modules}", label: "{Modules}", icon: "🔷" }`
+### 5. Web — API client (`src/api/{modules}.ts`)
 
-### 2.7 Vite Proxy — `vite.config.ts`
+```ts
+import type { Product } from "../types";
+import { createApiClient } from "./createApiClient";
 
-- Add a proxy entry for `/{modules}` pointing to the API server (`http://localhost:4000`)
+export const productsApi = createApiClient<Product>("/products", "product");
+```
+
+### 6. Web — Form component (`src/components/{Module}Form.tsx`)
+
+```tsx
+import type { Product } from "../types";
+import { GenericForm, type FormField } from "./GenericForm";
+
+const fields: FormField[] = [
+  {
+    name: "name",
+    label: "Name",
+    type: "text",
+    placeholder: "Product name",
+    required: true,
+  },
+  {
+    name: "sku",
+    label: "SKU",
+    type: "text",
+    placeholder: "ABC-123",
+    required: true,
+  },
+  {
+    name: "price",
+    label: "Price",
+    type: "number",
+    placeholder: "0.00",
+    min: "0",
+    step: "0.01",
+    required: true,
+  },
+];
+
+interface ProductFormProps {
+  initial?: Product;
+  onSubmit: (data: Omit<Product, "id">) => void;
+  onCancel: () => void;
+  loading?: boolean;
+}
+
+export function ProductForm(props: ProductFormProps) {
+  return <GenericForm<Product> fields={fields} {...props} />;
+}
+```
+
+### 7. Web — Page (`src/pages/{Modules}Page.tsx`)
+
+```tsx
+import type { Product } from "../types";
+import { productsApi } from "../api/products";
+import { CrudPage } from "../components/CrudPage";
+import { ProductForm } from "../components/ProductForm";
+
+export function ProductsPage() {
+  return (
+    <CrudPage<Product>
+      entityName="Product"
+      entityNamePlural="Products"
+      api={productsApi}
+      columns={[
+        { key: "id", header: "ID" },
+        { key: "name", header: "Name" },
+        { key: "sku", header: "SKU" },
+        {
+          key: "price",
+          header: "Price",
+          render: (v) => `$${Number(v).toFixed(2)}`,
+        },
+      ]}
+      FormComponent={ProductForm}
+    />
+  );
+}
+```
+
+### 8. Web — Routes & Navigation
+
+**`src/App.tsx`** — add route:
+
+```tsx
+<Route path="/products" element={<ProductsPage />} />
+```
+
+**`src/components/Layout.tsx`** — add nav item:
+
+```ts
+{ to: "/products", label: "Products", icon: "🏷️" },
+```
+
+### 9. Web — Vite proxy (`vite.config.ts`)
+
+```ts
+'/products': { target: 'http://localhost:4000', changeOrigin: true },
+```
 
 ## File Checklist
 
-| #   | File                                                  | Action |
-| --- | ----------------------------------------------------- | ------ |
-| 1   | `packages/api/src/services/{modules}SQLite.ts`        | Create |
-| 2   | `packages/api/src/controllers/{modules}Controller.ts` | Create |
-| 3   | `packages/api/src/router.ts`                          | Modify |
-| 4   | `packages/web/src/types.ts`                           | Modify |
-| 5   | `packages/web/src/api/{modules}.ts`                   | Create |
-| 6   | `packages/web/src/components/{Module}Form.tsx`        | Create |
-| 7   | `packages/web/src/pages/{Modules}Page.tsx`            | Create |
-| 8   | `packages/web/src/App.tsx`                            | Modify |
-| 9   | `packages/web/src/components/Layout.tsx`              | Modify |
-| 10  | `packages/web/vite.config.ts`                         | Modify |
+| #   | File                                                  | Action             |
+| --- | ----------------------------------------------------- | ------------------ |
+| 1   | `packages/api/src/services/{modules}SQLite.ts`        | Create (~15 lines) |
+| 2   | `packages/api/src/controllers/{modules}Controller.ts` | Create (~8 lines)  |
+| 3   | `packages/api/src/router.ts`                          | Modify (3 lines)   |
+| 4   | `packages/web/src/types.ts`                           | Modify (1 type)    |
+| 5   | `packages/web/src/api/{modules}.ts`                   | Create (~4 lines)  |
+| 6   | `packages/web/src/components/{Module}Form.tsx`        | Create (~15 lines) |
+| 7   | `packages/web/src/pages/{Modules}Page.tsx`            | Create (~20 lines) |
+| 8   | `packages/web/src/App.tsx`                            | Modify (1 line)    |
+| 9   | `packages/web/src/components/Layout.tsx`              | Modify (1 line)    |
+| 10  | `packages/web/vite.config.ts`                         | Modify (1 line)    |

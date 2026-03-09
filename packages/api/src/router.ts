@@ -4,8 +4,8 @@ import { ItemsController } from "./controllers/itemsController";
 import { UsersController } from "./controllers/usersController";
 import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
-import { ItemsSQLite } from "./services/itemsSQLite";
-import { UsersSQLite } from "./services/usersSQLite";
+import { createItemsRepository } from "./services/itemsSQLite";
+import { createUsersRepository } from "./services/usersSQLite";
 import { MCP_CONFIG_READONLY } from "./constants";
 import type { Route, ResourceRoute } from "./core/types";
 
@@ -21,9 +21,9 @@ const mcpService = new MCPService(
 );
 
 const health = new HealthController();
-const itemsService = new ItemsSQLite();
+const itemsService = createItemsRepository();
 const items = new ItemsController(itemsService);
-const usersService = new UsersSQLite();
+const usersService = createUsersRepository();
 const users = new UsersController(usersService);
 
 const assistant = new AssistantController(mcpService, items);
