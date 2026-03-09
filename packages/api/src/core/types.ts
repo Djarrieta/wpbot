@@ -1,3 +1,6 @@
+import type { GenericCrudController } from './crudController';
+import type { BaseEntity } from './repository';
+
 export type Handler = (req: Request) => Response | Promise<Response>;
 export type ParamHandler = (req: Request, id: number) => Response | Promise<Response>;
 
@@ -17,5 +20,5 @@ export interface CrudController {
 
 export interface ResourceRoute {
   basePath: string;
-  controller: CrudController;
+  controller: GenericCrudController<BaseEntity>;
 }

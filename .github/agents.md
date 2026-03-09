@@ -32,7 +32,7 @@ The project uses generic abstractions to minimize boilerplate. When creating a n
 These generic files power all modules — do NOT duplicate their logic:
 
 - **`packages/shared/src/types.ts`** — Single source of truth for entity types. Also exports `WithId<T>` utility (makes `id` required for API responses).
-- **`packages/api/src/core/sqliteRepository.ts`** — `SQLiteRepository<T>`: generic SQLite CRUD. Takes a table name and column definitions.
+- **`packages/api/src/core/pgRepository.ts`** — `PgRepository<T>`: generic PostgreSQL CRUD. Takes a table name and column definitions.
 - **`packages/api/src/core/crudController.ts`** — `GenericCrudController<T>`: generic REST controller. Takes a repository, entity name, and required fields.
 - **`packages/api/src/core/repository.ts`** — `Repository<T>` abstract base class and `BaseEntity` interface.
 - **`packages/web/src/lib/createApiClient.ts`** — `createApiClient<T>(basePath, name)`: generic fetch wrapper returning `{ fetchAll, create, update, delete }`.
@@ -67,13 +67,13 @@ Create three files inside `packages/api/src/modules/{modules}/`:
 **`service.ts`** — Import type from shared + repository factory:
 
 ```ts
-import { SQLiteRepository } from "../../core/sqliteRepository";
+import { PgRepository } from "../../core/pgRepository";
 import type { Product } from "@wpbot/shared";
 
 export type { Product };
 
 export function createProductsRepository() {
-  return new SQLiteRepository<Product>("products", [
+  return new PgRepository<Product>("products", [
     { name: "name", type: "TEXT", constraints: "NOT NULL" },
     { name: "sku", type: "TEXT", constraints: "NOT NULL DEFAULT ''" },
     { name: "price", type: "REAL", constraints: "NOT NULL DEFAULT 0" },

@@ -1,16 +1,43 @@
 import { ResponseGenerator } from "../core/responseGenerator";
-import { ItemsController } from "../modules/items/controller";
+import type { GenericCrudController } from "../core/crudController";
+import type { BaseEntity } from "../core/repository";
 
 export class AssistantController {
   private readonly responseGenerator: ResponseGenerator;
-  private readonly itemsController: ItemsController;
+  private readonly controllers: GenericCrudController<BaseEntity>[];
 
   constructor(
     responseGenerator: ResponseGenerator,
-    itemsController: ItemsController
+    controllers: GenericCrudController<BaseEntity>[]
   ) {
     this.responseGenerator = responseGenerator;
-    this.itemsController = itemsController;
+    this.controllers = controllers;
+  }
+
+  private buildPrompt(userMessage: string): string {
+    const schema = this.controllers
+      .map((c) => `- ${c.schemaText()}`)
+      .join('\n');
+
+    return `
+Eres un asistente de base de datos PostgreSQL. Tienes acceso completo a la base de datos.
+
+HERRAMIENTAS DISPONIBLES:
+- query: Ejecutar consultas SQL en la base de datos
+
+ESQUEMA DE LA BASE DE DATOS:
+${schema}
+
+INSTRUCCIONES:
+- Responde siempre en español
+- Usa las herramientas disponibles para consultar la base de datos
+- Formatea los resultados de manera clara y legible
+
+MENSAJE DEL USUARIO:
+${userMessage}
+
+RESPUESTA DEL ASISTENTE:
+`;
   }
 
   async handle(req: Request): Promise<Response> {
@@ -24,7 +51,7 @@ export class AssistantController {
         );
       }
 
-      const prompt = this.itemsController.buildPrompt(body.message);
+      const prompt = this.buildPrompt(body.message);
 
       const response = await this.responseGenerator.generateResponse(prompt);
 

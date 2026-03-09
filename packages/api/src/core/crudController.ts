@@ -3,7 +3,7 @@ import type { CrudController } from './types';
 
 export class GenericCrudController<T extends BaseEntity> implements CrudController {
   protected service: Repository<T>;
-  private entityName: string;
+  protected entityName: string;
   private requiredFields: string[];
 
   constructor(service: Repository<T>, entityName: string, requiredFields: string[]) {
@@ -64,5 +64,9 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
       return Response.json({ error: `${this.entityName} not found` }, { status: 404 });
     }
     return Response.json({ success: true });
+  }
+
+  schemaText(): string {
+    return `Tabla "${this.service.name()}": ${this.service.text()}`;
   }
 }

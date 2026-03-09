@@ -11,4 +11,5 @@ export abstract class Repository<T extends BaseEntity> {
   abstract delete(id: number): Promise<boolean>;
   abstract close(): Promise<void>;
   abstract text(): string;
+  abstract name(): string;
 }

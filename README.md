@@ -1,6 +1,6 @@
 # wpbot
 
-A monorepo with an AI assistant API, a web dashboard, and messaging bots for WhatsApp and Telegram. The API uses MCP + LLM to generate responses backed by a SQLite database. The messaging packages forward user messages to the API and relay responses back.
+A monorepo with an AI assistant API, a web dashboard, and messaging bots for WhatsApp and Telegram. The API uses MCP + LLM to generate responses backed by a PostgreSQL database. The messaging packages forward user messages to the API and relay responses back.
 
 ## Packages
 

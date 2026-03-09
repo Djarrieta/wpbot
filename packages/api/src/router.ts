@@ -2,9 +2,9 @@ import { HealthController } from "./controllers/healthController";
 import { AssistantController } from "./controllers/assistantController";
 import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
-import { MCP_CONFIG_READONLY } from "./constants";
+import { MCP_CONFIG } from "./constants";
 import { modules } from "./modules";
-import { controller as itemsController, service as itemsService } from "./modules/items";
+import { service as itemsService } from "./modules/items";
 import type { Route } from "./core/types";
 
 const llmProvider = new DeepSeekLLMProvider(
@@ -14,12 +14,15 @@ const llmProvider = new DeepSeekLLMProvider(
 );
 const mcpService = new MCPService(
   llmProvider,
-  MCP_CONFIG_READONLY,
+  MCP_CONFIG,
   Number(Bun.env.MCP_MAX_STEPS) || 8
 );
 
 const health = new HealthController();
-const assistant = new AssistantController(mcpService, itemsController);
+const assistant = new AssistantController(
+  mcpService,
+  modules.map((m) => m.controller)
+);
 
 const routes: Route[] = [
   { method: "POST", pathname: "/assistant", handler: (req) => assistant.handle(req) },

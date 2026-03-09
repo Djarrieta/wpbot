@@ -107,4 +107,8 @@ export class PgRepository<T extends BaseEntity> extends Repository<T> {
     })];
     return `{${fields.join(', ')}}`;
   }
+
+  name(): string {
+    return this.tableName;
+  }
 }
