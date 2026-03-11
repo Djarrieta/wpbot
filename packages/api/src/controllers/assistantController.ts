@@ -5,13 +5,16 @@ import type { BaseEntity } from "../core/repository";
 export class AssistantController {
   private readonly responseGenerator: ResponseGenerator;
   private readonly controllers: GenericCrudController<BaseEntity>[];
+  private readonly promptTemplate: string;
 
   constructor(
     responseGenerator: ResponseGenerator,
-    controllers: GenericCrudController<BaseEntity>[]
+    controllers: GenericCrudController<BaseEntity>[],
+    promptTemplate: string
   ) {
     this.responseGenerator = responseGenerator;
     this.controllers = controllers;
+    this.promptTemplate = promptTemplate;
   }
 
   private buildPrompt(userMessage: string): string {
@@ -19,25 +22,9 @@ export class AssistantController {
       .map((c) => `- ${c.schemaText()}`)
       .join('\n');
 
-    return `
-Eres un asistente de base de datos PostgreSQL. Tienes acceso completo a la base de datos.
-
-HERRAMIENTAS DISPONIBLES:
-- query: Ejecutar consultas SQL en la base de datos
-
-ESQUEMA DE LA BASE DE DATOS:
-${schema}
-
-INSTRUCCIONES:
-- Responde siempre en español
-- Usa las herramientas disponibles para consultar la base de datos
-- Formatea los resultados de manera clara y legible
-
-MENSAJE DEL USUARIO:
-${userMessage}
-
-RESPUESTA DEL ASISTENTE:
-`;
+    return this.promptTemplate
+      .replace('{{schema}}', schema)
+      .replace('{{userMessage}}', userMessage);
   }
 
   async handle(req: Request): Promise<Response> {

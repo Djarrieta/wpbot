@@ -19,10 +19,31 @@ const mcpService = new MCPService(
   Number(Bun.env.MCP_MAX_STEPS) || 8
 );
 
+const ASSISTANT_PROMPT = `
+Eres un asistente de base de datos PostgreSQL. Tienes acceso completo a la base de datos.
+
+HERRAMIENTAS DISPONIBLES:
+- query: Ejecutar consultas SQL en la base de datos
+
+ESQUEMA DE LA BASE DE DATOS:
+{{schema}}
+
+INSTRUCCIONES:
+- Responde siempre en español
+- Usa las herramientas disponibles para consultar la base de datos
+- Formatea los resultados de manera clara y legible
+
+MENSAJE DEL USUARIO:
+{{userMessage}}
+
+RESPUESTA DEL ASISTENTE:
+`;
+
 const health = new HealthController();
 const assistant = new AssistantController(
   mcpService,
-  modules.map((m) => m.controller)
+  modules.map((m) => m.controller),
+  ASSISTANT_PROMPT
 );
 
 const routes: Route[] = [
