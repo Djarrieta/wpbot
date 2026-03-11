@@ -47,11 +47,11 @@ async function sendMessage(to: string, text: string) {
   return result;
 }
 
-async function callAssistant(message: string): Promise<string> {
+async function callAssistant(message: string, userId: number): Promise<string> {
   const response = await fetch(`${API_URL}/assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, userId }),
   });
 
   if (!response.ok) {
@@ -84,7 +84,9 @@ export async function handleWebhook(req: Request): Promise<Response> {
 
     const message = parseIncomingMessage(body);
     if (message) {
-      const responseText = await callAssistant(message.text);
+      // Use last 9 digits of phone number as numeric userId
+      const userId = parseInt(message.from.slice(-9), 10);
+      const responseText = await callAssistant(message.text, userId);
       await sendMessage(message.from, responseText);
     }
 

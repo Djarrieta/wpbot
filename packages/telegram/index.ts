@@ -4,11 +4,11 @@ import { message } from "telegraf/filters";
 const BOT_TOKEN = Bun.env.TELEGRAM_BOT_TOKEN!;
 const API_URL = Bun.env.API_URL || "http://localhost:4000";
 
-async function callAssistant(userMessage: string): Promise<string> {
+async function callAssistant(userMessage: string, userId: number): Promise<string> {
   const response = await fetch(`${API_URL}/assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: userMessage }),
+    body: JSON.stringify({ message: userMessage, userId }),
   });
 
   if (!response.ok) {
@@ -34,7 +34,7 @@ bot.on(message("text"), async (ctx) => {
 
   try {
     await ctx.sendChatAction("typing");
-    const responseText = await callAssistant(userMessage);
+    const responseText = await callAssistant(userMessage, userId);
     await ctx.reply(responseText);
   } catch (error) {
     console.error("Error processing message:", error);
