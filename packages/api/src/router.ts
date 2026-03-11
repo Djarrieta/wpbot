@@ -6,17 +6,18 @@ import { MCP_READONLY_CONFIG } from "./constants";
 import { modules } from "./modules";
 import { service as itemsService } from "./modules/items";
 import type { Route } from "./core/types";
+import { service as chatHistoryService } from "./modules/chathistory";
 
 const llmProvider = new DeepSeekLLMProvider(
   Bun.env.DEEPSEEK_API_KEY!,
   Bun.env.DEEPSEEK_MODEL!,
-  Bun.env.DEEPSEEK_BASE_URL
+  Bun.env.DEEPSEEK_BASE_URL,
 );
 // Use readonly config for assistant - only SELECT queries allowed
 const mcpService = new MCPService(
   llmProvider,
   MCP_READONLY_CONFIG,
-  Number(Bun.env.MCP_MAX_STEPS) || 8
+  Number(Bun.env.MCP_MAX_STEPS) || 8,
 );
 
 const ASSISTANT_PROMPT = `
@@ -28,10 +29,15 @@ HERRAMIENTAS DISPONIBLES:
 ESQUEMA DE LA BASE DE DATOS:
 {{schema}}
 
+HISTORIAL DE CONVERSACIÓN:
+Esta es la conversación hasta ahora:
+{{conversationHistory}}
+
 INSTRUCCIONES:
 - Responde siempre en español
 - Usa las herramientas disponibles para consultar la base de datos
 - Formatea los resultados de manera clara y legible
+- Ten en cuenta el historial de conversación para mantener contexto
 
 MENSAJE DEL USUARIO:
 {{userMessage}}
@@ -43,11 +49,16 @@ const health = new HealthController();
 const assistant = new AssistantController(
   mcpService,
   modules.map((m) => m.controller),
-  ASSISTANT_PROMPT
+  ASSISTANT_PROMPT,
+  chatHistoryService,
 );
 
 const routes: Route[] = [
-  { method: "POST", pathname: "/assistant", handler: (req) => assistant.handle(req) },
+  {
+    method: "POST",
+    pathname: "/assistant",
+    handler: (req) => assistant.handle(req),
+  },
   { method: "GET", pathname: "/", handler: (req) => health.handle(req) },
   {
     method: "GET",
@@ -62,7 +73,11 @@ const routes: Route[] = [
   },
 ];
 
-function handleResourceRoutes(method: string, pathname: string, req: Request): Response | Promise<Response> | null {
+function handleResourceRoutes(
+  method: string,
+  pathname: string,
+  req: Request,
+): Response | Promise<Response> | null {
   for (const resource of modules) {
     if (pathname === resource.basePath) {
       if (method === "GET") return resource.controller.getAll(req);
@@ -87,7 +102,7 @@ export function router(req: Request): Response | Promise<Response> {
   if (resourceResponse) return resourceResponse;
 
   const route = routes.find(
-    (r) => r.method === req.method && r.pathname === pathname
+    (r) => r.method === req.method && r.pathname === pathname,
   );
 
   if (route) return route.handler(req);

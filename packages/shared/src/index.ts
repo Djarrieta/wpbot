@@ -1,1 +1,1 @@
-export type { Inventory, Item, User, WithId } from './types';
+export type { ChatHistory, Inventory, Item, User, WithId } from './types';

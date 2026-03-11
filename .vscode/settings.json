@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd /home/djarrieta/wpbot/packages/api && bun run tsc --noEmit$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
