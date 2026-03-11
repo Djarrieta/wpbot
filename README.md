@@ -24,14 +24,19 @@ cp .env.example .env
 Run PostgreSQL with Podman:
 
 ```bash
+podman rm wpbot-db --f
+mkdir -p ./pgdata
 podman run -d \
   --name wpbot-db \
   -e POSTGRES_USER=wpbot \
   -e POSTGRES_PASSWORD=wpbot \
   -e POSTGRES_DB=wpbot \
+  -e PGDATA=/var/lib/postgresql/data/pgdata \
   -p 4003:5432 \
   -v ./pgdata:/var/lib/postgresql/data \
-  postgres:16
+  docker.io/library/postgres:17
+
+  podman exec -i wpbot-db psql -U wpbot -d wpbot < packages/api/scripts/setup-db-users.sql
 ```
 
 Stop/start the container:
@@ -43,9 +48,8 @@ podman start wpbot-db
 
 Connect manually:
 
-```bash
+````bash
 podman exec -it wpbot-db psql -U wpbot -d wpbot
-```
 
 ## Environment Variables
 
@@ -81,7 +85,7 @@ bun run dev:telegram
 
 # API + Web + Telegram (no WhatsApp)
 bun run dev:no-whatsapp
-```
+````
 
 ## API Endpoints
 

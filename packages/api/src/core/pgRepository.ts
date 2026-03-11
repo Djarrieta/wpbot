@@ -1,10 +1,6 @@
 import pg from 'pg';
-import { PG_CONNECTION_STRING } from '../constants';
+import { getPool, type PoolRole } from './dbPool';
 import { Repository, type BaseEntity } from './repository';
-
-// Parse FLOAT8 (OID 701) and NUMERIC (OID 1700) as JS numbers instead of strings
-pg.types.setTypeParser(701, parseFloat);
-pg.types.setTypeParser(1700, parseFloat);
 
 export interface ColumnDef {
   name: string;
@@ -18,30 +14,32 @@ const PG_TYPE_MAP: Record<ColumnDef['type'], string> = {
   INTEGER: 'INTEGER',
 };
 
-let sharedPool: pg.Pool | null = null;
-
-function getPool(): pg.Pool {
-  if (!sharedPool) {
-    sharedPool = new pg.Pool({ connectionString: PG_CONNECTION_STRING });
-  }
-  return sharedPool;
-}
-
 export class PgRepository<T extends BaseEntity> extends Repository<T> {
   private pool: pg.Pool;
   private tableName: string;
   private columns: ColumnDef[];
   private fieldNames: string[];
+  private role: PoolRole;
 
-  constructor(tableName: string, columns: ColumnDef[]) {
+  constructor(tableName: string, columns: ColumnDef[], role: PoolRole = 'admin') {
     super();
     this.tableName = tableName;
     this.columns = columns;
     this.fieldNames = columns.map((c) => c.name);
-    this.pool = getPool();
+    this.role = role;
+    this.pool = getPool(role);
+  }
+
+  /** Create a readonly version of this repository */
+  asReadonly(): PgRepository<T> {
+    return new PgRepository<T>(this.tableName, this.columns, 'readonly');
   }
 
   async initializeTable(): Promise<void> {
+    // Only admin can create tables
+    if (this.role === 'readonly') {
+      throw new Error('Cannot initialize table with readonly connection');
+    }
     const columnDefs = this.columns
       .map((c) => `${c.name} ${PG_TYPE_MAP[c.type]} ${c.constraints ?? ''}`.trim())
       .join(',\n        ');
