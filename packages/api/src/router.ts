@@ -7,6 +7,7 @@ import { modules } from "./modules";
 import { service as itemsService } from "./modules/items";
 import type { Route } from "./core/types";
 import { service as chatHistoryService } from "./modules/chathistory";
+import { ASSISTANT_PROMPT } from "./prompts";
 
 const llmProvider = new DeepSeekLLMProvider(
   Bun.env.DEEPSEEK_API_KEY!,
@@ -19,31 +20,6 @@ const mcpService = new MCPService(
   MCP_READONLY_CONFIG,
   Number(Bun.env.MCP_MAX_STEPS) || 8,
 );
-
-const ASSISTANT_PROMPT = `
-Eres un asistente de base de datos PostgreSQL. Tienes acceso completo a la base de datos.
-
-HERRAMIENTAS DISPONIBLES:
-- query: Ejecutar consultas SQL en la base de datos
-
-ESQUEMA DE LA BASE DE DATOS:
-{{schema}}
-
-HISTORIAL DE CONVERSACIÓN:
-Esta es la conversación hasta ahora:
-{{conversationHistory}}
-
-INSTRUCCIONES:
-- Responde siempre en español
-- Usa las herramientas disponibles para consultar la base de datos
-- Formatea los resultados de manera clara y legible
-- Ten en cuenta el historial de conversación para mantener contexto
-
-MENSAJE DEL USUARIO:
-{{userMessage}}
-
-RESPUESTA DEL ASISTENTE:
-`;
 
 const health = new HealthController();
 const assistant = new AssistantController(
