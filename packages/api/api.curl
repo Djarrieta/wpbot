@@ -7,7 +7,7 @@ curl -X GET http://localhost:4000/items
 # Create Item
 curl -X POST http://localhost:4000/items \
   -H "Content-Type: application/json" \
-  -d '{"name": "asdf", "quantity": 10}'
+  -d '{"name": "Item2", "price": 20, "description": "description of item2"}'
 
 # Get Item by ID
 curl -X GET http://localhost:4000/items/1
