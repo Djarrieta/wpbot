@@ -27,5 +27,13 @@ export type ChatHistory = {
   timestamp: string;
 };
 
+export type Order = {
+  id?: number;
+  user_id: number;
+  item_id: number;
+  quantity: number;
+  date: string;
+};
+
 /** Utility: make `id` required (for entities returned from the API) */
 export type WithId<T extends { id?: number }> = T & { id: number };

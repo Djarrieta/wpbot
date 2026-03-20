@@ -4,7 +4,7 @@ import { Repository, type BaseEntity } from './repository';
 
 export interface ColumnDef {
   name: string;
-  type: 'TEXT' | 'REAL' | 'INTEGER';
+  type: 'TEXT' | 'REAL' | 'INTEGER' | 'BIGINT';
   constraints?: string;
 }
 
@@ -12,6 +12,7 @@ const PG_TYPE_MAP: Record<ColumnDef['type'], string> = {
   TEXT: 'TEXT',
   REAL: 'DOUBLE PRECISION',
   INTEGER: 'INTEGER',
+  BIGINT: 'BIGINT',
 };
 
 export class PgRepository<T extends BaseEntity> extends Repository<T> {
@@ -30,15 +31,15 @@ export class PgRepository<T extends BaseEntity> extends Repository<T> {
     this.pool = getPool(role);
   }
 
-  /** Create a readonly version of this repository */
-  asReadonly(): PgRepository<T> {
-    return new PgRepository<T>(this.tableName, this.columns, 'readonly');
+  /** Create an assistant version of this repository (limited permissions) */
+  asAssistant(): PgRepository<T> {
+    return new PgRepository<T>(this.tableName, this.columns, 'assistant');
   }
 
   async initializeTable(): Promise<void> {
     // Only admin can create tables
-    if (this.role === 'readonly') {
-      throw new Error('Cannot initialize table with readonly connection');
+    if (this.role === 'assistant') {
+      throw new Error('Cannot initialize table with assistant connection');
     }
     const columnDefs = this.columns
       .map((c) => `${c.name} ${PG_TYPE_MAP[c.type]} ${c.constraints ?? ''}`.trim())

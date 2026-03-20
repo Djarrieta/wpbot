@@ -7,7 +7,7 @@ export type { ChatHistory };
 export class ChatHistoryRepository extends PgRepository<ChatHistory> {
   constructor() {
     super('chat_history', [
-      { name: 'user_id', type: 'INTEGER', constraints: 'NOT NULL' },
+      { name: 'user_id', type: 'BIGINT', constraints: 'NOT NULL' },
       { name: 'message', type: 'TEXT', constraints: 'NOT NULL' },
       { name: 'role', type: 'TEXT', constraints: "NOT NULL DEFAULT 'user'" },
       { name: 'timestamp', type: 'TEXT', constraints: 'NOT NULL' },

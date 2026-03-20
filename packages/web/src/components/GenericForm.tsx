@@ -4,7 +4,7 @@ import { Button } from "./Button";
 export interface FormField {
   name: string;
   label: string;
-  type: "text" | "email" | "tel" | "number" | "textarea";
+  type: "text" | "email" | "tel" | "number" | "textarea" | "date";
   placeholder?: string;
   required?: boolean;
   min?: string;

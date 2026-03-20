@@ -1,0 +1,9 @@
+import { GenericCrudController } from '../../core/crudController';
+import type { Repository } from '../../core/repository';
+import type { Order } from './service';
+
+export class OrdersController extends GenericCrudController<Order> {
+  constructor(ordersService: Repository<Order>) {
+    super(ordersService, 'Order', ['user_id', 'item_id', 'quantity', 'date']);
+  }
+}

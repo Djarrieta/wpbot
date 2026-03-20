@@ -1,21 +1,21 @@
 import pg from 'pg';
-import { PG_CONNECTION_STRING, PG_READONLY_CONNECTION_STRING } from '../constants';
+import { PG_CONNECTION_STRING, PG_ASSISTANT_CONNECTION_STRING } from '../constants';
 
 // Parse FLOAT8 (OID 701) and NUMERIC (OID 1700) as JS numbers instead of strings
 pg.types.setTypeParser(701, parseFloat);
 pg.types.setTypeParser(1700, parseFloat);
 
-export type PoolRole = 'admin' | 'readonly';
+export type PoolRole = 'admin' | 'assistant';
 
 let adminPool: pg.Pool | null = null;
-let readonlyPool: pg.Pool | null = null;
+let assistantPool: pg.Pool | null = null;
 
 export function getPool(role: PoolRole = 'admin'): pg.Pool {
-  if (role === 'readonly') {
-    if (!readonlyPool) {
-      readonlyPool = new pg.Pool({ connectionString: PG_READONLY_CONNECTION_STRING });
+  if (role === 'assistant') {
+    if (!assistantPool) {
+      assistantPool = new pg.Pool({ connectionString: PG_ASSISTANT_CONNECTION_STRING });
     }
-    return readonlyPool;
+    return assistantPool;
   }
   
   if (!adminPool) {
@@ -29,8 +29,8 @@ export async function closeAllPools(): Promise<void> {
     await adminPool.end();
     adminPool = null;
   }
-  if (readonlyPool) {
-    await readonlyPool.end();
-    readonlyPool = null;
+  if (assistantPool) {
+    await assistantPool.end();
+    assistantPool = null;
   }
 }

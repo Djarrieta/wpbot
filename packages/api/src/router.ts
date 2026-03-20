@@ -2,7 +2,7 @@ import { HealthController } from "./controllers/healthController";
 import { AssistantController } from "./controllers/assistantController";
 import { MCPService } from "./services/mcpService";
 import { DeepSeekLLMProvider } from "./services/llmProvider";
-import { MCP_READONLY_CONFIG } from "./constants";
+import { MCP_ASSISTANT_CONFIG } from "./constants";
 import { modules } from "./modules";
 import { service as itemsService } from "./modules/items";
 import type { Route } from "./core/types";
@@ -14,10 +14,10 @@ const llmProvider = new DeepSeekLLMProvider(
   Bun.env.DEEPSEEK_MODEL!,
   Bun.env.DEEPSEEK_BASE_URL,
 );
-// Use readonly config for assistant - only SELECT queries allowed
+// Use assistant config - can SELECT all tables, INSERT/UPDATE orders
 const mcpService = new MCPService(
   llmProvider,
-  MCP_READONLY_CONFIG,
+  MCP_ASSISTANT_CONFIG,
   Number(Bun.env.MCP_MAX_STEPS) || 8,
 );
 
