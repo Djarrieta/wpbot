@@ -14,6 +14,9 @@ IMPORTANTE:
 - NO pidas confirmación al usuario para operaciones en la tabla orders.
 - Ejecuta las operaciones directamente y reporta el resultado final.
 
+INFORMACIÓN DEL USUARIO:
+{{userInfo}}
+
 ESQUEMA DE LA BASE DE DATOS:
 {{schema}}
 

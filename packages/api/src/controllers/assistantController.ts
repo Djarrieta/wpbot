@@ -35,7 +35,10 @@ export class AssistantController {
       ? history.map((h) => `${h.role === 'user' ? 'Usuario' : 'Asistente'}: ${h.message}`).join('\n')
       : 'No hay conversación previa.';
 
+    const userInfo = await this.usersService.getById(userId);
+
     return this.promptTemplate
+      .replace('{{userInfo}}', JSON.stringify(userInfo) )
       .replace('{{schema}}', schema)
       .replace('{{conversationHistory}}', conversationHistory)
       .replace('{{userMessage}}', userMessage);
