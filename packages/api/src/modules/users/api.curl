@@ -1,10 +1,15 @@
 # List All Users
 curl -X GET http://localhost:4000/users
 
-# Create User
+# Create User (only name is required)
 curl -X POST http://localhost:4000/users \
   -H "Content-Type: application/json" \
-  -d '{"name": "John Doe", "email": "john@example.com", "phone": "+1234567890"}'
+  -d '{"name": "John Doe"}'
+
+# Create User (with optional email and phone)
+curl -X POST http://localhost:4000/users \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Jane Doe", "email": "jane@example.com", "phone": "+1234567890"}'
 
 # Get User by ID
 curl -X GET http://localhost:4000/users/1

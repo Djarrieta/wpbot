@@ -7,6 +7,7 @@ import { modules } from "./modules";
 import { service as itemsService } from "./modules/items";
 import type { Route } from "./core/types";
 import { service as chatHistoryService } from "./modules/chathistory";
+import { service as usersService } from "./modules/users";
 import { ASSISTANT_PROMPT } from "./prompts";
 
 const llmProvider = new DeepSeekLLMProvider(
@@ -27,6 +28,7 @@ const assistant = new AssistantController(
   modules.map((m) => m.controller),
   ASSISTANT_PROMPT,
   chatHistoryService,
+  usersService,
 );
 
 const routes: Route[] = [

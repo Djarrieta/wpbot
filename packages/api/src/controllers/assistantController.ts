@@ -2,23 +2,27 @@ import { ResponseGenerator } from "../core/responseGenerator";
 import type { GenericCrudController } from "../core/crudController";
 import type { BaseEntity } from "../core/repository";
 import type { ChatHistoryRepository } from "../modules/chathistory/service";
+import type { UsersRepository } from "../modules/users/service";
 
 export class AssistantController {
   private readonly responseGenerator: ResponseGenerator;
   private readonly controllers: GenericCrudController<BaseEntity>[];
   private readonly promptTemplate: string;
   private readonly chatHistoryService: ChatHistoryRepository;
+  private readonly usersService: UsersRepository;
 
   constructor(
     responseGenerator: ResponseGenerator,
     controllers: GenericCrudController<BaseEntity>[],
     promptTemplate: string,
-    chatHistoryService: ChatHistoryRepository
+    chatHistoryService: ChatHistoryRepository,
+    usersService: UsersRepository
   ) {
     this.responseGenerator = responseGenerator;
     this.controllers = controllers;
     this.promptTemplate = promptTemplate;
     this.chatHistoryService = chatHistoryService;
+    this.usersService = usersService;
   }
 
   private async buildPrompt(userMessage: string, userId: number): Promise<string> {
@@ -39,7 +43,7 @@ export class AssistantController {
 
   async handle(req: Request): Promise<Response> {
     try {
-      const body = await req.json() as { message?: string; userId?: number };
+      const body = await req.json() as { message?: string; userId?: number; name?: string };
 
       if (!body.message?.trim()) {
         return Response.json(
@@ -54,6 +58,11 @@ export class AssistantController {
           { status: 400 }
         );
       }
+
+    
+      const user =await this.usersService.getOrCreateById(body.userId,  body.name);
+
+      console.log(user)
 
       const prompt = await this.buildPrompt(body.message, body.userId);
 

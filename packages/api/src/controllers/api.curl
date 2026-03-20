@@ -1,7 +1,12 @@
 # Health Check
 curl -X GET http://localhost:4000/
 
-# Assistant (requires userId for conversation history)
+# Assistant (requires userId - user is auto-created if not exists)
 curl -X POST http://localhost:4000/assistant \
   -H "Content-Type: application/json" \
   -d '{"message": "crea una nueva orden user_id: 1, item_id: 1, quantity: 5, date: 2026-03-20", "userId": 1}'
+
+# Assistant with optional name (used when creating new user)
+curl -X POST http://localhost:4000/assistant \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hola", "userId": 123, "name": "John Doe"}'

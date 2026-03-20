@@ -7,14 +7,12 @@ const fields: FormField[] = [
     label: "Name",
     type: "text",
     placeholder: "Full name",
-    required: true,
   },
   {
     name: "email",
     label: "Email",
     type: "email",
     placeholder: "user@example.com",
-    required: true,
   },
   { name: "phone", label: "Phone", type: "tel", placeholder: "+1 234 567 890" },
 ];

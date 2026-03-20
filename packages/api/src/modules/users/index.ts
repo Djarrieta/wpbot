@@ -10,7 +10,7 @@ export async function init() {
 }
 
 export { service, controller };
-export type { User } from './service';
+export type { User, UsersRepository } from './service';
 export { UsersController } from './controller';
 
 export default {

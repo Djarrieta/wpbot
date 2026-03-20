@@ -8,8 +8,8 @@ const items = [
 ];
 
 const users = [
-  { name: "John Doe", email: "john@example.com", phone: "+1234567890" },
-  { name: "Jane Smith", email: "jane@example.com", phone: "+0987654321" },
+  { id: 1, name: "John Doe", email: "john@example.com", phone: "+1234567890" },
+  { id: 2, name: "Jane Smith", email: "jane@example.com", phone: "+0987654321" },
 ];
 
 async function seed() {
@@ -26,8 +26,8 @@ async function seed() {
         price DOUBLE PRECISION NOT NULL DEFAULT 0
       );
       CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
+        id BIGINT PRIMARY KEY,
+        name TEXT NOT NULL DEFAULT '',
         email TEXT NOT NULL DEFAULT '',
         phone TEXT NOT NULL DEFAULT ''
       );
@@ -70,8 +70,8 @@ async function seed() {
     console.log("Seeding users...");
     for (const user of users) {
       const res = await client.query(
-        "INSERT INTO users (name, email, phone) VALUES ($1, $2, $3) RETURNING id",
-        [user.name, user.email, user.phone]
+        "INSERT INTO users (id, name, email, phone) VALUES ($1, $2, $3, $4) RETURNING id",
+        [user.id, user.name, user.email, user.phone]
       );
       console.log(`  Created user: ${user.name} (id: ${res.rows[0].id})`);
     }

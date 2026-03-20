@@ -4,11 +4,11 @@ import { message } from "telegraf/filters";
 const BOT_TOKEN = Bun.env.TELEGRAM_BOT_TOKEN!;
 const API_URL = Bun.env.API_URL || "http://localhost:4000";
 
-async function callAssistant(userMessage: string, userId: number): Promise<string> {
+async function callAssistant(userMessage: string, userId: number, name?: string): Promise<string> {
   const response = await fetch(`${API_URL}/assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: userMessage, userId }),
+    body: JSON.stringify({ message: userMessage, userId, name }),
   });
 
   if (!response.ok) {
@@ -23,18 +23,20 @@ async function callAssistant(userMessage: string, userId: number): Promise<strin
 const bot = new Telegraf(BOT_TOKEN);
 
 bot.on(message("text"), async (ctx) => {
-  const userId = ctx.from?.id;
-  if (!userId) {
+  const user = ctx.from;
+  if (!user) {
     await ctx.reply("Estoy teniendo problemas en el sistema. Dame un momento por favor.");
     return;
   }
 
+  const userId = user.id;
+  const name = user.username || [user.first_name, user.last_name].filter(Boolean).join(" ");
   const userMessage = ctx.message.text;
-  console.log(`Message from ${userId}: ${userMessage}`);
+  console.log(`Message from ${userId} (${name}): ${userMessage}`);
 
   try {
     await ctx.sendChatAction("typing");
-    const responseText = await callAssistant(userMessage, userId);
+    const responseText = await callAssistant(userMessage, userId, name || undefined);
     await ctx.reply(responseText);
   } catch (error) {
     console.error("Error processing message:", error);

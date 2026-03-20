@@ -7,9 +7,9 @@ export type Item = {
 
 export type User = {
   id?: number;
-  name: string;
-  email: string;
-  phone: string;
+  name?: string;
+  email?: string;
+  phone?: string;
 };
 
 export type Inventory = {
