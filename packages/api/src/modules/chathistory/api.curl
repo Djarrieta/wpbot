@@ -1,0 +1,13 @@
+# List All Chat History
+curl -X GET http://localhost:4000/chathistory
+
+# Get Chat History by ID
+curl -X GET http://localhost:4000/chathistory/1
+
+# Create Chat History Entry
+curl -X POST http://localhost:4000/chathistory \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": 1, "message": "Hello", "role": "user", "timestamp": "2026-03-20T10:00:00Z"}'
+
+# Delete Chat History Entry
+curl -X DELETE http://localhost:4000/chathistory/1

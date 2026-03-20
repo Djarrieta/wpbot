@@ -1,0 +1,18 @@
+# List All Inventory
+curl -X GET http://localhost:4000/inventory
+
+# Create Inventory Entry
+curl -X POST http://localhost:4000/inventory \
+  -H "Content-Type: application/json" \
+  -d '{"item_id": 1, "quantity": 50, "location": "Warehouse A"}'
+
+# Get Inventory by ID
+curl -X GET http://localhost:4000/inventory/1
+
+# Update Inventory
+curl -X PUT http://localhost:4000/inventory/1 \
+  -H "Content-Type: application/json" \
+  -d '{"item_id": 1, "quantity": 100, "location": "Warehouse B"}'
+
+# Delete Inventory Entry
+curl -X DELETE http://localhost:4000/inventory/1

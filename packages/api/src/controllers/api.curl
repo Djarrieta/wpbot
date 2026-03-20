@@ -1,0 +1,7 @@
+# Health Check
+curl -X GET http://localhost:4000/
+
+# Assistant (requires userId for conversation history)
+curl -X POST http://localhost:4000/assistant \
+  -H "Content-Type: application/json" \
+  -d '{"message": "crea una nueva orden con itemid 1 y userid 1", "userId": 1}'
