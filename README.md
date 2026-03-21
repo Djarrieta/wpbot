@@ -2,6 +2,23 @@
 
 A monorepo with an AI assistant API, a web dashboard, and messaging bots for WhatsApp and Telegram. The API uses MCP + LLM to generate responses backed by a PostgreSQL database. The messaging packages forward user messages to the API and relay responses back.
 
+## Folder Structure
+
+```text
+wpbot/
+├── packages/
+│   ├── api/          # Core backend API and MCP LLM logic
+│   ├── shared/       # Shared types and utilities
+│   ├── telegram/     # Telegram bot package
+│   ├── web/          # React frontend dashboard
+│   └── whatsapp/     # WhatsApp webhook bot package
+├── scripts/
+│   └── reset-db.sh   # Utility script to reset database
+├── .env.example      # Example environment variables
+├── package.json      # Monorepo configuration
+└── README.md
+```
+
 ## Packages
 
 | Package           | Port | Description                                                   |
