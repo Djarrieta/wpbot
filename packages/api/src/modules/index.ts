@@ -4,6 +4,7 @@ import users, { init as initUsers } from './users';
 import inventory, { init as initInventory } from './inventory';
 import chathistory, { init as initChatHistory } from './chathistory';
 import orders, { init as initOrders } from './orders';
+import context, { init as initContext } from './context';
 
 export const modules: ResourceRoute[] = [
   items,
@@ -11,8 +12,10 @@ export const modules: ResourceRoute[] = [
   inventory,
   chathistory,
   orders,
+  context,
 ];
 
 export async function initModules() {
-  await Promise.all([initItems(), initUsers(), initInventory(), initChatHistory(), initOrders()]);
+  await Promise.all([initItems(), initUsers(), initInventory(), initChatHistory(), initOrders(), initContext()]);
 }
+

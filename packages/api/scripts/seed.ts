@@ -12,6 +12,14 @@ const users = [
   { id: 2, name: "Jane Smith", email: "jane@example.com", phone: "+0987654321" },
 ];
 
+const contextData: { topic: string; content: string }[] = [
+  {
+    topic: "logistica",
+    content:
+      "Información detallada sobre logística: procesos de envío, tiempos de entrega, proveedores de transporte, rutas de distribución, gestión de almacenes y control de inventario.",
+  },
+];
+
 async function seed() {
   const client = new pg.Client({ connectionString });
   await client.connect();
@@ -51,10 +59,15 @@ async function seed() {
         role TEXT NOT NULL DEFAULT 'user',
         timestamp TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS context (
+        id SERIAL PRIMARY KEY,
+        topic TEXT NOT NULL,
+        content TEXT NOT NULL
+      );
     `);
 
     // Clear existing data
-    await client.query("TRUNCATE items, users, inventory, orders, chat_history RESTART IDENTITY CASCADE");
+    await client.query("TRUNCATE items, users, inventory, orders, chat_history, context RESTART IDENTITY CASCADE");
 
     console.log("Seeding items...");
     const createdItems: { id: number }[] = [];
@@ -87,6 +100,15 @@ async function seed() {
         [inv.item_id, inv.quantity, inv.location]
       );
       console.log(`  Created inventory: item_id=${inv.item_id}, qty=${inv.quantity} (id: ${res.rows[0].id})`);
+    }
+
+    console.log("Seeding context...");
+    for (const ctx of contextData) {
+      const res = await client.query(
+        "INSERT INTO context (topic, content) VALUES ($1, $2) RETURNING id",
+        [ctx.topic, ctx.content]
+      );
+      console.log(`  Created context: ${ctx.topic} (id: ${res.rows[0].id})`);
     }
 
     console.log("Seed complete!");

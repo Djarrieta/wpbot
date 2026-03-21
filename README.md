@@ -115,3 +115,47 @@ bun run dev:no-whatsapp
 - `GET /items/:id` — Get item by ID
 - `PUT /items/:id` — Update item
 - `DELETE /items/:id` — Delete item
+
+## Adding a New Module
+
+To add a CRUD module (e.g. `context` or `items`), create/update the following files:
+
+### 1. Shared — `packages/shared/src/`
+
+- **`types.ts`** — Add the type (e.g. `export type Context = { id?: number; topic: string; content: string };`)
+- **`index.ts`** — Export it
+
+### 2. API — `packages/api/src/modules/<name>/`
+
+| File | Purpose |
+|------|---------|
+| `service.ts` | `PgRepository` with column definitions |
+| `controller.ts` | Extends `GenericCrudController`, sets required fields |
+| `index.ts` | Calls `initializeTable()`, exports default `{ basePath, controller }` |
+
+Then register in **`modules/index.ts`**: import, add to the array, and call `init()`.
+
+If seed data is needed, add it to **`scripts/seed.ts`** (create table + insert rows).
+
+### 3. Web — `packages/web/src/modules/<name>/`
+
+| File | Purpose |
+|------|---------|
+| `api.ts` | `createApiClient<WithId<Type>>("/path", "name")` |
+| `Form.tsx` | Uses `GenericForm` with field definitions |
+| `Page.tsx` | Uses `CrudPage` with column config + `FormComponent` |
+| `index.ts` | Exports `{ basePath, label, icon, Page }` satisfies `ModuleConfig` |
+
+Then register in **`modules/index.ts`**: import and add to the array.
+
+### 4. Vite Proxy — `packages/web/vite.config.ts`
+
+Add a proxy entry for the new path:
+
+```ts
+'/context': {
+  target: 'http://localhost:4000',
+  changeOrigin: true,
+},
+
+```

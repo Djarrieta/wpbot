@@ -9,6 +9,7 @@ import type { Route } from "./core/types";
 import { service as chatHistoryService } from "./modules/chathistory";
 import { service as usersService } from "./modules/users";
 import { ASSISTANT_PROMPT } from "./prompts";
+import { getPool } from "./core/dbPool";
 
 const llmProvider = new DeepSeekLLMProvider(
   Bun.env.DEEPSEEK_API_KEY!,
@@ -22,6 +23,12 @@ const mcpService = new MCPService(
   Number(Bun.env.MCP_MAX_STEPS) || 8,
 );
 
+async function fetchContextTopics(): Promise<string[]> {
+  const pool = getPool('admin');
+  const result = await pool.query('SELECT topic FROM context ORDER BY topic');
+  return result.rows.map((r: { topic: string }) => r.topic);
+}
+
 const health = new HealthController();
 const assistant = new AssistantController(
   mcpService,
@@ -29,6 +36,7 @@ const assistant = new AssistantController(
   ASSISTANT_PROMPT,
   chatHistoryService,
   usersService,
+  fetchContextTopics,
 );
 
 const routes: Route[] = [

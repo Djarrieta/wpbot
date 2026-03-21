@@ -35,5 +35,11 @@ export type Order = {
   date: string;
 };
 
+export type Context = {
+  id?: number;
+  topic: string;
+  content: string;
+};
+
 /** Utility: make `id` required (for entities returned from the API) */
 export type WithId<T extends { id?: number }> = T & { id: number };

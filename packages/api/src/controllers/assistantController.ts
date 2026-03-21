@@ -10,19 +10,22 @@ export class AssistantController {
   private readonly promptTemplate: string;
   private readonly chatHistoryService: ChatHistoryRepository;
   private readonly usersService: UsersRepository;
+  private readonly contextTopicsFetcher: () => Promise<string[]>;
 
   constructor(
     responseGenerator: ResponseGenerator,
     controllers: GenericCrudController<BaseEntity>[],
     promptTemplate: string,
     chatHistoryService: ChatHistoryRepository,
-    usersService: UsersRepository
+    usersService: UsersRepository,
+    contextTopicsFetcher: () => Promise<string[]>,
   ) {
     this.responseGenerator = responseGenerator;
     this.controllers = controllers;
     this.promptTemplate = promptTemplate;
     this.chatHistoryService = chatHistoryService;
     this.usersService = usersService;
+    this.contextTopicsFetcher = contextTopicsFetcher;
   }
 
   private async buildPrompt(userMessage: string, userId: number): Promise<string> {
@@ -37,10 +40,14 @@ export class AssistantController {
 
     const userInfo = await this.usersService.getById(userId);
 
+    const contextTopics = await this.contextTopicsFetcher();
+    const contextTopicList = contextTopics.length > 0 ? contextTopics.join(', ') : 'Ninguno disponible';
+
     return this.promptTemplate
       .replace('{{userId}}', userId.toString())
       .replace('{{userInfo}}', JSON.stringify(userInfo))
       .replace('{{schema}}', schema)
+      .replace('{{contextTopicList}}', contextTopicList)
       .replace('{{conversationHistory}}', conversationHistory)
       .replace('{{userMessage}}', userMessage);
   }

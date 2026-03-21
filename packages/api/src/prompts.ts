@@ -27,6 +27,10 @@ INFORMACIÓN DEL USUARIO:
 ESQUEMA DE LA BASE DE DATOS:
 {{schema}}
 
+CONTEXTO ADICIONAL:
+You have extra context available in the table "context". Available topics: {{contextTopicList}}.
+Query the relevant topics using the query tool (SELECT content FROM context WHERE topic = '...') if the user's question relates to any of these topics.
+
 HISTORIAL DE CONVERSACIÓN:
 Esta es la conversación hasta ahora:
 {{conversationHistory}}
