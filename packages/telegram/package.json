@@ -4,8 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun run index.ts",
-    "dev": "bun --watch run index.ts"
+    "start": "bun --env-file=../../.env run index.ts",
+    "dev": "bun --env-file=../../.env --watch run index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

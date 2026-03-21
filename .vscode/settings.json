@@ -4,5 +4,15 @@
             "approve": true,
             "matchCommandLine": true
         }
-    }
+    },
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "connectString": "postgresql://wpbot:wpbot@localhost:4003/wpbot",
+            "name": "wpbot"
+        }
+    ]
 }

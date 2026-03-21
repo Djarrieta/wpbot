@@ -4,13 +4,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun run index.ts",
-    "dev": "bun --watch run index.ts",
-    "seed": "bun run scripts/seed.ts"
+    "start": "bun --env-file=../../.env run index.ts",
+    "dev": "bun --env-file=../../.env --watch run index.ts",
+    "seed": "bun --env-file=../../.env run scripts/seed.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/pg": "^8.18.0"
+    "@types/pg": "8.18.0"
   },
   "peerDependencies": {
     "typescript": "5"
@@ -19,6 +19,6 @@
     "@langchain/openai": "1.2.12",
     "@wpbot/shared": "workspace:*",
     "mcp-use": "1.21.0",
-    "pg": "^8.20.0"
+    "pg": "8.20.0"
   }
 }
