@@ -38,7 +38,8 @@ export class AssistantController {
     const userInfo = await this.usersService.getById(userId);
 
     return this.promptTemplate
-      .replace('{{userInfo}}', JSON.stringify(userInfo) )
+      .replace('{{userId}}', userId.toString())
+      .replace('{{userInfo}}', JSON.stringify(userInfo))
       .replace('{{schema}}', schema)
       .replace('{{conversationHistory}}', conversationHistory)
       .replace('{{userMessage}}', userMessage);
@@ -62,8 +63,8 @@ export class AssistantController {
         );
       }
 
-    
-      const user =await this.usersService.getOrCreateById(body.userId,  body.name);
+
+      const user = await this.usersService.getOrCreateById(body.userId, body.name);
 
       console.log(user)
 
