@@ -1,0 +1,18 @@
+# Get all shipping costs
+curl http://localhost:4000/shipping
+
+# Create a shipping cost
+curl -X POST http://localhost:4000/shipping \
+  -H "Content-Type: application/json" \
+  -d '{"city": "Bogota", "department": "Cundinamarca", "shipping_cost_cop": 15000, "delivery_estimated_days": 2}'
+
+# Get shipping cost by ID (replace 1 with actual ID)
+curl http://localhost:4000/shipping/1
+
+# Update shipping cost
+curl -X PUT http://localhost:4000/shipping/1 \
+  -H "Content-Type: application/json" \
+  -d '{"shipping_cost_cop": 18000}'
+
+# Delete shipping cost
+curl -X DELETE http://localhost:4000/shipping/1

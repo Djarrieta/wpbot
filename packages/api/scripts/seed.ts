@@ -20,6 +20,12 @@ const contextData: { topic: string; content: string }[] = [
   },
 ];
 
+const shipping = [
+  { city: "Bogota", department: "Cundinamarca", shipping_cost_cop: 10000, delivery_estimated_days: 1 },
+  { city: "Medellin", department: "Antioquia", shipping_cost_cop: 12000, delivery_estimated_days: 2 },
+  { city: "Cali", department: "Valle del Cauca", shipping_cost_cop: 13000, delivery_estimated_days: 2 },
+];
+
 async function seed() {
   const client = new pg.Client({ connectionString });
   await client.connect();
@@ -64,10 +70,17 @@ async function seed() {
         topic TEXT NOT NULL,
         content TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS shipping (
+        id SERIAL PRIMARY KEY,
+        city TEXT NOT NULL,
+        department TEXT NOT NULL,
+        shipping_cost_cop REAL NOT NULL DEFAULT 0,
+        delivery_estimated_days INTEGER NOT NULL DEFAULT 0
+      );
     `);
 
     // Clear existing data
-    await client.query("TRUNCATE items, users, inventory, orders, chat_history, context RESTART IDENTITY CASCADE");
+    await client.query("TRUNCATE items, users, inventory, orders, chat_history, context, shipping RESTART IDENTITY CASCADE");
 
     console.log("Seeding items...");
     const createdItems: { id: number }[] = [];
@@ -109,6 +122,15 @@ async function seed() {
         [ctx.topic, ctx.content]
       );
       console.log(`  Created context: ${ctx.topic} (id: ${res.rows[0].id})`);
+    }
+
+    console.log("Seeding shipping...");
+    for (const sc of shipping) {
+      const res = await client.query(
+        "INSERT INTO shipping (city, department, shipping_cost_cop, delivery_estimated_days) VALUES ($1, $2, $3, $4) RETURNING id",
+        [sc.city, sc.department, sc.shipping_cost_cop, sc.delivery_estimated_days]
+      );
+      console.log(`  Created shipping: ${sc.city} (id: ${res.rows[0].id})`);
     }
 
     console.log("Seed complete!");

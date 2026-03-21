@@ -43,3 +43,11 @@ export type Context = {
 
 /** Utility: make `id` required (for entities returned from the API) */
 export type WithId<T extends { id?: number }> = T & { id: number };
+
+export type Shipping = {
+  id?: number;
+  city: string;
+  department: string;
+  shipping_cost_cop: number;
+  delivery_estimated_days: number;
+};

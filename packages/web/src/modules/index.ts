@@ -4,6 +4,7 @@ import users from './users';
 import inventory from './inventory';
 import orders from './orders';
 import context from './context';
+import shipping from './shipping';
 
 export const modules: ModuleConfig[] = [
   items,
@@ -11,4 +12,5 @@ export const modules: ModuleConfig[] = [
   inventory,
   orders,
   context,
+  shipping,
 ];
