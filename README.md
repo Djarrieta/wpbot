@@ -85,9 +85,9 @@ Configured in the root `.env` (symlinked into each package):
 | `WHATSAPP_API_VERSION`     | WhatsApp API version (e.g. v22.0)   |
 | `WHATSAPP_VERIFY_TOKEN`    | Webhook verification token          |
 | `TELEGRAM_BOT_TOKEN`       | Telegram bot token from BotFather   |
-| `DEEPSEEK_API_KEY`         | DeepSeek / LLM API key              |
-| `DEEPSEEK_MODEL`           | LLM model name                      |
-| `DEEPSEEK_BASE_URL`        | Custom OpenAI-compatible base URL   |
+| `LLM_API_KEY`              | LLM API key (OpenAI, DeepSeek, etc) |
+| `LLM_MODEL`                | LLM model name (e.g. deepseek-chat) |
+| `LLM_BASE_URL`             | OpenAI-compatible API base URL      |
 | `AI_MAX_STEPS`             | Max AI tool-calling steps (default: 8) |
 
 ## Running

@@ -11,10 +11,10 @@ import { getPool } from "./core/dbPool";
 import { requireEnv, optionalEnvNumber } from "@wpbot/shared";
 
 const aiService = new AIService(
-  requireEnv("DEEPSEEK_API_KEY"),
-  requireEnv("DEEPSEEK_MODEL"),
+  requireEnv("LLM_API_KEY"),
+  requireEnv("LLM_MODEL"),
   optionalEnvNumber("AI_MAX_STEPS", 8),
-  Bun.env.DEEPSEEK_BASE_URL,
+  requireEnv("LLM_BASE_URL"),
 );
 
 async function fetchContextTopics(): Promise<string[]> {
