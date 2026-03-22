@@ -1,6 +1,6 @@
 # wpbot
 
-A monorepo with an AI assistant API, a web dashboard, and messaging bots for WhatsApp and Telegram. The API uses MCP + LLM to generate responses backed by a PostgreSQL database. The messaging packages forward user messages to the API and relay responses back.
+A monorepo with an AI assistant API, a web dashboard, and messaging bots for WhatsApp and Telegram. The API uses the Vercel AI SDK with tool-calling to interact with a PostgreSQL database. The messaging packages forward user messages to the API and relay responses back.
 
 ## Folder Structure
 
@@ -21,12 +21,12 @@ wpbot/
 
 ## Packages
 
-| Package           | Port | Description                                                   |
-| ----------------- | ---- | ------------------------------------------------------------- |
-| `@wpbot/api`      | 4000 | Core assistant API (`POST /assistant`), items CRUD, MCP + LLM |
-| `@wpbot/web`      | 4001 | React dashboard for managing items                            |
-| `@wpbot/whatsapp` | 4002 | WhatsApp bot (webhook-based)                                  |
-| `@wpbot/telegram` | —    | Telegram bot (Telegraf, long polling)                         |
+| Package           | Port | Description                                                       |
+| ----------------- | ---- | ----------------------------------------------------------------- |
+| `@wpbot/api`      | 4000 | Core assistant API (`POST /assistant`), items CRUD, Vercel AI SDK |
+| `@wpbot/web`      | 4001 | React dashboard for managing items                                |
+| `@wpbot/whatsapp` | 4002 | WhatsApp bot (webhook-based)                                      |
+| `@wpbot/telegram` | —    | Telegram bot (Telegraf, long polling)                             |
 
 ## Setup
 
@@ -88,7 +88,7 @@ Configured in the root `.env` (symlinked into each package):
 | `DEEPSEEK_API_KEY`         | DeepSeek / LLM API key              |
 | `DEEPSEEK_MODEL`           | LLM model name                      |
 | `DEEPSEEK_BASE_URL`        | Custom OpenAI-compatible base URL   |
-| `MCP_MAX_STEPS`            | Max MCP agent steps (default: 8)    |
+| `AI_MAX_STEPS`             | Max AI tool-calling steps (default: 8) |
 
 ## Running
 
@@ -127,11 +127,11 @@ To add a CRUD module (e.g. `context` or `items`), create/update the following fi
 
 ### 2. API — `packages/api/src/modules/<name>/`
 
-| File | Purpose |
-|------|---------|
-| `service.ts` | `PgRepository` with column definitions |
-| `controller.ts` | Extends `GenericCrudController`, sets required fields |
-| `index.ts` | Calls `initializeTable()`, exports default `{ basePath, controller }` |
+| File            | Purpose                                                               |
+| --------------- | --------------------------------------------------------------------- |
+| `service.ts`    | `PgRepository` with column definitions                                |
+| `controller.ts` | Extends `GenericCrudController`, sets required fields                 |
+| `index.ts`      | Calls `initializeTable()`, exports default `{ basePath, controller }` |
 
 Then register in **`modules/index.ts`**: import, add to the array, and call `init()`.
 
@@ -139,11 +139,11 @@ If seed data is needed, add it to **`scripts/seed.ts`** (create table + insert r
 
 ### 3. Web — `packages/web/src/modules/<name>/`
 
-| File | Purpose |
-|------|---------|
-| `api.ts` | `createApiClient<WithId<Type>>("/path", "name")` |
-| `Form.tsx` | Uses `GenericForm` with field definitions |
-| `Page.tsx` | Uses `CrudPage` with column config + `FormComponent` |
+| File       | Purpose                                                            |
+| ---------- | ------------------------------------------------------------------ |
+| `api.ts`   | `createApiClient<WithId<Type>>("/path", "name")`                   |
+| `Form.tsx` | Uses `GenericForm` with field definitions                          |
+| `Page.tsx` | Uses `CrudPage` with column config + `FormComponent`               |
 | `index.ts` | Exports `{ basePath, label, icon, Page }` satisfies `ModuleConfig` |
 
 Then register in **`modules/index.ts`**: import and add to the array.

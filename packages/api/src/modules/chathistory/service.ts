@@ -15,7 +15,7 @@ export class ChatHistoryRepository extends PgRepository<ChatHistory> {
   }
 
   async getByUserId(userId: number, limit: number = 20): Promise<ChatHistory[]> {
-    const pool = getPool('readonly');
+    const pool = getPool('admin');
     const result = await pool.query(
       `SELECT * FROM chat_history WHERE user_id = $1 ORDER BY timestamp DESC LIMIT $2`,
       [userId, limit]

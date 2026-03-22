@@ -1,8 +1,6 @@
 import { HealthController } from "./controllers/healthController";
 import { AssistantController } from "./controllers/assistantController";
-import { MCPService } from "./services/mcpService";
-import { DeepSeekLLMProvider } from "./services/llmProvider";
-import { MCP_ASSISTANT_CONFIG } from "./constants";
+import { AIService } from "./services/aiService";
 import { modules } from "./modules";
 import { service as itemsService } from "./modules/items";
 import type { Route } from "./core/types";
@@ -11,16 +9,11 @@ import { service as usersService } from "./modules/users";
 import { ASSISTANT_PROMPT } from "./prompts";
 import { getPool } from "./core/dbPool";
 
-const llmProvider = new DeepSeekLLMProvider(
+const aiService = new AIService(
   Bun.env.DEEPSEEK_API_KEY!,
   Bun.env.DEEPSEEK_MODEL!,
+  Number(Bun.env.AI_MAX_STEPS) || 8,
   Bun.env.DEEPSEEK_BASE_URL,
-);
-// Use assistant config - can SELECT all tables, INSERT/UPDATE orders
-const mcpService = new MCPService(
-  llmProvider,
-  MCP_ASSISTANT_CONFIG,
-  Number(Bun.env.MCP_MAX_STEPS) || 8,
 );
 
 async function fetchContextTopics(): Promise<string[]> {
@@ -31,7 +24,7 @@ async function fetchContextTopics(): Promise<string[]> {
 
 const health = new HealthController();
 const assistant = new AssistantController(
-  mcpService,
+  aiService,
   modules.map((m) => m.controller),
   ASSISTANT_PROMPT,
   chatHistoryService,
