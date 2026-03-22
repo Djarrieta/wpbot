@@ -1,5 +1,5 @@
 export interface ApiClient<T> {
-  fetchAll(): Promise<T[]>;
+  fetchAll(params?: Record<string, string | number>): Promise<T[]>;
   create(entity: Omit<T, "id">): Promise<T>;
   update(id: number, entity: Partial<Omit<T, "id">>): Promise<T>;
   delete(id: number): Promise<void>;
@@ -7,8 +7,16 @@ export interface ApiClient<T> {
 
 export function createApiClient<T>(basePath: string, entityName: string): ApiClient<T> {
   return {
-    async fetchAll(): Promise<T[]> {
-      const res = await fetch(basePath);
+    async fetchAll(params?: Record<string, string | number>): Promise<T[]> {
+      let url = basePath;
+      if (params) {
+        const searchParams = new URLSearchParams();
+        for (const [key, value] of Object.entries(params)) {
+          searchParams.set(key, String(value));
+        }
+        url = `${basePath}?${searchParams.toString()}`;
+      }
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`Failed to fetch ${entityName}s: ${res.status}`);
       return res.json();
     },

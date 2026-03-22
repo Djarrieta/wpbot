@@ -1,0 +1,21 @@
+# Create order item
+curl -X POST http://localhost:3000/order-items \
+  -H "Content-Type: application/json" \
+  -d '{"order_id": 1, "item_id": 1, "quantity": 2, "unit_price": 999.99}'
+
+# Get all order items
+curl http://localhost:3000/order-items
+
+# Get order items by order_id
+curl "http://localhost:3000/order-items?order_id=1"
+
+# Get single order item
+curl http://localhost:3000/order-items/1
+
+# Update order item
+curl -X PUT http://localhost:3000/order-items/1 \
+  -H "Content-Type: application/json" \
+  -d '{"quantity": 3}'
+
+# Delete order item
+curl -X DELETE http://localhost:3000/order-items/1

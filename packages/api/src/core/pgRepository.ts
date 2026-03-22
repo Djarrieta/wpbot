@@ -62,8 +62,28 @@ export class PgRepository<T extends BaseEntity> extends Repository<T> {
     return result.rows[0] as T;
   }
 
-  async getAll(): Promise<T[]> {
-    const result = await this.pool.query(`SELECT * FROM ${this.tableName}`);
+  async getAll(filter?: Record<string, string>): Promise<T[]> {
+    if (!filter || Object.keys(filter).length === 0) {
+      const result = await this.pool.query(`SELECT * FROM ${this.tableName}`);
+      return result.rows as T[];
+    }
+
+    // Filter only by valid columns
+    const validFilters = Object.entries(filter).filter(([key]) =>
+      this.fieldNames.includes(key)
+    );
+
+    if (validFilters.length === 0) {
+      const result = await this.pool.query(`SELECT * FROM ${this.tableName}`);
+      return result.rows as T[];
+    }
+
+    const whereClauses = validFilters.map(([key], i) => `${key} = $${i + 1}`);
+    const values = validFilters.map(([, value]) => value);
+    const result = await this.pool.query(
+      `SELECT * FROM ${this.tableName} WHERE ${whereClauses.join(' AND ')}`,
+      values
+    );
     return result.rows as T[];
   }
 

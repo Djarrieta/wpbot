@@ -29,6 +29,10 @@ export default defineConfig({
         target: 'http://localhost:4000',
         changeOrigin: true,
       },
+      '/order-items': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
       '/context': {
         target: 'http://localhost:4000',
         changeOrigin: true,

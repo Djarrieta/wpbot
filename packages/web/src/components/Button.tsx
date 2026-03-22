@@ -1,9 +1,11 @@
 import type { ButtonHTMLAttributes } from "react";
 
 type Variant = "primary" | "secondary" | "danger";
+type Size = "sm" | "md";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
+  size?: Size;
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -15,14 +17,20 @@ const variantClasses: Record<Variant, string> = {
     "bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed",
 };
 
+const sizeClasses: Record<Size, string> = {
+  sm: "px-2 py-1 text-xs",
+  md: "px-3 py-1.5 text-sm",
+};
+
 export function Button({
   variant = "secondary",
+  size = "md",
   className = "",
   ...props
 }: ButtonProps) {
   return (
     <button
-      className={`rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${variantClasses[variant]} ${className}`}
+      className={`rounded-md font-medium cursor-pointer transition-colors ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
       {...props}
     />
   );

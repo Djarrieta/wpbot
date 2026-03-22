@@ -24,8 +24,8 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT
 SELECT ON TABLES TO wpbot_assistant;
 
--- Grant INSERT, UPDATE, DELETE on orders table (run after API creates the table)
--- The assistant can fully manage orders but only read other tables
+-- Grant INSERT, UPDATE, DELETE on orders and order_items tables (run after API creates the tables)
+-- The assistant can fully manage orders and order_items but only read other tables
 DO $$
 BEGIN
   IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'orders') THEN
@@ -33,6 +33,13 @@ BEGIN
     EXECUTE 'GRANT USAGE, SELECT ON SEQUENCE orders_id_seq TO wpbot_assistant';
   ELSE
     RAISE NOTICE 'orders table does not exist yet. Run this script again after starting the API to grant orders permissions.';
+  END IF;
+  
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'order_items') THEN
+    EXECUTE 'GRANT INSERT, UPDATE, DELETE ON TABLE order_items TO wpbot_assistant';
+    EXECUTE 'GRANT USAGE, SELECT ON SEQUENCE order_items_id_seq TO wpbot_assistant';
+  ELSE
+    RAISE NOTICE 'order_items table does not exist yet. Run this script again after starting the API to grant order_items permissions.';
   END IF;
 END
 $$;

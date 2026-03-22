@@ -11,26 +11,16 @@ const fields: FormField[] = [
     required: true,
   },
   {
-    name: "item_id",
-    label: "Item ID",
-    type: "number",
-    placeholder: "Item ID",
-    min: "1",
-    required: true,
-  },
-  {
-    name: "quantity",
-    label: "Quantity",
-    type: "number",
-    placeholder: "1",
-    min: "1",
-    required: true,
-  },
-  {
     name: "date",
     label: "Date",
     type: "date",
     required: true,
+  },
+  {
+    name: "status",
+    label: "Status",
+    type: "text",
+    placeholder: "pending",
   },
 ];
 

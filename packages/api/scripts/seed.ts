@@ -54,9 +54,15 @@ async function seed() {
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         user_id BIGINT NOT NULL,
+        date TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending'
+      );
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL,
         item_id INTEGER NOT NULL,
         quantity INTEGER NOT NULL DEFAULT 1,
-        date TEXT NOT NULL
+        unit_price REAL NOT NULL DEFAULT 0
       );
       CREATE TABLE IF NOT EXISTS chat_history (
         id SERIAL PRIMARY KEY,
@@ -80,7 +86,7 @@ async function seed() {
     `);
 
     // Clear existing data
-    await client.query("TRUNCATE items, users, inventory, orders, chat_history, context, shipping RESTART IDENTITY CASCADE");
+    await client.query("TRUNCATE items, users, inventory, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
 
     console.log("Seeding items...");
     const createdItems: { id: number }[] = [];

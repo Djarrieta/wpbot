@@ -6,8 +6,7 @@ export type { Order };
 export function createOrdersRepository() {
   return new PgRepository<Order>('orders', [
     { name: 'user_id', type: 'BIGINT', constraints: 'NOT NULL' },
-    { name: 'item_id', type: 'INTEGER', constraints: 'NOT NULL' },
-    { name: 'quantity', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 1' },
     { name: 'date', type: 'TEXT', constraints: 'NOT NULL' },
+    { name: 'status', type: 'TEXT', constraints: "NOT NULL DEFAULT 'pending'" },
   ]);
 }

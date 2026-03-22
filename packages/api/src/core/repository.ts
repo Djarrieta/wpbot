@@ -5,7 +5,7 @@ export interface BaseEntity {
 export abstract class Repository<T extends BaseEntity> {
   abstract initializeTable(): Promise<void>;
   abstract create(entity: Omit<T, 'id'>): Promise<T>;
-  abstract getAll(): Promise<T[]>;
+  abstract getAll(filter?: Record<string, string>): Promise<T[]>;
   abstract getById(id: number): Promise<T | null>;
   abstract update(id: number, entity: Partial<Omit<T, 'id'>>): Promise<T | null>;
   abstract delete(id: number): Promise<boolean>;

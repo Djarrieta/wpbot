@@ -12,8 +12,13 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
     this.requiredFields = requiredFields;
   }
 
-  async getAll(_req: Request): Promise<Response> {
-    return Response.json(await this.service.getAll());
+  async getAll(req: Request): Promise<Response> {
+    const url = new URL(req.url);
+    const filter: Record<string, string> = {};
+    url.searchParams.forEach((value, key) => {
+      filter[key] = value;
+    });
+    return Response.json(await this.service.getAll(filter));
   }
 
   async getById(_req: Request, id: number): Promise<Response> {

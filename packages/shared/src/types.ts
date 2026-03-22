@@ -30,9 +30,16 @@ export type ChatHistory = {
 export type Order = {
   id?: number;
   user_id: number;
+  date: string;
+  status?: string;
+};
+
+export type OrderItem = {
+  id?: number;
+  order_id: number;
   item_id: number;
   quantity: number;
-  date: string;
+  unit_price: number;
 };
 
 export type Context = {
