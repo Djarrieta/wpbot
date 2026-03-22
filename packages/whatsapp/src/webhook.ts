@@ -1,9 +1,11 @@
-const ACCESS_TOKEN = Bun.env.WHATSAPP_ACCESS_TOKEN!;
-const PHONE_NUMBER_ID = Bun.env.WHATSAPP_PHONE_NUMBER_ID!;
-const BASE_URL = Bun.env.WHATSAPP_BASE_URL!;
-const API_VERSION = Bun.env.WHATSAPP_API_VERSION!;
-const VERIFY_TOKEN = Bun.env.WHATSAPP_VERIFY_TOKEN || "";
-const API_URL = Bun.env.API_URL || "http://localhost:4000";
+import { requireEnv, optionalEnv } from "@wpbot/shared";
+
+const ACCESS_TOKEN = requireEnv("WHATSAPP_ACCESS_TOKEN");
+const PHONE_NUMBER_ID = requireEnv("WHATSAPP_PHONE_NUMBER_ID");
+const BASE_URL = requireEnv("WHATSAPP_BASE_URL");
+const API_VERSION = requireEnv("WHATSAPP_API_VERSION");
+const VERIFY_TOKEN = optionalEnv("WHATSAPP_VERIFY_TOKEN", "");
+const API_URL = optionalEnv("API_URL", "http://localhost:4000");
 
 interface IncomingMessage {
   from: string;

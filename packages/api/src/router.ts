@@ -8,11 +8,12 @@ import { service as chatHistoryService } from "./modules/chathistory";
 import { service as usersService } from "./modules/users";
 import { ASSISTANT_PROMPT } from "./prompts";
 import { getPool } from "./core/dbPool";
+import { requireEnv, optionalEnvNumber } from "@wpbot/shared";
 
 const aiService = new AIService(
-  Bun.env.DEEPSEEK_API_KEY!,
-  Bun.env.DEEPSEEK_MODEL!,
-  Number(Bun.env.AI_MAX_STEPS) || 8,
+  requireEnv("DEEPSEEK_API_KEY"),
+  requireEnv("DEEPSEEK_MODEL"),
+  optionalEnvNumber("AI_MAX_STEPS", 8),
   Bun.env.DEEPSEEK_BASE_URL,
 );
 

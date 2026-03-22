@@ -1,10 +1,11 @@
 import { router } from "./src/router";
 import { initModules } from "./src/modules";
+import { optionalEnvNumber } from "@wpbot/shared";
 
 await initModules();
 
 const server = Bun.serve({
-  port: Bun.env.PORT || 4000,
+  port: optionalEnvNumber("PORT", 4000),
   fetch: router,
 });
 

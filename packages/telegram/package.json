@@ -14,6 +14,7 @@
     "typescript": "5"
   },
   "dependencies": {
+    "@wpbot/shared": "workspace:*",
     "telegraf": "4.16.3"
   }
 }

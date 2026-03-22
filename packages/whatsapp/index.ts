@@ -1,6 +1,7 @@
 import { handleWebhook, handleVerification } from "./src/webhook";
+import { optionalEnvNumber } from "@wpbot/shared";
 
-const PORT = Bun.env.WHATSAPP_PORT || 4002;
+const PORT = optionalEnvNumber("WHATSAPP_PORT", 4002);
 
 const server = Bun.serve({
   port: PORT,

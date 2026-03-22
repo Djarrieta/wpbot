@@ -1,8 +1,9 @@
 import { Telegraf } from "telegraf";
 import { message } from "telegraf/filters";
+import { requireEnv, optionalEnv } from "@wpbot/shared";
 
-const BOT_TOKEN = Bun.env.TELEGRAM_BOT_TOKEN!;
-const API_URL = Bun.env.API_URL || "http://localhost:4000";
+const BOT_TOKEN = requireEnv("TELEGRAM_BOT_TOKEN");
+const API_URL = optionalEnv("API_URL", "http://localhost:4000");
 
 async function callAssistant(userMessage: string, userId: number, name?: string): Promise<string> {
   const response = await fetch(`${API_URL}/assistant`, {
