@@ -14,7 +14,12 @@ const fields: FormField[] = [
     type: "email",
     placeholder: "usuario@ejemplo.com",
   },
-  { name: "phone", label: "Teléfono", type: "tel", placeholder: "+57 300 123 4567" },
+  {
+    name: "phone",
+    label: "Teléfono",
+    type: "tel",
+    placeholder: "+57 300 123 4567",
+  },
 ];
 
 interface UserFormProps {

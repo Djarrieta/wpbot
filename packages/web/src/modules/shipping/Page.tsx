@@ -16,7 +16,7 @@ export function ShippingPage() {
         {
           key: "shipping_cost_cop",
           header: "Costo (COP)",
-          render: (v) => `$${Number(v).toLocaleString('es-CO')}`,
+          render: (v) => `$${Number(v).toLocaleString("es-CO")}`,
         },
         { key: "delivery_estimated_days", header: "Días Est." },
       ]}

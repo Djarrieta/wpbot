@@ -49,7 +49,11 @@ export function OrdersPage() {
       const items = await orderItemsApi.fetchAll({ order_id: orderId });
       setOrderItems(items);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al obtener artículos del pedido");
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Error al obtener artículos del pedido",
+      );
     } finally {
       setLoadingItems(false);
     }
