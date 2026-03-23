@@ -80,14 +80,7 @@ export class AssistantController {
         );
       }
 
-
-      const user = await this.usersService.getOrCreateById(body.userId, body.name);
-
-      console.log(user)
-
       const prompt = await this.buildPrompt(body.message, body.userId);
-
-      console.log(prompt)
 
       // Save user message to history
       await this.chatHistoryService.addMessage(body.userId, body.message, 'user');
