@@ -74,7 +74,10 @@ export function GenericForm<T extends Record<string, unknown>>({
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
       {fields.map((field, i) => (
-        <label key={field.name} className={`flex ${field.type === "checkbox" ? "flex-row items-center gap-2" : "flex-col gap-1"} text-left`}>
+        <label
+          key={field.name}
+          className={`flex ${field.type === "checkbox" ? "flex-row items-center gap-2" : "flex-col gap-1"} text-left`}
+        >
           {field.type === "checkbox" ? (
             <>
               <input
