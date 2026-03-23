@@ -13,6 +13,11 @@ export function ContextPage() {
         { key: "id", header: "ID" },
         { key: "topic", header: "Topic" },
         { key: "content", header: "Content" },
+        { 
+          key: "always_inject", 
+          header: "Auto-inyectar",
+          render: (value) => value ? "✓ Sí" : "No"
+        },
       ]}
       FormComponent={ContextForm}
     />

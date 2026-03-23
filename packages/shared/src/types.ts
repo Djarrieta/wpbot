@@ -46,6 +46,7 @@ export type Context = {
   id?: number;
   topic: string;
   content: string;
+  always_inject: boolean;
 };
 
 /** Utility: make `id` required (for entities returned from the API) */

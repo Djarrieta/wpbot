@@ -16,6 +16,12 @@ const fields: FormField[] = [
     placeholder: "Detailed context information...",
     required: true,
   },
+  {
+    name: "always_inject",
+    label: "Siempre inyectar",
+    type: "checkbox",
+    required: false,
+  },
 ];
 
 interface ContextFormProps {

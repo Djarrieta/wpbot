@@ -9,6 +9,7 @@ import { service as usersService } from "./modules/users";
 import { ASSISTANT_PROMPT } from "./prompts";
 import { getPool } from "./core/dbPool";
 import { requireEnv, optionalEnvNumber } from "@wpbot/shared";
+import type { Context } from "@wpbot/shared";
 
 const aiService = new AIService(
   requireEnv("LLM_API_KEY"),
@@ -17,10 +18,16 @@ const aiService = new AIService(
   requireEnv("LLM_BASE_URL"),
 );
 
-async function fetchContextTopics(): Promise<string[]> {
+async function fetchQueryableTopics(): Promise<string[]> {
   const pool = getPool('admin');
-  const result = await pool.query('SELECT topic FROM context ORDER BY topic');
+  const result = await pool.query('SELECT topic FROM context WHERE always_inject = false ORDER BY topic');
   return result.rows.map((r: { topic: string }) => r.topic);
+}
+
+async function fetchAlwaysInjectContexts(): Promise<Context[]> {
+  const pool = getPool('admin');
+  const result = await pool.query('SELECT id, topic, content, always_inject FROM context WHERE always_inject = true ORDER BY id');
+  return result.rows;
 }
 
 const health = new HealthController();
@@ -30,7 +37,8 @@ const assistant = new AssistantController(
   ASSISTANT_PROMPT,
   chatHistoryService,
   usersService,
-  fetchContextTopics,
+  fetchQueryableTopics,
+  fetchAlwaysInjectContexts,
 );
 
 const routes: Route[] = [

@@ -3,6 +3,7 @@ import type { GenericCrudController } from "../core/crudController";
 import type { BaseEntity } from "../core/repository";
 import type { ChatHistoryRepository } from "../modules/chathistory/service";
 import type { UsersRepository } from "../modules/users/service";
+import type { Context } from "@wpbot/shared";
 
 export class AssistantController {
   private readonly responseGenerator: ResponseGenerator;
@@ -10,7 +11,8 @@ export class AssistantController {
   private readonly promptTemplate: string;
   private readonly chatHistoryService: ChatHistoryRepository;
   private readonly usersService: UsersRepository;
-  private readonly contextTopicsFetcher: () => Promise<string[]>;
+  private readonly queryableTopicsFetcher: () => Promise<string[]>;
+  private readonly alwaysInjectContextsFetcher: () => Promise<Context[]>;
 
   constructor(
     responseGenerator: ResponseGenerator,
@@ -18,14 +20,16 @@ export class AssistantController {
     promptTemplate: string,
     chatHistoryService: ChatHistoryRepository,
     usersService: UsersRepository,
-    contextTopicsFetcher: () => Promise<string[]>,
+    queryableTopicsFetcher: () => Promise<string[]>,
+    alwaysInjectContextsFetcher: () => Promise<Context[]>,
   ) {
     this.responseGenerator = responseGenerator;
     this.controllers = controllers;
     this.promptTemplate = promptTemplate;
     this.chatHistoryService = chatHistoryService;
     this.usersService = usersService;
-    this.contextTopicsFetcher = contextTopicsFetcher;
+    this.queryableTopicsFetcher = queryableTopicsFetcher;
+    this.alwaysInjectContextsFetcher = alwaysInjectContextsFetcher;
   }
 
   private async buildPrompt(userMessage: string, userId: number): Promise<string> {
@@ -40,14 +44,20 @@ export class AssistantController {
 
     const userInfo = await this.usersService.getById(userId);
 
-    const contextTopics = await this.contextTopicsFetcher();
-    const contextTopicList = contextTopics.length > 0 ? contextTopics.join(', ') : 'Ninguno disponible';
+    const queryableTopics = await this.queryableTopicsFetcher();
+    const contextTopicList = queryableTopics.length > 0 ? queryableTopics.join(', ') : 'Ninguno disponible';
+
+    const alwaysInjectContexts = await this.alwaysInjectContextsFetcher();
+    const injectedContext = alwaysInjectContexts.length > 0
+      ? alwaysInjectContexts.map((c) => `[${c.topic}]: ${c.content}`).join('\n')
+      : 'Sin contexto adicional.';
 
     return this.promptTemplate
       .replace('{{userId}}', userId.toString())
       .replace('{{userInfo}}', JSON.stringify(userInfo))
       .replace('{{schema}}', schema)
       .replace('{{contextTopicList}}', contextTopicList)
+      .replace('{{injectedContext}}', injectedContext)
       .replace('{{conversationHistory}}', conversationHistory)
       .replace('{{userMessage}}', userMessage);
   }

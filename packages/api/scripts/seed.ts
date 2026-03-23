@@ -12,11 +12,33 @@ const users = [
   { id: 2, name: "Jane Smith", email: "jane@example.com", phone: "+0987654321" },
 ];
 
-const contextData: { topic: string; content: string }[] = [
+const contextData: { topic: string; content: string; always_inject: boolean }[] = [
+  // Contextos que siempre se inyectan en el prompt
   {
-    topic: "logistica",
-    content:
-      "Información detallada sobre logística: procesos de envío, tiempos de entrega, proveedores de transporte, rutas de distribución, gestión de almacenes y control de inventario.",
+    topic: "mensaje_bienvenida",
+    content: "Hola! Bienvenido a 3DCase, la marca #1 🥇 en Colombia de fundas para celular en 3D, aquí lo proteges y le das todo tu estilo 😎 ¿Cuéntame por favor como te llamas y como te podemos ayudar?",
+    always_inject: true,
+  },
+  {
+    topic: "acerca_de_la_empresa",
+    content: "Somos una empresa colombiana dedicada a la fabricación y comercialización de fundas y stickers para celular. Página web: https://3dcase.com.co/",
+    always_inject: true,
+  },
+  {
+    topic: "enfoque_comercial",
+    content: "Eres un asistente de ventas por WhatsApp, especializado en la comercialización de skins y cases 3D personalizados para celulares.",
+    always_inject: true,
+  },
+  // Contextos consultables por el agente cuando lo necesite
+  {
+    topic: "logistica_envios",
+    content: "Se hacen envíos nacionales. El cliente también puede recoger en la oficina: Av. Galán, Diagonal 50 B #44-29, Rionegro, Antioquia. El tiempo de entrega es de 24 horas hábiles.",
+    always_inject: false,
+  },
+  {
+    topic: "logistica_pagos",
+    content: "Métodos de pago disponibles: Wompi (plataforma de Bancolombia), transferencias por Nequi (cuenta 3001234567), Daviplata (cuenta 3009876543), y tarjetas de crédito/débito (Visa, Mastercard, American Express). Para pagos con Wompi, el cliente recibirá un link de pago seguro. Nequi y Daviplata: enviar comprobante al WhatsApp.",
+    always_inject: false,
   },
 ];
 
@@ -74,7 +96,8 @@ async function seed() {
       CREATE TABLE IF NOT EXISTS context (
         id SERIAL PRIMARY KEY,
         topic TEXT NOT NULL,
-        content TEXT NOT NULL
+        content TEXT NOT NULL,
+        always_inject BOOLEAN NOT NULL DEFAULT false
       );
       CREATE TABLE IF NOT EXISTS shipping (
         id SERIAL PRIMARY KEY,
@@ -124,10 +147,10 @@ async function seed() {
     console.log("Seeding context...");
     for (const ctx of contextData) {
       const res = await client.query(
-        "INSERT INTO context (topic, content) VALUES ($1, $2) RETURNING id",
-        [ctx.topic, ctx.content]
+        "INSERT INTO context (topic, content, always_inject) VALUES ($1, $2, $3) RETURNING id",
+        [ctx.topic, ctx.content, ctx.always_inject]
       );
-      console.log(`  Created context: ${ctx.topic} (id: ${res.rows[0].id})`);
+      console.log(`  Created context: ${ctx.topic} (always_inject: ${ctx.always_inject}, id: ${res.rows[0].id})`);
     }
 
     console.log("Seeding shipping...");
