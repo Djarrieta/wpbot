@@ -4,23 +4,23 @@ import { GenericForm, type FormField } from "../../components/GenericForm";
 const fields: FormField[] = [
   {
     name: "user_id",
-    label: "User ID",
+    label: "ID Usuario",
     type: "number",
-    placeholder: "User ID",
+    placeholder: "ID del usuario",
     min: "1",
     required: true,
   },
   {
     name: "date",
-    label: "Date",
+    label: "Fecha",
     type: "date",
     required: true,
   },
   {
     name: "status",
-    label: "Status",
+    label: "Estado",
     type: "text",
-    placeholder: "pending",
+    placeholder: "pendiente",
   },
 ];
 

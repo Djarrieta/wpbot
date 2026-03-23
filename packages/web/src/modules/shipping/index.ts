@@ -3,7 +3,7 @@ import { ShippingPage } from './Page';
 
 export default {
   basePath: '/shipping',
-  label: 'Shipping',
+  label: 'Envíos',
   icon: '🚚',
   Page: ShippingPage,
 } satisfies ModuleConfig;

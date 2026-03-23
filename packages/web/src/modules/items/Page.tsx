@@ -6,16 +6,16 @@ import { api } from "./api";
 export function ItemsPage() {
   return (
     <CrudPage<WithId<Item>>
-      entityName="Item"
-      entityNamePlural="Items"
+      entityName="Artículo"
+      entityNamePlural="Artículos"
       api={api}
       columns={[
         { key: "id", header: "ID" },
-        { key: "name", header: "Name" },
-        { key: "description", header: "Description" },
+        { key: "name", header: "Nombre" },
+        { key: "description", header: "Descripción" },
         {
           key: "price",
-          header: "Price",
+          header: "Precio",
           render: (v) => `$${Number(v).toFixed(2)}`,
         },
       ]}

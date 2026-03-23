@@ -3,7 +3,7 @@ import { ItemsPage } from './Page';
 
 export default {
   basePath: '/items',
-  label: 'Items',
+  label: 'Artículos',
   icon: '📦',
   Page: ItemsPage,
 } satisfies ModuleConfig;

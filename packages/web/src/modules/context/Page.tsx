@@ -6,13 +6,13 @@ import { api } from "./api";
 export function ContextPage() {
   return (
     <CrudPage<WithId<Context>>
-      entityName="Context"
-      entityNamePlural="Context"
+      entityName="Contexto"
+      entityNamePlural="Contexto"
       api={api}
       columns={[
         { key: "id", header: "ID" },
-        { key: "topic", header: "Topic" },
-        { key: "content", header: "Content" },
+        { key: "topic", header: "Tema" },
+        { key: "content", header: "Contenido" },
         {
           key: "always_inject",
           header: "Auto-inyectar",

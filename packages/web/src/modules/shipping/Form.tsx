@@ -4,21 +4,21 @@ import { GenericForm, type FormField } from "../../components/GenericForm";
 const fields: FormField[] = [
   {
     name: "city",
-    label: "City",
+    label: "Ciudad",
     type: "text",
-    placeholder: "e.g., Bogota",
+    placeholder: "ej. Bogotá",
     required: true,
   },
   {
     name: "department",
-    label: "Department",
+    label: "Departamento",
     type: "text",
-    placeholder: "e.g., Cundinamarca",
+    placeholder: "ej. Cundinamarca",
     required: true,
   },
   {
     name: "shipping_cost_cop",
-    label: "Shipping Cost (COP)",
+    label: "Costo de Envío (COP)",
     type: "number",
     placeholder: "15000",
     min: "0",
@@ -27,7 +27,7 @@ const fields: FormField[] = [
   },
   {
     name: "delivery_estimated_days",
-    label: "Estimated Delivery (Days)",
+    label: "Tiempo de Entrega Estimado (Días)",
     type: "number",
     placeholder: "2",
     min: "1",

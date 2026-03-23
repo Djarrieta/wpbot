@@ -4,15 +4,15 @@ import { GenericForm, type FormField } from "../../components/GenericForm";
 const fields: FormField[] = [
   {
     name: "item_id",
-    label: "Item ID",
+    label: "ID Artículo",
     type: "number",
-    placeholder: "Item ID",
+    placeholder: "ID del artículo",
     min: "1",
     required: true,
   },
   {
     name: "quantity",
-    label: "Quantity",
+    label: "Cantidad",
     type: "number",
     placeholder: "0",
     min: "0",
@@ -20,9 +20,9 @@ const fields: FormField[] = [
   },
   {
     name: "location",
-    label: "Location",
+    label: "Ubicación",
     type: "text",
-    placeholder: "Warehouse location",
+    placeholder: "Ubicación en almacén",
   },
 ];
 

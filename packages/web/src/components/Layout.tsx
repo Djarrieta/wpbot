@@ -2,7 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { modules } from "../modules";
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: "📊" },
+  { to: "/", label: "Panel", icon: "📊" },
   ...modules.map((m) => ({ to: m.basePath, label: m.label, icon: m.icon })),
 ];
 

@@ -128,10 +128,10 @@ export function GenericForm<T extends Record<string, unknown>>({
           onClick={onCancel}
           disabled={loading}
         >
-          Cancel
+          Cancelar
         </Button>
         <Button type="submit" variant="primary" disabled={!isValid || loading}>
-          {loading ? "Saving..." : initial ? "Update" : "Create"}
+          {loading ? "Guardando..." : initial ? "Actualizar" : "Crear"}
         </Button>
       </div>
     </form>

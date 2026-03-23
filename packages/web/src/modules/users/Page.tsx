@@ -6,14 +6,14 @@ import { api } from "./api";
 export function UsersPage() {
   return (
     <CrudPage<WithId<User>>
-      entityName="User"
-      entityNamePlural="Users"
+      entityName="Usuario"
+      entityNamePlural="Usuarios"
       api={api}
       columns={[
         { key: "id", header: "ID" },
-        { key: "name", header: "Name" },
-        { key: "email", header: "Email" },
-        { key: "phone", header: "Phone" },
+        { key: "name", header: "Nombre" },
+        { key: "email", header: "Correo" },
+        { key: "phone", header: "Teléfono" },
       ]}
       FormComponent={UserForm}
     />

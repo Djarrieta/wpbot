@@ -6,14 +6,14 @@ import { api } from "./api";
 export function InventoryPage() {
   return (
     <CrudPage<WithId<Inventory>>
-      entityName="Inventory"
-      entityNamePlural="Inventory"
+      entityName="Inventario"
+      entityNamePlural="Inventario"
       api={api}
       columns={[
         { key: "id", header: "ID" },
-        { key: "item_id", header: "Item ID" },
-        { key: "quantity", header: "Quantity" },
-        { key: "location", header: "Location" },
+        { key: "item_id", header: "ID Artículo" },
+        { key: "quantity", header: "Cantidad" },
+        { key: "location", header: "Ubicación" },
       ]}
       FormComponent={InventoryForm}
     />

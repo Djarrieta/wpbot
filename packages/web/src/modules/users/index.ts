@@ -3,7 +3,7 @@ import { UsersPage } from './Page';
 
 export default {
   basePath: '/users',
-  label: 'Users',
+  label: 'Usuarios',
   icon: '👤',
   Page: UsersPage,
 } satisfies ModuleConfig;

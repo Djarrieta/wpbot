@@ -49,7 +49,7 @@ export function Dashboard() {
             const data = await fetchStats();
             setStats(data);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Failed to fetch stats");
+            setError(e instanceof Error ? e.message : "Error al obtener estadísticas");
         } finally {
             setLoading(false);
         }
@@ -59,10 +59,10 @@ export function Dashboard() {
         <div>
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white m-0 mb-1">
-                    Dashboard
+                    Panel
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 m-0">
-                    Overview of your data at a glance
+                    Resumen de tus datos de un vistazo
                 </p>
             </div>
 
@@ -90,19 +90,19 @@ export function Dashboard() {
             ) : stats ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
                     <StatCard
-                        label="Total Items"
+                        label="Total Artículos"
                         value={String(stats.totalItems)}
                         icon="📦"
                         gradient="bg-indigo-500"
                     />
                     <StatCard
-                        label="Total Value"
+                        label="Valor Total"
                         value={`$${stats.totalValue.toFixed(2)}`}
                         icon="💰"
                         gradient="bg-emerald-500"
                     />
                     <StatCard
-                        label="Average Price"
+                        label="Precio Promedio"
                         value={`$${stats.avgPrice.toFixed(2)}`}
                         icon="📈"
                         gradient="bg-amber-500"
@@ -113,7 +113,7 @@ export function Dashboard() {
             {/* Quick access */}
             <div className="mt-2">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white m-0 mb-4">
-                    Quick Access
+                    Acceso Rápido
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     <Link
@@ -126,10 +126,10 @@ export function Dashboard() {
                             </div>
                             <div>
                                 <p className="text-sm font-semibold text-gray-900 dark:text-white m-0">
-                                    Manage Items
+                                    Gestionar Artículos
                                 </p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 m-0 mt-0.5">
-                                    View, create, and edit items
+                                    Ver, crear y editar artículos
                                 </p>
                             </div>
                         </div>

@@ -4,16 +4,16 @@ import { GenericForm, type FormField } from "../../components/GenericForm";
 const fields: FormField[] = [
   {
     name: "topic",
-    label: "Topic",
+    label: "Tema",
     type: "text",
-    placeholder: "Topic name",
+    placeholder: "Nombre del tema",
     required: true,
   },
   {
     name: "content",
-    label: "Content",
+    label: "Contenido",
     type: "textarea",
-    placeholder: "Detailed context information...",
+    placeholder: "Información detallada del contexto...",
     required: true,
   },
   {

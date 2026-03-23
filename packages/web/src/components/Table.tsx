@@ -26,7 +26,7 @@ export function Table<T>({ columns, data, keyField, actions }: TableProps<T>) {
           ))}
           {actions && (
             <th className="border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
-              Actions
+              Acciones
             </th>
           )}
         </tr>
@@ -38,7 +38,7 @@ export function Table<T>({ columns, data, keyField, actions }: TableProps<T>) {
               colSpan={columns.length + (actions ? 1 : 0)}
               className="text-center py-8 text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700"
             >
-              No data found.
+              No se encontraron datos.
             </td>
           </tr>
         ) : (

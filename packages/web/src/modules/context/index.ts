@@ -3,7 +3,7 @@ import { ContextPage } from './Page';
 
 export default {
   basePath: '/context',
-  label: 'Context',
+  label: 'Contexto',
   icon: '📋',
   Page: ContextPage,
 } satisfies ModuleConfig;

@@ -117,7 +117,7 @@ export function CrudPage<T extends { id: number }>({
   if (loading) {
     return (
       <div className="py-8 text-center text-gray-500">
-        Loading {entityNamePlural.toLowerCase()}...
+        Cargando {entityNamePlural.toLowerCase()}...
       </div>
     );
   }
@@ -130,10 +130,10 @@ export function CrudPage<T extends { id: number }>({
         </h2>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={loadData}>
-            Refresh
+            Actualizar
           </Button>
           <Button variant="primary" onClick={() => setShowCreate(true)}>
-            + New {entityName}
+            + Nuevo {entityName}
           </Button>
         </div>
       </div>
@@ -157,10 +157,10 @@ export function CrudPage<T extends { id: number }>({
         actions={(row) => (
           <>
             <Button variant="secondary" onClick={() => setEditing(row)}>
-              Edit
+              Editar
             </Button>
             <Button variant="danger" onClick={() => setDeleting(row)}>
-              Delete
+              Eliminar
             </Button>
           </>
         )}
@@ -168,7 +168,7 @@ export function CrudPage<T extends { id: number }>({
 
       <Modal
         open={showCreate}
-        title={`New ${entityName}`}
+        title={`Nuevo ${entityName}`}
         onClose={() => setShowCreate(false)}
       >
         <FormComponent
@@ -180,7 +180,7 @@ export function CrudPage<T extends { id: number }>({
 
       <Modal
         open={editing !== null}
-        title={`Edit ${entityName}`}
+        title={`Editar ${entityName}`}
         onClose={() => setEditing(null)}
       >
         {editing && (
@@ -195,13 +195,13 @@ export function CrudPage<T extends { id: number }>({
 
       <Modal
         open={deleting !== null}
-        title={`Delete ${entityName}`}
+        title={`Eliminar ${entityName}`}
         onClose={() => setDeleting(null)}
       >
         {deleting && (
           <div>
             <p className="mb-6 text-left text-gray-700 dark:text-gray-300">
-              Are you sure you want to delete{" "}
+              ¿Estás seguro que deseas eliminar{" "}
               <strong>{String(deleting[nameField])}</strong>?
             </p>
             <div className="flex justify-end gap-3">
@@ -210,10 +210,10 @@ export function CrudPage<T extends { id: number }>({
                 onClick={() => setDeleting(null)}
                 disabled={saving}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button variant="danger" onClick={handleDelete} disabled={saving}>
-                {saving ? "Deleting..." : "Delete"}
+                {saving ? "Eliminando..." : "Eliminar"}
               </Button>
             </div>
           </div>

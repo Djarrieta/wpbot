@@ -37,7 +37,7 @@ export function OrdersPage() {
       setError(null);
       setOrders(await api.fetchAll());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to fetch orders");
+      setError(e instanceof Error ? e.message : "Error al obtener pedidos");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export function OrdersPage() {
       const items = await orderItemsApi.fetchAll({ order_id: orderId });
       setOrderItems(items);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to fetch order items");
+      setError(e instanceof Error ? e.message : "Error al obtener artículos del pedido");
     } finally {
       setLoadingItems(false);
     }
@@ -73,7 +73,7 @@ export function OrdersPage() {
       setShowCreate(false);
       await loadOrders();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to create order");
+      setError(e instanceof Error ? e.message : "Error al crear pedido");
     } finally {
       setSaving(false);
     }
@@ -87,7 +87,7 @@ export function OrdersPage() {
       setEditing(null);
       await loadOrders();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to update order");
+      setError(e instanceof Error ? e.message : "Error al actualizar pedido");
     } finally {
       setSaving(false);
     }
@@ -101,7 +101,7 @@ export function OrdersPage() {
       setDeleting(null);
       await loadOrders();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to delete order");
+      setError(e instanceof Error ? e.message : "Error al eliminar pedido");
     } finally {
       setSaving(false);
     }
@@ -116,7 +116,7 @@ export function OrdersPage() {
       setShowAddItem(false);
       await loadOrderItems(viewingOrder.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to add item");
+      setError(e instanceof Error ? e.message : "Error al agregar artículo");
     } finally {
       setSaving(false);
     }
@@ -130,7 +130,7 @@ export function OrdersPage() {
       setEditingItem(null);
       await loadOrderItems(viewingOrder.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to update item");
+      setError(e instanceof Error ? e.message : "Error al actualizar artículo");
     } finally {
       setSaving(false);
     }
@@ -144,30 +144,30 @@ export function OrdersPage() {
       setDeletingItem(null);
       await loadOrderItems(viewingOrder.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to delete item");
+      setError(e instanceof Error ? e.message : "Error al eliminar artículo");
     } finally {
       setSaving(false);
     }
   }
 
   if (loading) {
-    return <div className="p-6 text-gray-500">Loading orders...</div>;
+    return <div className="p-6 text-gray-500">Cargando pedidos...</div>;
   }
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Orders
+          Pedidos
         </h1>
-        <Button onClick={() => setShowCreate(true)}>+ New Order</Button>
+        <Button onClick={() => setShowCreate(true)}>+ Nuevo Pedido</Button>
       </div>
 
       {error && (
         <div className="p-4 mb-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300">
           {error}
           <button className="ml-2 underline" onClick={() => setError(null)}>
-            Dismiss
+            Cerrar
           </button>
         </div>
       )}
@@ -175,9 +175,9 @@ export function OrdersPage() {
       <Table
         columns={[
           { key: "id", header: "ID" },
-          { key: "user_id", header: "User ID" },
-          { key: "date", header: "Date" },
-          { key: "status", header: "Status" },
+          { key: "user_id", header: "ID Usuario" },
+          { key: "date", header: "Fecha" },
+          { key: "status", header: "Estado" },
         ]}
         data={orders}
         keyField="id"
@@ -188,21 +188,21 @@ export function OrdersPage() {
               variant="secondary"
               onClick={() => setViewingOrder(order)}
             >
-              Items
+              Artículos
             </Button>
             <Button
               size="sm"
               variant="secondary"
               onClick={() => setEditing(order)}
             >
-              Edit
+              Editar
             </Button>
             <Button
               size="sm"
               variant="danger"
               onClick={() => setDeleting(order)}
             >
-              Delete
+              Eliminar
             </Button>
           </>
         )}
@@ -211,7 +211,7 @@ export function OrdersPage() {
       {/* Create Order Modal */}
       <Modal
         open={showCreate}
-        title="Create Order"
+        title="Crear Pedido"
         onClose={() => setShowCreate(false)}
       >
         <OrderForm
@@ -224,7 +224,7 @@ export function OrdersPage() {
       {/* Edit Order Modal */}
       <Modal
         open={!!editing}
-        title="Edit Order"
+        title="Editar Pedido"
         onClose={() => setEditing(null)}
       >
         {editing && (
@@ -240,18 +240,18 @@ export function OrdersPage() {
       {/* Delete Order Confirmation */}
       <Modal
         open={!!deleting}
-        title="Delete Order"
+        title="Eliminar Pedido"
         onClose={() => setDeleting(null)}
       >
         <p className="mb-4 text-gray-700 dark:text-gray-300">
-          Are you sure you want to delete Order #{deleting?.id}?
+          ¿Estás seguro que deseas eliminar el Pedido #{deleting?.id}?
         </p>
         <div className="flex gap-2 justify-end">
           <Button variant="secondary" onClick={() => setDeleting(null)}>
-            Cancel
+            Cancelar
           </Button>
           <Button variant="danger" onClick={handleDelete} disabled={saving}>
-            {saving ? "Deleting..." : "Delete"}
+            {saving ? "Eliminando..." : "Eliminar"}
           </Button>
         </div>
       </Modal>
@@ -259,7 +259,7 @@ export function OrdersPage() {
       {/* Order Items Modal */}
       <Modal
         open={!!viewingOrder}
-        title={`Order #${viewingOrder?.id} - Items`}
+        title={`Pedido #${viewingOrder?.id} - Artículos`}
         onClose={() => {
           setViewingOrder(null);
           setOrderItems([]);
@@ -268,26 +268,26 @@ export function OrdersPage() {
         <div className="min-w-[500px]">
           <div className="flex justify-between items-center mb-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              User: {viewingOrder?.user_id} | Date: {viewingOrder?.date} |
-              Status: {viewingOrder?.status}
+              Usuario: {viewingOrder?.user_id} | Fecha: {viewingOrder?.date} |
+              Estado: {viewingOrder?.status}
             </p>
             <Button size="sm" onClick={() => setShowAddItem(true)}>
-              + Add Item
+              + Agregar Artículo
             </Button>
           </div>
 
           {loadingItems ? (
-            <p className="text-gray-500">Loading items...</p>
+            <p className="text-gray-500">Cargando artículos...</p>
           ) : orderItems.length === 0 ? (
             <p className="text-gray-500 text-center py-8">
-              No items in this order.
+              No hay artículos en este pedido.
             </p>
           ) : (
             <Table
               columns={[
-                { key: "item_id", header: "Item ID" },
-                { key: "quantity", header: "Qty" },
-                { key: "unit_price", header: "Unit Price" },
+                { key: "item_id", header: "ID Artículo" },
+                { key: "quantity", header: "Cant." },
+                { key: "unit_price", header: "Precio Unit." },
               ]}
               data={orderItems}
               keyField="id"
@@ -298,14 +298,14 @@ export function OrdersPage() {
                     variant="secondary"
                     onClick={() => setEditingItem(item)}
                   >
-                    Edit
+                    Editar
                   </Button>
                   <Button
                     size="sm"
                     variant="danger"
                     onClick={() => setDeletingItem(item)}
                   >
-                    Delete
+                    Eliminar
                   </Button>
                 </>
               )}
@@ -327,7 +327,7 @@ export function OrdersPage() {
       {/* Add Item Modal */}
       <Modal
         open={showAddItem}
-        title="Add Item to Order"
+        title="Agregar Artículo al Pedido"
         onClose={() => setShowAddItem(false)}
       >
         <OrderItemForm
@@ -340,7 +340,7 @@ export function OrdersPage() {
       {/* Edit Item Modal */}
       <Modal
         open={!!editingItem}
-        title="Edit Item"
+        title="Editar Artículo"
         onClose={() => setEditingItem(null)}
       >
         {editingItem && (
@@ -356,18 +356,18 @@ export function OrdersPage() {
       {/* Delete Item Confirmation */}
       <Modal
         open={!!deletingItem}
-        title="Delete Item"
+        title="Eliminar Artículo"
         onClose={() => setDeletingItem(null)}
       >
         <p className="mb-4 text-gray-700 dark:text-gray-300">
-          Are you sure you want to remove this item from the order?
+          ¿Estás seguro que deseas eliminar este artículo del pedido?
         </p>
         <div className="flex gap-2 justify-end">
           <Button variant="secondary" onClick={() => setDeletingItem(null)}>
-            Cancel
+            Cancelar
           </Button>
           <Button variant="danger" onClick={handleDeleteItem} disabled={saving}>
-            {saving ? "Deleting..." : "Delete"}
+            {saving ? "Eliminando..." : "Eliminar"}
           </Button>
         </div>
       </Modal>

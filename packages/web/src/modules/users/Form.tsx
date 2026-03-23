@@ -4,17 +4,17 @@ import { GenericForm, type FormField } from "../../components/GenericForm";
 const fields: FormField[] = [
   {
     name: "name",
-    label: "Name",
+    label: "Nombre",
     type: "text",
-    placeholder: "Full name",
+    placeholder: "Nombre completo",
   },
   {
     name: "email",
-    label: "Email",
+    label: "Correo electrónico",
     type: "email",
-    placeholder: "user@example.com",
+    placeholder: "usuario@ejemplo.com",
   },
-  { name: "phone", label: "Phone", type: "tel", placeholder: "+1 234 567 890" },
+  { name: "phone", label: "Teléfono", type: "tel", placeholder: "+57 300 123 4567" },
 ];
 
 interface UserFormProps {
