@@ -1,5 +1,7 @@
+"use client";
+
 import type { Order, WithId } from "@wpbot/shared";
-import { GenericForm, type FormField } from "../../components/GenericForm";
+import { GenericForm, type FormField } from "@/components/GenericForm";
 
 const fields: FormField[] = [
   {

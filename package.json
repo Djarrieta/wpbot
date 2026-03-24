@@ -4,8 +4,6 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "dev": "bun run --filter '*' dev",
-    "dev:api": "bun run --filter @wpbot/api dev",
-    "dev:web": "bun run --filter @wpbot/web dev",
     "dev:whatsapp": "bun run --filter '@wpbot/{api,web,whatsapp}' dev",
     "dev:telegram": "bun run --filter '@wpbot/{api,web,telegram}' dev",
     "db:reset": "bash scripts/reset-db.sh"

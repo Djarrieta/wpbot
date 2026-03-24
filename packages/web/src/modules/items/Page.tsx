@@ -1,5 +1,7 @@
+"use client";
+
 import type { Item, WithId } from "@wpbot/shared";
-import { CrudPage } from "../../components/CrudPage";
+import { CrudPage } from "@/components/CrudPage";
 import { ItemForm } from "./Form";
 import { api } from "./api";
 

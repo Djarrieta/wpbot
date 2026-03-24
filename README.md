@@ -24,7 +24,7 @@ wpbot/
 | Package           | Port | Description                                                       |
 | ----------------- | ---- | ----------------------------------------------------------------- |
 | `@wpbot/api`      | 4000 | Core assistant API (`POST /assistant`), items CRUD, Vercel AI SDK |
-| `@wpbot/web`      | 4001 | React dashboard for managing items                                |
+| `@wpbot/web`      | 4001 | Next.js dashboard for managing data                               |
 | `@wpbot/whatsapp` | 4002 | WhatsApp bot (webhook-based)                                      |
 | `@wpbot/telegram` | —    | Telegram bot (Telegraf, long polling)                             |
 
@@ -96,15 +96,15 @@ Configured in the root `.env` (symlinked into each package):
 # All packages
 bun run dev
 
-# Individual packages
-bun run dev:api
-bun run dev:web
-bun run dev:whatsapp
+# API + Web + Telegram
 bun run dev:telegram
 
-# API + Web + Telegram (no WhatsApp)
-bun run dev:no-whatsapp
-````
+# API + Web + WhatsApp
+bun run dev:whatsapp
+
+# Reset database
+bun run db:reset
+```
 
 ## API Endpoints
 
@@ -148,14 +148,18 @@ If seed data is needed, add it to **`scripts/seed.ts`** (create table + insert r
 
 Then register in **`modules/index.ts`**: import and add to the array.
 
-### 4. Vite Proxy — `packages/web/vite.config.ts`
+### 4. Next.js Route — `packages/web/src/app/<name>/page.tsx`
 
-Add a proxy entry for the new path:
+Create a page file that renders the module's Page component:
 
-```ts
-'/context': {
-  target: 'http://localhost:4000',
-  changeOrigin: true,
-},
+```tsx
+"use client";
+
+import { ExamplePage } from "@/modules/<name>/Page";
+
+export default function ExampleRoute() {
+  return <ExamplePage />;
+}
 
 ```
+````

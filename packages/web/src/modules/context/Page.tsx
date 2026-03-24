@@ -1,5 +1,7 @@
+"use client";
+
 import type { Context, WithId } from "@wpbot/shared";
-import { CrudPage } from "../../components/CrudPage";
+import { CrudPage } from "@/components/CrudPage";
 import { ContextForm } from "./Form";
 import { api } from "./api";
 

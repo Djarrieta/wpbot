@@ -1,8 +1,10 @@
+"use client";
+
 import { useEffect, useCallback, useState } from "react";
 import type { Order, OrderItem, WithId } from "@wpbot/shared";
-import { Table } from "../../components/Table";
-import { Button } from "../../components/Button";
-import { Modal } from "../../components/Modal";
+import { Table } from "@/components/Table";
+import { Button } from "@/components/Button";
+import { Modal } from "@/components/Modal";
 import { OrderForm } from "./Form";
 import { api } from "./api";
 import { api as orderItemsApi } from "../order_items/api";

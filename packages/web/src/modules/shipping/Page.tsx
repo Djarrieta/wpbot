@@ -1,5 +1,7 @@
+"use client";
+
 import type { Shipping, WithId } from "@wpbot/shared";
-import { CrudPage } from "../../components/CrudPage";
+import { CrudPage } from "@/components/CrudPage";
 import { ShippingForm } from "./Form";
 import { api } from "./api";
 

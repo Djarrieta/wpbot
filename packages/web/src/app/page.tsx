@@ -1,6 +1,8 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { fetchStats, type Stats } from "../api/stats";
+import Link from "next/link";
+import { fetchStats, type Stats } from "@/api/stats";
 
 function StatCard({
   label,
@@ -33,7 +35,7 @@ function StatCard({
   );
 }
 
-export function Dashboard() {
+export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +121,7 @@ export function Dashboard() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <Link
-            to="/items"
+            href="/items"
             className="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 no-underline shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300"
           >
             <div className="flex items-center gap-4">

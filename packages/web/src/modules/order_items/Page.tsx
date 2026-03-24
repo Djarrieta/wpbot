@@ -1,5 +1,7 @@
+"use client";
+
 import type { OrderItem, WithId } from "@wpbot/shared";
-import { CrudPage } from "../../components/CrudPage";
+import { CrudPage } from "@/components/CrudPage";
 import { OrderItemForm } from "./Form";
 import { api } from "./api";
 

@@ -5,16 +5,19 @@ export interface ApiClient<T> {
   delete(id: number): Promise<void>;
 }
 
+const PROXY_PREFIX = '/_proxy';
+
 export function createApiClient<T>(basePath: string, entityName: string): ApiClient<T> {
+  const proxyPath = `${PROXY_PREFIX}${basePath}`;
   return {
     async fetchAll(params?: Record<string, string | number>): Promise<T[]> {
-      let url = basePath;
+      let url = proxyPath;
       if (params) {
         const searchParams = new URLSearchParams();
         for (const [key, value] of Object.entries(params)) {
           searchParams.set(key, String(value));
         }
-        url = `${basePath}?${searchParams.toString()}`;
+        url = `${proxyPath}?${searchParams.toString()}`;
       }
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Failed to fetch ${entityName}s: ${res.status}`);
@@ -22,7 +25,7 @@ export function createApiClient<T>(basePath: string, entityName: string): ApiCli
     },
 
     async create(entity: Omit<T, "id">): Promise<T> {
-      const res = await fetch(basePath, {
+      const res = await fetch(proxyPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entity),
@@ -32,7 +35,7 @@ export function createApiClient<T>(basePath: string, entityName: string): ApiCli
     },
 
     async update(id: number, entity: Partial<Omit<T, "id">>): Promise<T> {
-      const res = await fetch(`${basePath}/${id}`, {
+      const res = await fetch(`${proxyPath}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entity),
@@ -42,7 +45,7 @@ export function createApiClient<T>(basePath: string, entityName: string): ApiCli
     },
 
     async delete(id: number): Promise<void> {
-      const res = await fetch(`${basePath}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${proxyPath}/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`Failed to delete ${entityName}: ${res.status}`);
     },
   };
