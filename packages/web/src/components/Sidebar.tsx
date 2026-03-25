@@ -9,7 +9,11 @@ const navItems = [
   ...modules.map((m) => ({ href: m.basePath, label: m.label, icon: m.icon })),
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  user?: { name?: string | null; email?: string | null; image?: string | null };
+}
+
+export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -43,6 +47,37 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {user && (
+        <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="flex items-center gap-3 px-3 py-2">
+            {user.image && (
+              <img
+                src={user.image}
+                alt=""
+                className="w-8 h-8 rounded-full"
+                referrerPolicy="no-referrer"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate m-0">
+                {user.name}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate m-0">
+                {user.email}
+              </p>
+            </div>
+          </div>
+          <form action="/api/auth/signout" method="POST">
+            <button
+              type="submit"
+              className="w-full mt-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors text-left cursor-pointer"
+            >
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
+      )}
     </aside>
   );
 }
