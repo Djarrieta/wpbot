@@ -1,6 +1,13 @@
-"use client";
+import dynamic from "next/dynamic";
+import { PageSkeleton } from "@/components/PageSkeleton";
 
-import { ShippingPage } from "@/modules/shipping/Page";
+const ShippingPage = dynamic(
+  () =>
+    import("@/modules/shipping/Page").then((m) => ({
+      default: m.ShippingPage,
+    })),
+  { loading: () => <PageSkeleton /> },
+);
 
 export default function ShippingRoute() {
   return <ShippingPage />;

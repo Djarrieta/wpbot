@@ -1,6 +1,11 @@
-"use client";
+import dynamic from "next/dynamic";
+import { PageSkeleton } from "@/components/PageSkeleton";
 
-import { ContextPage } from "@/modules/context/Page";
+const ContextPage = dynamic(
+  () =>
+    import("@/modules/context/Page").then((m) => ({ default: m.ContextPage })),
+  { loading: () => <PageSkeleton /> },
+);
 
 export default function ContextRoute() {
   return <ContextPage />;
