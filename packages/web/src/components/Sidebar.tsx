@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { modules } from "@/modules";
 
 const navItems = [
-  { href: "/", label: "Panel", icon: "📊" },
+  { href: "/admin", label: "Panel", icon: "📊" },
   ...modules.map((m) => ({ href: m.basePath, label: m.label, icon: m.icon })),
 ];
 
@@ -23,8 +23,8 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
         {navItems.map((item) => {
           const isActive =
-            item.href === "/"
-              ? pathname === "/"
+            item.href === "/admin"
+              ? pathname === "/admin"
               : pathname.startsWith(item.href);
 
           return (

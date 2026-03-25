@@ -2,7 +2,7 @@ import type { ModuleConfig } from '../types';
 import { UsersPage } from './Page';
 
 export default {
-  basePath: '/users',
+  basePath: '/admin/users',
   label: 'Usuarios',
   icon: '👤',
   Page: UsersPage,

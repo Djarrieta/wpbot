@@ -2,7 +2,7 @@ import type { ModuleConfig } from '../types';
 import { OrdersPage } from './Page';
 
 export default {
-  basePath: '/orders',
+  basePath: '/admin/orders',
   label: 'Pedidos',
   icon: '🛒',
   Page: OrdersPage,

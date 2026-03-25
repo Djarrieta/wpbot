@@ -2,144 +2,121 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { fetchStats, type Stats } from "@/api/stats";
+import type { Item, WithId } from "@wpbot/shared";
 
-function StatCard({
-  label,
-  value,
-  icon,
-  gradient,
-}: {
-  label: string;
-  value: string;
-  icon: string;
-  gradient: string;
-}) {
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-      <div
-        className={`absolute top-0 right-0 w-24 h-24 -mr-6 -mt-6 rounded-full opacity-10 ${gradient}`}
-      />
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 m-0 mb-1">
-            {label}
-          </p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white m-0">
-            {value}
-          </p>
-        </div>
-        <span className="text-2xl">{icon}</span>
-      </div>
-    </div>
-  );
+const PROXY_PREFIX = "/_proxy";
+
+async function fetchItems(): Promise<WithId<Item>[]> {
+  const res = await fetch(`${PROXY_PREFIX}/items`);
+  if (!res.ok) throw new Error(`Failed to fetch items: ${res.status}`);
+  return res.json();
 }
 
-export default function DashboardPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
+function formatPrice(price: number) {
+  return `$${price.toFixed(2)}`;
+}
+
+export default function StorePage() {
+  const [items, setItems] = useState<WithId<Item>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadStats();
+    fetchItems()
+      .then(setItems)
+      .catch((e) =>
+        setError(e instanceof Error ? e.message : "Error loading products"),
+      )
+      .finally(() => setLoading(false));
   }, []);
 
-  async function loadStats() {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchStats();
-      setStats(data);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Error al obtener estadísticas",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white m-0 mb-1">
-          Panel
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 m-0">
-          Resumen de tus datos de un vistazo
-        </p>
-      </div>
-
-      {error && (
-        <div className="flex justify-between items-center bg-red-900/20 border border-red-600 text-red-400 px-4 py-3 rounded-md mb-6">
-          {error}
-          <button
-            className="bg-transparent border-none text-red-400 cursor-pointer text-base px-1"
-            onClick={() => setError(null)}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-28 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse"
-            />
-          ))}
-        </div>
-      ) : stats ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
-          <StatCard
-            label="Total Artículos"
-            value={String(stats.totalItems)}
-            icon="📦"
-            gradient="bg-indigo-500"
-          />
-          <StatCard
-            label="Valor Total"
-            value={`$${stats.totalValue.toFixed(2)}`}
-            icon="💰"
-            gradient="bg-emerald-500"
-          />
-          <StatCard
-            label="Precio Promedio"
-            value={`$${stats.avgPrice.toFixed(2)}`}
-            icon="📈"
-            gradient="bg-amber-500"
-          />
-        </div>
-      ) : null}
-
-      {/* Quick access */}
-      <div className="mt-2">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white m-0 mb-4">
-          Acceso Rápido
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link
-            href="/items"
-            className="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 no-underline shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300"
+            href="/"
+            className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent m-0 no-underline"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-300">
-                📦
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white m-0">
-                  Gestionar Artículos
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 m-0 mt-0.5">
-                  Ver, crear y editar artículos
-                </p>
-              </div>
-            </div>
+            wpbot Store
           </Link>
+          <nav className="flex items-center gap-6">
+            <Link
+              href="/"
+              className="text-sm font-medium text-gray-900 dark:text-white no-underline transition-colors"
+            >
+              Tienda
+            </Link>
+            <Link
+              href="/about"
+              className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
+            >
+              Nosotros
+            </Link>
+            <Link
+              href="/admin"
+              className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
+            >
+              Admin →
+            </Link>
+          </nav>
         </div>
-      </div>
+      </header>
+
+      {/* Content */}
+      <main className="max-w-6xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white m-0 mb-1">
+            Productos
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 m-0">
+            Explora nuestro catálogo de productos
+          </p>
+        </div>
+
+        {error && (
+          <div className="bg-red-900/20 border border-red-600 text-red-400 px-4 py-3 rounded-md mb-6">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="h-48 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400 text-center py-16">
+            No hay productos disponibles.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0">
+                    {item.name}
+                  </h3>
+                  <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap ml-3">
+                    {formatPrice(item.price)}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 m-0 line-clamp-3">
+                  {item.description || "Sin descripción"}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   );
 }
