@@ -11,9 +11,10 @@ const navItems = [
 
 interface SidebarProps {
   user?: { name?: string | null; email?: string | null; image?: string | null };
+  signOutAction?: () => Promise<void>;
 }
 
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar({ user, signOutAction }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -68,7 +69,7 @@ export function Sidebar({ user }: SidebarProps) {
               </p>
             </div>
           </div>
-          <form action="/api/auth/signout" method="POST">
+          <form action={signOutAction}>
             <button
               type="submit"
               className="w-full mt-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors text-left cursor-pointer"

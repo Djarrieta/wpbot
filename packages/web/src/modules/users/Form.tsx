@@ -15,6 +15,7 @@ const fields: FormField[] = [
     label: "Correo electrónico",
     type: "email",
     placeholder: "usuario@ejemplo.com",
+    required: true,
   },
   {
     name: "phone",

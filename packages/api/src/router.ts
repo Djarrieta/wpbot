@@ -47,6 +47,18 @@ const routes: Route[] = [
     pathname: "/assistant",
     handler: (req) => assistant.handle(req),
   },
+  {
+    method: "POST",
+    pathname: "/users/by-email",
+    handler: async (req) => {
+      const body = await req.json() as { email?: string; name?: string };
+      if (!body.email?.trim()) {
+        return Response.json({ error: "email is required" }, { status: 400 });
+      }
+      const user = await usersService.getOrCreateByEmail(body.email, body.name);
+      return Response.json(user);
+    },
+  },
   { method: "GET", pathname: "/", handler: (req) => health.handle(req) },
   {
     method: "GET",

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SessionIcon } from "@/components/SessionIcon";
 
 export default function AboutPage() {
   return (
@@ -33,6 +34,7 @@ export default function AboutPage() {
             >
               Admin →
             </Link>
+            <SessionIcon />
           </nav>
         </div>
       </header>

@@ -62,7 +62,7 @@ async function seed() {
         price DOUBLE PRECISION NOT NULL DEFAULT 0
       );
       CREATE TABLE IF NOT EXISTS users (
-        id BIGINT PRIMARY KEY,
+        id BIGSERIAL PRIMARY KEY,
         name TEXT NOT NULL DEFAULT '',
         email TEXT NOT NULL DEFAULT '',
         phone TEXT NOT NULL DEFAULT ''

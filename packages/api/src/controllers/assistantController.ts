@@ -64,7 +64,7 @@ export class AssistantController {
 
   async handle(req: Request): Promise<Response> {
     try {
-      const body = await req.json() as { message?: string; userId?: number; name?: string };
+      const body = await req.json() as { message?: string; userId?: number; name?: string; email?: string };
 
       if (!body.message?.trim()) {
         return Response.json(
@@ -73,14 +73,24 @@ export class AssistantController {
         );
       }
 
-      if (!body.userId) {
+      if (!body.userId && !body.email) {
         return Response.json(
-          { error: "userId is required" },
+          { error: "userId or email is required" },
           { status: 400 }
         );
       }
 
-      const prompt = await this.buildPrompt(body.message, body.userId);
+      // Resolve user: prefer userId, fall back to email lookup
+      let userId: number;
+      if (body.userId) {
+        await this.usersService.getOrCreateById(body.userId, body.name);
+        userId = body.userId;
+      } else {
+        const user = await this.usersService.getOrCreateByEmail(body.email!, body.name);
+        userId = user.id!;
+      }
+
+      const prompt = await this.buildPrompt(body.message, userId);
 
       // Save user message to history
       await this.chatHistoryService.addMessage(body.userId, body.message, 'user');

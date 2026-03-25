@@ -19,16 +19,40 @@ export class UsersRepository extends PgRepository<User> {
     this.userPool = getPool(role);
   }
 
-  /** Override to use BIGINT PRIMARY KEY (for external IDs like Telegram) instead of SERIAL */
+  /** Use BIGSERIAL so IDs auto-increment but also accept explicit large IDs (Telegram, WhatsApp) */
   override async initializeTable(): Promise<void> {
     await this.userPool.query(`
       CREATE TABLE IF NOT EXISTS users (
-        id BIGINT PRIMARY KEY,
+        id BIGSERIAL PRIMARY KEY,
         name TEXT NOT NULL DEFAULT '',
         email TEXT NOT NULL DEFAULT '',
         phone TEXT NOT NULL DEFAULT ''
       )
     `);
+    // Unique constraint on email (only for non-empty values) to enable email-based matching
+    await this.userPool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users (email) WHERE email != ''
+    `);
+  }
+
+  async getByEmail(email: string): Promise<User | null> {
+    if (!email) return null;
+    const result = await this.userPool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    return (result.rows[0] as User) ?? null;
+  }
+
+  async getOrCreateByEmail(email: string, name?: string): Promise<User> {
+    const existing = await this.getByEmail(email);
+    if (existing) return existing;
+
+    const result = await this.userPool.query(
+      'INSERT INTO users (name, email, phone) VALUES ($1, $2, $3) RETURNING *',
+      [name || '', email, '']
+    );
+    return result.rows[0] as User;
   }
 
   async getOrCreateById(id: number, name?: string): Promise<User> {

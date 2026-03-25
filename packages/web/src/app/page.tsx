@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Item, WithId } from "@wpbot/shared";
+import { SessionIcon } from "@/components/SessionIcon";
 
 const PROXY_PREFIX = "/_proxy";
 
@@ -60,6 +61,7 @@ export default function StorePage() {
             >
               Admin →
             </Link>
+            <SessionIcon />
           </nav>
         </div>
       </header>
