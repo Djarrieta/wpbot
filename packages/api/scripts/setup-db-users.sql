@@ -48,6 +48,5 @@ $$;
 -- Verify the setup
 -- \du wpbot_assistant
 -- \dp
-
 -- Note: user_identities table gets SELECT via the default privileges above.
 -- The assistant has NO INSERT/UPDATE/DELETE on user_identities (only admin can manage identities).
