@@ -3,7 +3,7 @@ import { AssistantController } from "./controllers/assistantController";
 import { AIService } from "./services/aiService";
 import { modules } from "./modules";
 import { service as itemsService } from "./modules/items";
-import { handleGoogleRedirect, handleGoogleCallback, handleGetSession, handleLogout } from "./auth";
+import { handleGoogleRedirect, handleGoogleCallback, handleGetSession, handleLogout, verifySession } from "./auth";
 import { optionalEnv } from "@wpbot/shared";
 import type { Route } from "./core/types";
 import { service as chatHistoryService } from "./modules/chathistory";
@@ -49,18 +49,6 @@ const routes: Route[] = [
     pathname: "/assistant",
     handler: (req) => assistant.handle(req),
   },
-  {
-    method: "POST",
-    pathname: "/users/by-email",
-    handler: async (req) => {
-      const body = await req.json() as { email?: string; name?: string };
-      if (!body.email?.trim()) {
-        return Response.json({ error: "email is required" }, { status: 400 });
-      }
-      const user = await usersService.getOrCreateByEmail(body.email, body.name);
-      return Response.json(user);
-    },
-  },
   { method: "GET", pathname: "/", handler: (req) => health.handle(req) },
   {
     method: "GET",
@@ -70,7 +58,7 @@ const routes: Route[] = [
   {
     method: "GET",
     pathname: "/auth/google/callback",
-    handler: (req) => handleGoogleCallback(req),
+    handler: (req) => handleGoogleCallback(req, usersService),
   },
   {
     method: "GET",
@@ -93,7 +81,46 @@ const routes: Route[] = [
       return Response.json({ totalItems, totalValue, avgPrice });
     },
   },
+  {
+    method: "POST",
+    pathname: "/users/merge",
+    handler: async (req) => {
+      const adminError = await requireAdmin(req);
+      if (adminError) return adminError;
+      const body = await req.json() as { targetId?: number; sourceId?: number };
+      if (!body.targetId || !body.sourceId) {
+        return Response.json({ error: "targetId and sourceId are required" }, { status: 400 });
+      }
+      try {
+        const merged = await usersService.mergeUsers(body.targetId, body.sourceId);
+        return Response.json(merged);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Merge failed";
+        return Response.json({ error: message }, { status: 400 });
+      }
+    },
+  },
 ];
+
+const COOKIE_NAME = "wpbot_session";
+
+async function requireAdmin(req: Request): Promise<Response | null> {
+  const cookieHeader = req.headers.get("cookie") ?? "";
+  const cookies: Record<string, string> = {};
+  for (const part of cookieHeader.split(";")) {
+    const [k, ...v] = part.trim().split("=");
+    if (k) cookies[k.trim()] = decodeURIComponent(v.join("="));
+  }
+  const token = cookies[COOKIE_NAME];
+  if (!token) {
+    return Response.json({ error: "Authentication required" }, { status: 401 });
+  }
+  const payload = await verifySession(token);
+  if (!payload || payload.role !== "admin") {
+    return Response.json({ error: "Admin access required" }, { status: 403 });
+  }
+  return null; // authorized
+}
 
 function handleResourceRoutes(
   method: string,
@@ -136,8 +163,14 @@ export async function router(req: Request): Promise<Response> {
     return withCors(new Response(null, { status: 204 }), WEB_ORIGIN);
   }
 
+  // Resource routes — public read for /items, admin required for everything else
   const resourceResponse = handleResourceRoutes(req.method, pathname, req);
   if (resourceResponse) {
+    const isPublicRead = req.method === "GET" && (pathname === "/items" || /^\/items\/\d+$/.test(pathname));
+    if (!isPublicRead) {
+      const adminError = await requireAdmin(req);
+      if (adminError) return withCors(adminError, WEB_ORIGIN);
+    }
     const res = await resourceResponse;
     return withCors(res, WEB_ORIGIN);
   }

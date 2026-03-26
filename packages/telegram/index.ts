@@ -5,11 +5,11 @@ import { requireEnv, optionalEnv } from "@wpbot/shared";
 const BOT_TOKEN = requireEnv("TELEGRAM_BOT_TOKEN");
 const API_URL = optionalEnv("API_URL", "http://localhost:4000");
 
-async function callAssistant(userMessage: string, userId: number, name?: string): Promise<string> {
+async function callAssistant(userMessage: string, telegramId: number, name?: string): Promise<string> {
   const response = await fetch(`${API_URL}/assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: userMessage, userId, name }),
+    body: JSON.stringify({ message: userMessage, provider: 'telegram', providerId: String(telegramId), name }),
   });
 
   if (!response.ok) {

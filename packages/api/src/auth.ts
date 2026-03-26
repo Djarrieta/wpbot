@@ -1,4 +1,5 @@
 import { requireEnv, optionalEnv } from "@wpbot/shared";
+import type { UsersRepository } from "./modules/users/service";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -12,8 +13,8 @@ function getConfig() {
     googleClientId: requireEnv("AUTH_GOOGLE_ID"),
     googleClientSecret: requireEnv("AUTH_GOOGLE_SECRET"),
     secret: requireEnv("AUTH_SECRET"),
-    apiUrl: optionalEnv("API_URL", `http://localhost:${Bun.env.PORT ?? "4000"}`),
     webUrl: optionalEnv("WEB_URL", `http://localhost:${Bun.env.WEB_PORT ?? "4001"}`),
+    adminEmails: (Bun.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean),
   };
 }
 
@@ -54,7 +55,7 @@ export async function verifySession(token: string): Promise<Record<string, unkno
   }
 }
 
-function parseCookies(req: Request): Record<string, string> {
+export function parseCookies(req: Request): Record<string, string> {
   const header = req.headers.get("cookie") ?? "";
   const cookies: Record<string, string> = {};
   for (const part of header.split(";")) {
@@ -100,8 +101,8 @@ export async function handleGoogleRedirect(): Promise<Response> {
   });
 }
 
-export async function handleGoogleCallback(req: Request): Promise<Response> {
-  const { googleClientId, googleClientSecret, apiUrl, webUrl } = getConfig();
+export async function handleGoogleCallback(req: Request, usersService: UsersRepository): Promise<Response> {
+  const { googleClientId, googleClientSecret, webUrl, adminEmails } = getConfig();
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -146,27 +147,25 @@ export async function handleGoogleCallback(req: Request): Promise<Response> {
     picture: string;
   };
 
-  // Sync user with our DB (reuse existing logic)
-  let dbUserId: number | undefined;
-  try {
-    const syncRes = await fetch(`${apiUrl}/users/by-email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: googleUser.email, name: googleUser.name }),
-    });
-    if (syncRes.ok) {
-      const user = (await syncRes.json()) as { id: number };
-      dbUserId = user.id;
-    }
-  } catch {
-    // Non-fatal: user sync failed but auth still works
+  // Sync user with our DB
+  const user = await usersService.getOrCreateByEmail(googleUser.email, googleUser.name);
+
+  // Add google identity (idempotent)
+  await usersService.addIdentity(user.id!, 'google', googleUser.email);
+
+  // Auto-promote to admin if email is in ADMIN_EMAILS
+  let role = user.role ?? 'client';
+  if (adminEmails.includes(googleUser.email.toLowerCase()) && role !== 'admin') {
+    await usersService.update(user.id!, { role: 'admin' });
+    role = 'admin';
   }
 
   const session = await signSession({
     email: googleUser.email,
     name: googleUser.name,
     image: googleUser.picture,
-    dbUserId,
+    dbUserId: user.id,
+    role,
   });
 
   const headers = new Headers();
@@ -193,6 +192,7 @@ export async function handleGetSession(req: Request): Promise<Response> {
       name: payload.name,
       image: payload.image,
       dbUserId: payload.dbUserId,
+      role: payload.role,
     },
   });
 }
@@ -202,7 +202,7 @@ export async function handleLogout(): Promise<Response> {
   return new Response(null, {
     status: 302,
     headers: {
-      Location: `${webUrl}/login`,
+      Location: `${webUrl}/`,
       "Set-Cookie": clearCookie(COOKIE_NAME),
     },
   });

@@ -23,6 +23,15 @@ const fields: FormField[] = [
     type: "tel",
     placeholder: "+57 300 123 4567",
   },
+  {
+    name: "role",
+    label: "Rol",
+    type: "select",
+    options: [
+      { value: "client", label: "Cliente" },
+      { value: "admin", label: "Administrador" },
+    ],
+  },
 ];
 
 interface UserFormProps {

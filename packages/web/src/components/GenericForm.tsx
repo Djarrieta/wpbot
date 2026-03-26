@@ -4,12 +4,13 @@ import { Button } from "./Button";
 export interface FormField {
   name: string;
   label: string;
-  type: "text" | "email" | "tel" | "number" | "textarea" | "date" | "checkbox";
+  type: "text" | "email" | "tel" | "number" | "textarea" | "date" | "checkbox" | "select";
   placeholder?: string;
   required?: boolean;
   min?: string;
   step?: string;
   rows?: number;
+  options?: { value: string; label: string }[];
 }
 
 interface GenericFormProps<T> {
@@ -104,6 +105,19 @@ export function GenericForm<T extends Record<string, unknown>>({
                   className={`${inputClass} resize-y`}
                   autoFocus={i === 0}
                 />
+              ) : field.type === "select" && field.options ? (
+                <select
+                  value={String(values[field.name] ?? "")}
+                  onChange={(e) => setValue(field.name, e.target.value)}
+                  className={inputClass}
+                  autoFocus={i === 0}
+                >
+                  {field.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               ) : (
                 <input
                   type={field.type}

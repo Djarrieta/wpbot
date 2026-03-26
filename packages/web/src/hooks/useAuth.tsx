@@ -11,6 +11,7 @@ interface User {
   email?: string | null;
   image?: string | null;
   dbUserId?: number;
+  role?: string;
 }
 
 interface AuthContextValue {
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     setUser(null);
+    window.location.href = "/";
   }
 
   return (

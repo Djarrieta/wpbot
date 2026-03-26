@@ -64,7 +64,14 @@ export class AssistantController {
 
   async handle(req: Request): Promise<Response> {
     try {
-      const body = await req.json() as { message?: string; userId?: number; name?: string; email?: string };
+      const body = await req.json() as {
+        message?: string;
+        provider?: string;
+        providerId?: string;
+        userId?: number;
+        name?: string;
+        email?: string;
+      };
 
       if (!body.message?.trim()) {
         return Response.json(
@@ -73,32 +80,41 @@ export class AssistantController {
         );
       }
 
-      if (!body.userId && !body.email) {
+      if (!body.provider && !body.userId && !body.email) {
         return Response.json(
-          { error: "userId or email is required" },
+          { error: "provider+providerId, userId, or email is required" },
           { status: 400 }
         );
       }
 
-      // Resolve user: prefer userId, fall back to email lookup
+      // Resolve user: prefer provider-based, fall back to email lookup
       let userId: number;
-      if (body.userId) {
-        await this.usersService.getOrCreateById(body.userId, body.name);
-        userId = body.userId;
-      } else {
-        const user = await this.usersService.getOrCreateByEmail(body.email!, body.name);
+      if (body.provider && body.providerId) {
+        const user = await this.usersService.resolveByIdentity(
+          body.provider,
+          body.providerId,
+          { name: body.name, email: body.email },
+        );
         userId = user.id!;
+      } else if (body.email) {
+        const user = await this.usersService.getOrCreateByEmail(body.email, body.name);
+        userId = user.id!;
+      } else {
+        return Response.json(
+          { error: "provider+providerId or email is required" },
+          { status: 400 }
+        );
       }
 
       const prompt = await this.buildPrompt(body.message, userId);
 
       // Save user message to history
-      await this.chatHistoryService.addMessage(body.userId, body.message, 'user');
+      await this.chatHistoryService.addMessage(userId, body.message, 'user');
 
       const response = await this.responseGenerator.generateResponse(prompt);
 
       // Save assistant response to history
-      await this.chatHistoryService.addMessage(body.userId, response, 'assistant');
+      await this.chatHistoryService.addMessage(userId, response, 'assistant');
 
       return Response.json({ response });
     } catch (error) {

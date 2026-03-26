@@ -8,8 +8,8 @@ const items = [
 ];
 
 const users = [
-  { id: 1, name: "John Doe", email: "john@example.com", phone: "+1234567890" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", phone: "+0987654321" },
+  { id: 1, name: "Dario Arrieta", email: "darrieta@contractor.ea.com", phone: "+1234567890", role: "admin" },
+  { id: 2, name: "Jane Smith", email: "jane@example.com", phone: "+0987654321", role: "client" },
 ];
 
 const contextData: { topic: string; content: string; always_inject: boolean }[] = [
@@ -65,7 +65,17 @@ async function seed() {
         id BIGSERIAL PRIMARY KEY,
         name TEXT NOT NULL DEFAULT '',
         email TEXT NOT NULL DEFAULT '',
-        phone TEXT NOT NULL DEFAULT ''
+        phone TEXT NOT NULL DEFAULT '',
+        role TEXT NOT NULL DEFAULT 'client'
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users (email) WHERE email != '';
+      CREATE TABLE IF NOT EXISTS user_identities (
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        provider TEXT NOT NULL,
+        provider_id TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(provider, provider_id)
       );
       CREATE TABLE IF NOT EXISTS inventory (
         id SERIAL PRIMARY KEY,
@@ -110,6 +120,7 @@ async function seed() {
 
     // Clear existing data
     await client.query("TRUNCATE items, users, inventory, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
+    await client.query("TRUNCATE user_identities RESTART IDENTITY CASCADE");
 
     console.log("Seeding items...");
     const createdItems: { id: number }[] = [];
@@ -125,10 +136,25 @@ async function seed() {
     console.log("Seeding users...");
     for (const user of users) {
       const res = await client.query(
-        "INSERT INTO users (id, name, email, phone) VALUES ($1, $2, $3, $4) RETURNING id",
-        [user.id, user.name, user.email, user.phone]
+        "INSERT INTO users (id, name, email, phone, role) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+        [user.id, user.name, user.email, user.phone, user.role]
       );
-      console.log(`  Created user: ${user.name} (id: ${res.rows[0].id})`);
+      console.log(`  Created user: ${user.name} (id: ${res.rows[0].id}, role: ${user.role})`);
+    }
+    // Reset sequence to avoid conflicts when auto-generating IDs later
+    await client.query("SELECT setval('users_id_seq', (SELECT MAX(id) FROM users))");
+
+    console.log("Seeding user identities...");
+    const identities = [
+      { user_id: 1, provider: "google", provider_id: "john@example.com" },
+      { user_id: 2, provider: "google", provider_id: "jane@example.com" },
+    ];
+    for (const identity of identities) {
+      await client.query(
+        "INSERT INTO user_identities (user_id, provider, provider_id) VALUES ($1, $2, $3)",
+        [identity.user_id, identity.provider, identity.provider_id]
+      );
+      console.log(`  Created identity: user_id=${identity.user_id}, provider=${identity.provider}`);
     }
 
     console.log("Seeding inventory...");

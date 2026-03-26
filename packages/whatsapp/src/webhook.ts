@@ -49,11 +49,11 @@ async function sendMessage(to: string, text: string) {
   return result;
 }
 
-async function callAssistant(message: string, userId: number): Promise<string> {
+async function callAssistant(message: string, phoneNumber: string): Promise<string> {
   const response = await fetch(`${API_URL}/assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, userId }),
+    body: JSON.stringify({ message, provider: 'whatsapp', providerId: phoneNumber }),
   });
 
   if (!response.ok) {
@@ -86,9 +86,7 @@ export async function handleWebhook(req: Request): Promise<Response> {
 
     const message = parseIncomingMessage(body);
     if (message) {
-      // Use last 9 digits of phone number as numeric userId
-      const userId = parseInt(message.from.slice(-9), 10);
-      const responseText = await callAssistant(message.text, userId);
+      const responseText = await callAssistant(message.text, message.from);
       await sendMessage(message.from, responseText);
     }
 

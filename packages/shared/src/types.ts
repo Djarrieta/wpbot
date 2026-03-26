@@ -10,6 +10,15 @@ export type User = {
   name?: string;
   email?: string;
   phone?: string;
+  role?: string;
+};
+
+export type UserIdentity = {
+  id?: number;
+  user_id: number;
+  provider: string;
+  provider_id: string;
+  created_at: string;
 };
 
 export type Inventory = {
