@@ -31,7 +31,8 @@ export function AuthGuard() {
             Acceso restringido
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mb-6">
-            Tu cuenta no tiene permisos de administrador. Contacta a un administrador para obtener acceso.
+            Tu cuenta no tiene permisos de administrador. Contacta a un
+            administrador para obtener acceso.
           </p>
           <button
             type="button"

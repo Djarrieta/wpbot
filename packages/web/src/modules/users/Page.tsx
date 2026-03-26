@@ -101,9 +101,7 @@ export function UsersPage() {
 
   if (initialLoad) return <PageSkeleton />;
 
-  const mergeTargets = merging
-    ? data.filter((u) => u.id !== merging.id)
-    : [];
+  const mergeTargets = merging ? data.filter((u) => u.id !== merging.id) : [];
 
   return (
     <div className="w-full max-w-5xl">
@@ -230,9 +228,9 @@ export function UsersPage() {
           <div className="flex flex-col gap-4">
             <p className="text-left text-gray-700 dark:text-gray-300 m-0">
               Fusionar <strong>{merging.name || `#${merging.id}`}</strong>{" "}
-              {merging.email ? `(${merging.email})` : ""} en otro usuario.
-              Se transferirán órdenes, historial de chat e identidades al
-              usuario destino, y este usuario será eliminado.
+              {merging.email ? `(${merging.email})` : ""} en otro usuario. Se
+              transferirán órdenes, historial de chat e identidades al usuario
+              destino, y este usuario será eliminado.
             </p>
 
             <label className="flex flex-col gap-1 text-left">
