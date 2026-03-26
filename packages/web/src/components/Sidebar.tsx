@@ -21,9 +21,9 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
   return (
     <aside className="w-60 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
       <div className="px-5 py-5 border-b border-gray-200 dark:border-gray-800">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent m-0">
+        <Link to="/" className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent m-0 no-underline">
           wpbot
-        </h1>
+        </Link>
       </div>
 
       <nav className="flex-1 px-3 py-4 flex flex-col gap-1">

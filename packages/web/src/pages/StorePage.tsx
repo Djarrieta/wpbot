@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import type { Item, WithId } from "@wpbot/shared";
 import { SessionIcon } from "@/components/SessionIcon";
+import { useAuth } from "@/hooks/useAuth";
 
 async function fetchItems(): Promise<WithId<Item>[]> {
   const res = await fetch("/api/items");
@@ -14,6 +15,7 @@ function formatPrice(price: number) {
 }
 
 export default function StorePage() {
+  const { user } = useAuth();
   const [items, setItems] = useState<WithId<Item>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,12 +52,14 @@ export default function StorePage() {
             >
               Nosotros
             </Link>
-            <Link
-              to="/admin"
-              className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
-            >
-              Admin →
-            </Link>
+            {user && (
+              <Link
+                to="/admin"
+                className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
+              >
+                Admin →
+              </Link>
+            )}
             <SessionIcon />
           </nav>
         </div>
