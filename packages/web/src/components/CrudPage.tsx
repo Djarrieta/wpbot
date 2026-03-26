@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState, type ComponentType } from "react";
 import { Table } from "./Table";
 import { Button } from "./Button";
 import { Modal } from "./Modal";
+import { PageSkeleton } from "./PageSkeleton";
 import type { ApiClient } from "@/lib/createApiClient";
 
 interface Column<T> {
@@ -35,7 +36,7 @@ export function CrudPage<T extends { id: number }>({
   nameField = "name" as keyof T,
 }: CrudPageProps<T>) {
   const [data, setData] = useState<T[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -45,7 +46,6 @@ export function CrudPage<T extends { id: number }>({
 
   const loadData = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
       setData(await api.fetchAll());
     } catch (e) {
@@ -55,7 +55,7 @@ export function CrudPage<T extends { id: number }>({
           : `Failed to fetch ${entityNamePlural.toLowerCase()}`,
       );
     } finally {
-      setLoading(false);
+      setInitialLoad(false);
     }
   }, [api, entityNamePlural]);
 
@@ -66,9 +66,9 @@ export function CrudPage<T extends { id: number }>({
   async function handleCreate(formData: Omit<T, "id">) {
     try {
       setSaving(true);
-      await api.create(formData);
+      const created = await api.create(formData);
+      setData((prev) => [...prev, created]);
       setShowCreate(false);
-      await loadData();
     } catch (e) {
       setError(
         e instanceof Error
@@ -84,9 +84,9 @@ export function CrudPage<T extends { id: number }>({
     if (!editing) return;
     try {
       setSaving(true);
-      await api.update(editing.id, formData);
+      const updated = await api.update(editing.id, formData);
+      setData((prev) => prev.map((r) => (r.id === editing.id ? updated : r)));
       setEditing(null);
-      await loadData();
     } catch (e) {
       setError(
         e instanceof Error
@@ -103,8 +103,8 @@ export function CrudPage<T extends { id: number }>({
     try {
       setSaving(true);
       await api.delete(deleting.id);
+      setData((prev) => prev.filter((r) => r.id !== deleting.id));
       setDeleting(null);
-      await loadData();
     } catch (e) {
       setError(
         e instanceof Error
@@ -116,12 +116,8 @@ export function CrudPage<T extends { id: number }>({
     }
   }
 
-  if (loading) {
-    return (
-      <div className="py-8 text-center text-gray-500">
-        Cargando {entityNamePlural.toLowerCase()}...
-      </div>
-    );
+  if (initialLoad) {
+    return <PageSkeleton />;
   }
 
   return (
