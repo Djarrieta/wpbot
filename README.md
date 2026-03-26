@@ -38,24 +38,10 @@ cp .env.example .env
 
 ## Database (Podman)
 
-Run PostgreSQL with Podman:
+Reset the database (stops/removes the container, recreates it, runs SQL setup and seed):
 
 ```bash
-sudo podman stop wpbot-db
-sudo podman rm wpbot-db
-sudo rm -rf ./pgdata
-mkdir -p ./pgdata
-sudo podman run -d \
-  --name wpbot-db \
-  -e POSTGRES_USER=wpbot \
-  -e POSTGRES_PASSWORD=wpbot \
-  -e POSTGRES_DB=wpbot \
-  -e PGDATA=/var/lib/postgresql/data/pgdata \
-  -p 4003:5432 \
-  -v ./pgdata:/var/lib/postgresql/data \
-  docker.io/library/postgres:17
-
-  sudo podman exec -i wpbot-db psql -U wpbot -d wpbot < packages/api/scripts/setup-db-users.sql
+bun run db:reset
 ```
 
 Stop/start the container:
