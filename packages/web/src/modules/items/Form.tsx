@@ -26,6 +26,13 @@ const fields: FormField[] = [
     step: "0.01",
     required: true,
   },
+  {
+    name: "image_url",
+    label: "URL de imagen",
+    type: "text",
+    placeholder: "https://ejemplo.com/imagen.jpg",
+    required: true,
+  },
 ];
 
 interface ItemFormProps {

@@ -3,8 +3,8 @@ import pg from "pg";
 const connectionString = process.env.PG_CONNECTION_STRING || "postgresql://wpbot:wpbot@localhost:4003/wpbot";
 
 const items = [
-  { name: "Laptop", description: "High-performance laptop", price: 999.99 },
-  { name: "Headphones", description: "Wireless noise-cancelling headphones", price: 149.99 },
+  { name: "Laptop", description: "High-performance laptop", price: 999.99, image_url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400" },
+  { name: "Headphones", description: "Wireless noise-cancelling headphones", price: 149.99, image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400" },
 ];
 
 const users = [
@@ -59,7 +59,8 @@ async function seed() {
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT NOT NULL DEFAULT '',
-        price DOUBLE PRECISION NOT NULL DEFAULT 0
+        price DOUBLE PRECISION NOT NULL DEFAULT 0,
+        image_url TEXT NOT NULL DEFAULT ''
       );
       CREATE TABLE IF NOT EXISTS users (
         id BIGSERIAL PRIMARY KEY,
@@ -126,8 +127,8 @@ async function seed() {
     const createdItems: { id: number }[] = [];
     for (const item of items) {
       const res = await client.query(
-        "INSERT INTO items (name, description, price) VALUES ($1, $2, $3) RETURNING id",
-        [item.name, item.description, item.price]
+        "INSERT INTO items (name, description, price, image_url) VALUES ($1, $2, $3, $4) RETURNING id",
+        [item.name, item.description, item.price, item.image_url]
       );
       createdItems.push(res.rows[0]);
       console.log(`  Created item: ${item.name} (id: ${res.rows[0].id})`);

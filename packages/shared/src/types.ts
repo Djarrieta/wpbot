@@ -3,6 +3,7 @@ export type Item = {
   name: string;
   description: string;
   price: number;
+  image_url: string;
 };
 
 export type User = {

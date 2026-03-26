@@ -8,5 +8,6 @@ export function createItemsRepository() {
     { name: 'name', type: 'TEXT', constraints: 'NOT NULL' },
     { name: 'description', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
     { name: 'price', type: 'REAL', constraints: 'NOT NULL DEFAULT 0' },
+    { name: 'image_url', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
   ]);
 }

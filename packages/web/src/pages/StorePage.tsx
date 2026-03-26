@@ -95,19 +95,28 @@ export default function StorePage() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+                className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0">
-                    {item.name}
-                  </h3>
-                  <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap ml-3">
-                    {formatPrice(item.price)}
-                  </span>
+                {item.image_url && (
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className="w-full h-48 object-cover"
+                  />
+                )}
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0">
+                      {item.name}
+                    </h3>
+                    <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap ml-3">
+                      {formatPrice(item.price)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 m-0 line-clamp-3">
+                    {item.description || "Sin descripción"}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 m-0 line-clamp-3">
-                  {item.description || "Sin descripción"}
-                </p>
               </div>
             ))}
           </div>

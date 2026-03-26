@@ -20,6 +20,20 @@ export function ItemsPage() {
           header: "Precio",
           render: (v) => `$${Number(v).toFixed(2)}`,
         },
+        {
+          key: "image_url",
+          header: "Imagen",
+          render: (v) =>
+            v ? (
+              <img
+                src={String(v)}
+                alt=""
+                className="w-10 h-10 rounded object-cover"
+              />
+            ) : (
+              "—"
+            ),
+        },
       ]}
       FormComponent={ItemForm}
     />
