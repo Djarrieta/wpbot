@@ -5,7 +5,7 @@ export interface ApiClient<T> {
   delete(id: number): Promise<void>;
 }
 
-const PROXY_PREFIX = '/_proxy';
+const PROXY_PREFIX = '/api';
 
 export function createApiClient<T>(basePath: string, entityName: string): ApiClient<T> {
   const proxyPath = `${PROXY_PREFIX}${basePath}`;

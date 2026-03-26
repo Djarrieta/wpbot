@@ -1,35 +1,32 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router";
 import { SessionIcon } from "@/components/SessionIcon";
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link
-            href="/"
+            to="/"
             className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent m-0 no-underline"
           >
             wpbot Store
           </Link>
           <nav className="flex items-center gap-6">
             <Link
-              href="/"
+              to="/"
               className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
             >
               Tienda
             </Link>
             <Link
-              href="/about"
+              to="/about"
               className="text-sm font-medium text-gray-900 dark:text-white no-underline transition-colors"
             >
               Nosotros
             </Link>
             <Link
-              href="/admin"
+              to="/admin"
               className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
             >
               Admin →
@@ -39,7 +36,6 @@ export default function AboutPage() {
         </div>
       </header>
 
-      {/* Content */}
       <main className="max-w-4xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white m-0 mb-4">
           Sobre Nosotros

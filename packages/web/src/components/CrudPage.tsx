@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useCallback, useState, type ComponentType } from "react";
 import { Table } from "./Table";
 import { Button } from "./Button";

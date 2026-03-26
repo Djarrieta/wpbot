@@ -1,14 +1,10 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router";
 import type { Item, WithId } from "@wpbot/shared";
 import { SessionIcon } from "@/components/SessionIcon";
 
-const PROXY_PREFIX = "/_proxy";
-
 async function fetchItems(): Promise<WithId<Item>[]> {
-  const res = await fetch(`${PROXY_PREFIX}/items`);
+  const res = await fetch("/api/items");
   if (!res.ok) throw new Error(`Failed to fetch items: ${res.status}`);
   return res.json();
 }
@@ -33,30 +29,29 @@ export default function StorePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link
-            href="/"
+            to="/"
             className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent m-0 no-underline"
           >
             wpbot Store
           </Link>
           <nav className="flex items-center gap-6">
             <Link
-              href="/"
+              to="/"
               className="text-sm font-medium text-gray-900 dark:text-white no-underline transition-colors"
             >
               Tienda
             </Link>
             <Link
-              href="/about"
+              to="/about"
               className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
             >
               Nosotros
             </Link>
             <Link
-              href="/admin"
+              to="/admin"
               className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
             >
               Admin →
@@ -66,7 +61,6 @@ export default function StorePage() {
         </div>
       </header>
 
-      {/* Content */}
       <main className="max-w-6xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white m-0 mb-1">

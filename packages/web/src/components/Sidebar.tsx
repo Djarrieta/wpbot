@@ -1,7 +1,4 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "react-router";
 import { modules } from "@/modules";
 
 const navItems = [
@@ -10,12 +7,16 @@ const navItems = [
 ];
 
 interface SidebarProps {
-  user?: { name?: string | null; email?: string | null; image?: string | null };
-  signOutAction?: () => Promise<void>;
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  } | null;
+  onLogout?: () => void;
 }
 
-export function Sidebar({ user, signOutAction }: SidebarProps) {
-  const pathname = usePathname();
+export function Sidebar({ user, onLogout }: SidebarProps) {
+  const { pathname } = useLocation();
 
   return (
     <aside className="w-60 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
@@ -35,7 +36,7 @@ export function Sidebar({ user, signOutAction }: SidebarProps) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium no-underline transition-all duration-200 ${
                 isActive
                   ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 shadow-sm"
@@ -69,14 +70,13 @@ export function Sidebar({ user, signOutAction }: SidebarProps) {
               </p>
             </div>
           </div>
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="w-full mt-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors text-left cursor-pointer"
-            >
-              Cerrar sesión
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="w-full mt-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors text-left cursor-pointer bg-transparent border-none"
+          >
+            Cerrar sesión
+          </button>
         </div>
       )}
     </aside>

@@ -1,27 +1,8 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-
-interface SessionData {
-  user?: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
-}
+import { Link } from "react-router";
+import { useAuth } from "@/hooks/useAuth";
 
 export function SessionIcon() {
-  const [session, setSession] = useState<SessionData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => res.json())
-      .then((data) => setSession(data?.user ? data : null))
-      .catch(() => setSession(null))
-      .finally(() => setLoading(false));
-  }, []);
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -29,10 +10,10 @@ export function SessionIcon() {
     );
   }
 
-  if (!session?.user) {
+  if (!user) {
     return (
       <Link
-        href="/login"
+        to="/login"
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
       >
         <svg
@@ -53,11 +34,9 @@ export function SessionIcon() {
     );
   }
 
-  const { user } = session;
-
   return (
     <Link
-      href="/admin"
+      to="/admin"
       className="flex items-center gap-2 no-underline transition-colors"
       title={user.email ?? undefined}
     >

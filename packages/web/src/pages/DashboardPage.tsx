@@ -1,7 +1,5 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router";
 import { fetchStats, type Stats } from "@/api/stats";
 
 function StatCard({
@@ -114,14 +112,13 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {/* Quick access */}
       <div className="mt-2">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white m-0 mb-4">
           Acceso Rápido
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <Link
-            href="/admin/items"
+            to="/admin/items"
             className="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 no-underline shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300"
           >
             <div className="flex items-center gap-4">

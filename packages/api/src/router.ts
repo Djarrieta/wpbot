@@ -3,6 +3,8 @@ import { AssistantController } from "./controllers/assistantController";
 import { AIService } from "./services/aiService";
 import { modules } from "./modules";
 import { service as itemsService } from "./modules/items";
+import { handleGoogleRedirect, handleGoogleCallback, handleGetSession, handleLogout } from "./auth";
+import { optionalEnv } from "@wpbot/shared";
 import type { Route } from "./core/types";
 import { service as chatHistoryService } from "./modules/chathistory";
 import { service as usersService } from "./modules/users";
@@ -62,7 +64,27 @@ const routes: Route[] = [
   { method: "GET", pathname: "/", handler: (req) => health.handle(req) },
   {
     method: "GET",
-    pathname: "/api/stats",
+    pathname: "/auth/google",
+    handler: () => handleGoogleRedirect(),
+  },
+  {
+    method: "GET",
+    pathname: "/auth/google/callback",
+    handler: (req) => handleGoogleCallback(req),
+  },
+  {
+    method: "GET",
+    pathname: "/auth/me",
+    handler: (req) => handleGetSession(req),
+  },
+  {
+    method: "POST",
+    pathname: "/auth/logout",
+    handler: () => handleLogout(),
+  },
+  {
+    method: "GET",
+    pathname: "/stats",
     handler: async () => {
       const allItems = await itemsService.getAll();
       const totalItems = allItems.length;
@@ -95,17 +117,39 @@ function handleResourceRoutes(
   return null;
 }
 
-export function router(req: Request): Response | Promise<Response> {
+const WEB_ORIGIN = optionalEnv("WEB_URL", `http://localhost:${Bun.env.WEB_PORT ?? "4001"}`);
+
+function withCors(res: Response, origin: string): Response {
+  const headers = new Headers(res.headers);
+  headers.set("Access-Control-Allow-Origin", origin);
+  headers.set("Access-Control-Allow-Credentials", "true");
+  headers.set("Access-Control-Allow-Headers", "Content-Type");
+  headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+export async function router(req: Request): Promise<Response> {
   const { pathname } = new URL(req.url);
 
+  // CORS preflight
+  if (req.method === "OPTIONS") {
+    return withCors(new Response(null, { status: 204 }), WEB_ORIGIN);
+  }
+
   const resourceResponse = handleResourceRoutes(req.method, pathname, req);
-  if (resourceResponse) return resourceResponse;
+  if (resourceResponse) {
+    const res = await resourceResponse;
+    return withCors(res, WEB_ORIGIN);
+  }
 
   const route = routes.find(
     (r) => r.method === req.method && r.pathname === pathname,
   );
 
-  if (route) return route.handler(req);
+  if (route) {
+    const res = await route.handler(req);
+    return withCors(res, WEB_ORIGIN);
+  }
 
-  return new Response("Not Found", { status: 404 });
+  return withCors(new Response("Not Found", { status: 404 }), WEB_ORIGIN);
 }

@@ -1,5 +1,3 @@
-"use client";
-
 interface Column<T> {
   key: keyof T;
   header: string;
