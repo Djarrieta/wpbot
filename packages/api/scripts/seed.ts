@@ -3,8 +3,16 @@ import pg from "pg";
 const connectionString = process.env.PG_CONNECTION_STRING || "postgresql://wpbot:wpbot@localhost:4003/wpbot";
 
 const items = [
-  { name: "Laptop", description: "High-performance laptop", price: 999.99, image_url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400" },
-  { name: "Headphones", description: "Wireless noise-cancelling headphones", price: 149.99, image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400" },
+  { name: "Laptop", description: "High-performance laptop", price: 999.99, stock: 50, image_url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400" },
+  { name: "Headphones", description: "Wireless noise-cancelling headphones", price: 149.99, stock: 100, image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400" },
+  { name: "Smartphone", description: "Latest model smartphone with OLED display", price: 799.99, stock: 30, image_url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400" },
+  { name: "Mechanical Keyboard", description: "RGB mechanical keyboard with Cherry MX switches", price: 129.99, stock: 75, image_url: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400" },
+  { name: "Monitor 4K", description: "27-inch 4K UHD monitor", price: 449.99, stock: 20, image_url: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400" },
+  { name: "Wireless Mouse", description: "Ergonomic wireless mouse", price: 59.99, stock: 150, image_url: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400" },
+  { name: "USB-C Hub", description: "7-in-1 USB-C hub with HDMI and SD card reader", price: 39.99, stock: 200, image_url: "https://images.unsplash.com/photo-1625723044792-44de16ccb4e9?w=400" },
+  { name: "Webcam HD", description: "1080p webcam with built-in microphone", price: 79.99, stock: 0, image_url: "https://images.unsplash.com/photo-1587826080692-f439cd0b70da?w=400" },
+  { name: "Tablet", description: "10-inch tablet with stylus support", price: 349.99, stock: 40, image_url: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400" },
+  { name: "External SSD", description: "1TB portable SSD with USB 3.2", price: 89.99, stock: 60, image_url: "https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400" },
 ];
 
 const users = [
@@ -60,6 +68,7 @@ async function seed() {
         name TEXT NOT NULL,
         description TEXT NOT NULL DEFAULT '',
         price DOUBLE PRECISION NOT NULL DEFAULT 0,
+        stock INTEGER NOT NULL DEFAULT 0,
         image_url TEXT NOT NULL DEFAULT ''
       );
       CREATE TABLE IF NOT EXISTS users (
@@ -121,8 +130,8 @@ async function seed() {
     const createdItems: { id: number }[] = [];
     for (const item of items) {
       const res = await client.query(
-        "INSERT INTO items (name, description, price, image_url) VALUES ($1, $2, $3, $4) RETURNING id",
-        [item.name, item.description, item.price, item.image_url]
+        "INSERT INTO items (name, description, price, stock, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+        [item.name, item.description, item.price, item.stock, item.image_url]
       );
       createdItems.push(res.rows[0]);
       console.log(`  Created item: ${item.name} (id: ${res.rows[0].id})`);

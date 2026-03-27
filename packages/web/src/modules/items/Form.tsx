@@ -27,6 +27,15 @@ const fields: FormField[] = [
     required: true,
   },
   {
+    name: "stock",
+    label: "Stock",
+    type: "number",
+    placeholder: "0",
+    min: "0",
+    step: "1",
+    required: true,
+  },
+  {
     name: "image_url",
     label: "URL de imagen",
     type: "text",

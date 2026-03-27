@@ -7,7 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 async function fetchItems(): Promise<WithId<Item>[]> {
   const res = await fetch("/api/items");
   if (!res.ok) throw new Error(`Failed to fetch items: ${res.status}`);
-  return res.json();
+  const items: WithId<Item>[] = await res.json();
+  return items.filter((item) => item.stock > 0);
 }
 
 function formatPrice(price: number) {

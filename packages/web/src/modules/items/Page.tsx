@@ -20,6 +20,7 @@ export function ItemsPage() {
           header: "Precio",
           render: (v) => `$${Number(v).toFixed(2)}`,
         },
+        { key: "stock", header: "Stock" },
         {
           key: "image_url",
           header: "Imagen",
