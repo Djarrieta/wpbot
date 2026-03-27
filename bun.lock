@@ -28,6 +28,9 @@
       "devDependencies": {
         "@types/bun": "latest",
       },
+      "peerDependencies": {
+        "typescript": "5",
+      },
     },
     "packages/telegram": {
       "name": "@wpbot/telegram",

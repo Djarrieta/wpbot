@@ -78,12 +78,6 @@ async function seed() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         UNIQUE(provider, provider_id)
       );
-      CREATE TABLE IF NOT EXISTS inventory (
-        id SERIAL PRIMARY KEY,
-        item_id INTEGER NOT NULL,
-        quantity INTEGER NOT NULL DEFAULT 0,
-        location TEXT NOT NULL DEFAULT ''
-      );
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         user_id BIGINT NOT NULL,
@@ -120,7 +114,7 @@ async function seed() {
     `);
 
     // Clear existing data
-    await client.query("TRUNCATE items, users, inventory, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
+    await client.query("TRUNCATE items, users, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
     await client.query("TRUNCATE user_identities RESTART IDENTITY CASCADE");
 
     console.log("Seeding items...");
@@ -156,19 +150,6 @@ async function seed() {
         [identity.user_id, identity.provider, identity.provider_id]
       );
       console.log(`  Created identity: user_id=${identity.user_id}, provider=${identity.provider}`);
-    }
-
-    console.log("Seeding inventory...");
-    const inventoryEntries = [
-      { item_id: createdItems[0]!.id, quantity: 50, location: "Warehouse A" },
-      { item_id: createdItems[1]!.id, quantity: 100, location: "Warehouse B" },
-    ];
-    for (const inv of inventoryEntries) {
-      const res = await client.query(
-        "INSERT INTO inventory (item_id, quantity, location) VALUES ($1, $2, $3) RETURNING id",
-        [inv.item_id, inv.quantity, inv.location]
-      );
-      console.log(`  Created inventory: item_id=${inv.item_id}, qty=${inv.quantity} (id: ${res.rows[0].id})`);
     }
 
     console.log("Seeding context...");

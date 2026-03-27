@@ -22,13 +22,6 @@ export type UserIdentity = {
   created_at: string;
 };
 
-export type Inventory = {
-  id?: number;
-  item_id: number;
-  quantity: number;
-  location: string;
-};
-
 export type ChatHistory = {
   id?: number;
   user_id: number;

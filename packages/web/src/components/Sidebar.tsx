@@ -21,7 +21,10 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
   return (
     <aside className="w-60 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
       <div className="px-5 py-5 border-b border-gray-200 dark:border-gray-800">
-        <Link to="/" className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent m-0 no-underline">
+        <Link
+          to="/"
+          className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent m-0 no-underline"
+        >
           wpbot
         </Link>
       </div>

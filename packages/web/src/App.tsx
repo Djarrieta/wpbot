@@ -15,11 +15,6 @@ const ItemsPage = lazy(() =>
 const UsersPage = lazy(() =>
   import("@/modules/users/Page").then((m) => ({ default: m.UsersPage })),
 );
-const InventoryPage = lazy(() =>
-  import("@/modules/inventory/Page").then((m) => ({
-    default: m.InventoryPage,
-  })),
-);
 const OrdersPage = lazy(() =>
   import("@/modules/orders/Page").then((m) => ({ default: m.OrdersPage })),
 );
@@ -46,7 +41,6 @@ export function App() {
             <Route path="/admin" element={<DashboardPage />} />
             <Route path="/admin/items" element={<ItemsPage />} />
             <Route path="/admin/users" element={<UsersPage />} />
-            <Route path="/admin/inventory" element={<InventoryPage />} />
             <Route path="/admin/orders" element={<OrdersPage />} />
             <Route path="/admin/context" element={<ContextPage />} />
             <Route path="/admin/shipping" element={<ShippingPage />} />

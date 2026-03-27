@@ -6,6 +6,7 @@
     "dev": "bun run --filter '*' dev",
     "dev:whatsapp": "bun run --filter '@wpbot/{api,web,whatsapp}' dev",
     "dev:telegram": "bun run --filter '@wpbot/{api,web,telegram}' dev",
-    "db:reset": "bash scripts/reset-db.sh"
+    "db:reset": "bash scripts/reset-db.sh",
+    "typecheck": "bun run --filter '*' typecheck"
   }
 }
