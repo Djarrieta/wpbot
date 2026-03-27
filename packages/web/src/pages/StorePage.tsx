@@ -3,6 +3,24 @@ import { Link } from "react-router";
 import type { Item, WithId } from "@wpbot/shared";
 import { SessionIcon } from "@/components/SessionIcon";
 
+declare global {
+  class WidgetCheckout {
+    constructor(config: {
+      currency: string;
+      amountInCents: number;
+      reference: string;
+      publicKey: string;
+      signature: { integrity: string };
+      redirectUrl?: string;
+    });
+    open(
+      callback: (result: {
+        transaction: { id: string; status: string };
+      }) => void,
+    ): void;
+  }
+}
+
 async function fetchItems(): Promise<WithId<Item>[]> {
   const res = await fetch("/api/items");
   if (!res.ok) throw new Error(`Failed to fetch items: ${res.status}`);
@@ -12,6 +30,32 @@ async function fetchItems(): Promise<WithId<Item>[]> {
 
 function formatPrice(price: number) {
   return `$${price.toFixed(2)}`;
+}
+
+async function startWompiCheckout(item: WithId<Item>) {
+  const res = await fetch("/api/wompi/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ itemId: item.id }),
+  });
+  if (!res.ok) {
+    const err = await res
+      .json()
+      .catch(() => ({ error: "Error al iniciar pago" }));
+    alert(err.error ?? "Error al iniciar pago");
+    return;
+  }
+  const data = await res.json();
+  const checkout = new WidgetCheckout({
+    currency: data.currency,
+    amountInCents: data.amountInCents,
+    reference: data.reference,
+    publicKey: data.publicKey,
+    signature: { integrity: data.signature },
+  });
+  checkout.open((result) => {
+    console.log("Wompi transaction:", result.transaction);
+  });
 }
 
 export default function StorePage() {
@@ -111,6 +155,13 @@ export default function StorePage() {
                   <p className="text-sm text-gray-500 dark:text-gray-400 m-0 line-clamp-3">
                     {item.description || "Sin descripción"}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => startWompiCheckout(item)}
+                    className="mt-4 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 text-sm transition-colors cursor-pointer"
+                  >
+                    Comprar
+                  </button>
                 </div>
               </div>
             ))}

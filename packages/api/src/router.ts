@@ -13,6 +13,9 @@ import { getPool } from "./core/dbPool";
 import { requireEnv, optionalEnvNumber } from "@wpbot/shared";
 import type { Context } from "@wpbot/shared";
 
+const WOMPI_PUBLIC_KEY = optionalEnv("WOMPI_PUBLIC_KEY", "");
+const WOMPI_INTEGRITY_SECRET = optionalEnv("WOMPI_INTEGRITY_SECRET", "");
+
 const aiService = new AIService(
   requireEnv("LLM_API_KEY"),
   requireEnv("LLM_MODEL"),
@@ -79,6 +82,38 @@ const routes: Route[] = [
       const totalValue = allItems.reduce((sum, item) => sum + item.price, 0);
       const avgPrice = totalItems > 0 ? totalValue / totalItems : 0;
       return Response.json({ totalItems, totalValue, avgPrice });
+    },
+  },
+  {
+    method: "POST",
+    pathname: "/wompi/checkout",
+    handler: async (req) => {
+      if (!WOMPI_PUBLIC_KEY || !WOMPI_INTEGRITY_SECRET) {
+        return Response.json({ error: "Wompi not configured" }, { status: 503 });
+      }
+      const body = await req.json() as { itemId?: number };
+      if (!body.itemId) {
+        return Response.json({ error: "itemId is required" }, { status: 400 });
+      }
+      const item = await itemsService.getById(body.itemId);
+      if (!item) {
+        return Response.json({ error: "Item not found" }, { status: 404 });
+      }
+      const amountInCents = Math.round(item.price * 100);
+      const reference = `wpbot-${body.itemId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+      const concat = `${reference}${amountInCents}COP${WOMPI_INTEGRITY_SECRET}`;
+      const encoded = new TextEncoder().encode(concat);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+      const hashHex = Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      return Response.json({
+        publicKey: WOMPI_PUBLIC_KEY,
+        reference,
+        amountInCents,
+        currency: "COP",
+        signature: hashHex,
+      });
     },
   },
   {
