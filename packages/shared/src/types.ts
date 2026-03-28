@@ -2,6 +2,9 @@ export type Item = {
   id?: number;
   name: string;
   description: string;
+  type: 'skin texturizado' | 'skin impreso' | 'funda 3d';
+  brand: string;
+  reference: string;
   price: number;
   stock: number;
   image_url: string;

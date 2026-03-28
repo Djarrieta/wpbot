@@ -14,11 +14,13 @@ export function ItemsPage() {
       columns={[
         { key: "id", header: "ID" },
         { key: "name", header: "Nombre" },
-        { key: "description", header: "Descripción" },
+        { key: "type", header: "Tipo" },
+        { key: "brand", header: "Marca" },
+        { key: "reference", header: "Referencia" },
         {
           key: "price",
           header: "Precio",
-          render: (v) => `$${Number(v).toFixed(2)}`,
+          render: (v) => `$${Number(v).toLocaleString()}`,
         },
         { key: "stock", header: "Stock" },
         {
