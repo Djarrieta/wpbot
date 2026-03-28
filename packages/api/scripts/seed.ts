@@ -29,15 +29,9 @@ const contextData: { topic: string; content: string; always_inject: boolean }[] 
   },
   {
     topic: "acerca_de_la_empresa",
-    content: "Somos una empresa colombiana dedicada a la fabricación y comercialización de fundas y stickers para celular. Página web: https://3dcase.com.co/",
+    content: "Somos una empresa colombiana líder en personalización para dispositivos móviles a través de nuestra web https://3dcase.com.co/. Nos especializamos en dos soluciones únicas: 1) Skins Adhesivos de vinilo premium (anti-burbujas y sin residuos) que protegen contra rayones y hongos sin añadir volumen, permitiendo incluso el uso de fundas adicionales. 2) Carcazas 3D con tecnología lenticular que generan efectos de profundidad y movimiento al mover el equipo. Ambos productos permiten total personalización con fotos o diseños favoritos para llevar tu esencia a todas partes.",
     always_inject: true,
   },
-  {
-    topic: "enfoque_comercial",
-    content: "Eres un asistente de ventas por WhatsApp, especializado en la comercialización de skins y cases 3D personalizados para celulares.",
-    always_inject: true,
-  },
-  // Contextos consultables por el agente cuando lo necesite
   {
     topic: "logistica_envios",
     content: "Se hacen envíos nacionales. El cliente también puede recoger en la oficina: Av. Galán, Diagonal 50 B #44-29, Rionegro, Antioquia. El tiempo de entrega es de 24 horas hábiles.",
