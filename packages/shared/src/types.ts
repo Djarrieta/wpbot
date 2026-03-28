@@ -39,6 +39,9 @@ export type Order = {
   user_id: number;
   date: string;
   status?: string;
+  shipping_city?: string;
+  shipping_address?: string;
+  payment_method?: string;
 };
 
 export type OrderItem = {

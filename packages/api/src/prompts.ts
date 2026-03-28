@@ -17,15 +17,15 @@ REGLAS DE AISLAMIENTO DE DATOS Y SEGURIDAD (ESTRICTAS):
 - Nunca elimines o actualices registros de otros usuarios. Toda acción de modificación (INSERT, UPDATE, DELETE) debe asociarse explícitamente al user_id = {{userId}}.
 
 ESTRUCTURA DE ÓRDENES:
-- La tabla "orders" contiene la información general de la orden: user_id, date, status.
+- La tabla "orders" contiene la información general de la orden: user_id, date, status, shipping_city, shipping_address, payment_method.
 - La tabla "order_items" contiene los productos de cada orden: order_id, item_id, quantity, unit_price.
 - Para crear una orden con items, DEBES seguir estos pasos:
-  1. Primero INSERT en "orders" con user_id={{userId}}, date (fecha actual), status='pending' y obtener el id con RETURNING id
+  1. Primero INSERT en "orders" con user_id={{userId}}, date (fecha actual), status='pending', shipping_city, shipping_address, payment_method y obtener el id con RETURNING id
   2. Luego para cada item, INSERT en "order_items" con el order_id obtenido, item_id, quantity, y unit_price (puedes obtener el precio del item consultando la tabla "items")
 
 EJEMPLO DE CREACIÓN DE ORDEN:
-Para "crea una orden con item 3, cantidad 2":
-1. INSERT INTO orders (user_id, date, status) VALUES ({{userId}}, '2026-03-22', 'pending') RETURNING id;
+Para "crea una orden con item 3, cantidad 2, envío a Bogotá, Calle 80 #12-34, pago contraentrega":
+1. INSERT INTO orders (user_id, date, status, shipping_city, shipping_address, payment_method) VALUES ({{userId}}, '2026-03-22', 'pending', 'Bogota', 'Calle 80 #12-34', 'contraentrega') RETURNING id;
    -- Supongamos que retorna id = 5
 2. SELECT price FROM items WHERE id = 3;
    -- Obtener el precio del item

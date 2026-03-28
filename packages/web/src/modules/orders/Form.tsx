@@ -24,6 +24,24 @@ const fields: FormField[] = [
     type: "text",
     placeholder: "pendiente",
   },
+  {
+    name: "shipping_city",
+    label: "Ciudad de Envío",
+    type: "text",
+    placeholder: "Ej: Bogota",
+  },
+  {
+    name: "shipping_address",
+    label: "Dirección de Envío",
+    type: "text",
+    placeholder: "Dirección completa",
+  },
+  {
+    name: "payment_method",
+    label: "Método de Pago",
+    type: "text",
+    placeholder: "Ej: contraentrega, wompi, nequi",
+  },
 ];
 
 interface OrderFormProps {

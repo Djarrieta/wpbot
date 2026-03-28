@@ -184,6 +184,8 @@ export function OrdersPage() {
           { key: "user_id", header: "ID Usuario" },
           { key: "date", header: "Fecha" },
           { key: "status", header: "Estado" },
+          { key: "shipping_city", header: "Ciudad" },
+          { key: "payment_method", header: "Pago" },
         ]}
         data={orders}
         keyField="id"

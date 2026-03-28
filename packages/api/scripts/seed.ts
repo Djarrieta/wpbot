@@ -81,6 +81,63 @@ const contextData: { topic: string; content: string; always_inject: boolean }[] 
     always_inject: false,
   },
 
+  // Flujo de pedidos
+  {
+    topic: "flujo_creacion_orden",
+    content: `FLUJO DE RECOLECCIÓN DE INFORMACIÓN PARA CREAR UNA ORDEN NUEVA:
+
+Este flujo define los pasos que debes seguir cuando un cliente quiere hacer un pedido. Sé natural y conversacional, adapta el orden según lo que el cliente ya haya proporcionado (NO repitas preguntas sobre información que ya dio).
+
+PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
+- Si el cliente ya dijo qué quiere (ej: "quiero un skin de fibra de carbono"), NO le preguntes de nuevo qué quiere. Continúa con la información faltante.
+- Si el cliente solo saluda, dale la bienvenida y pregúntale en qué le puedes ayudar.
+
+PASO 2 — PRODUCTO DESEADO:
+- Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda 3D, etc.
+- Si el diseño es personalizado, pídele que envíe la imagen o describa el diseño.
+
+PASO 3 — MODELO DE CELULAR:
+- Pregúntale la marca y modelo/referencia de su celular.
+- Consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad.
+- Si NO hay stock o no existe el producto para ese celular, infórmale amablemente y sugiere alternativas disponibles.
+
+PASO 4 — CANTIDAD:
+- Pregúntale cuántas unidades desea. Si no lo menciona, asume 1 unidad.
+
+PASO 5 — CIUDAD DE ENTREGA:
+- Pregúntale a qué ciudad le enviamos el pedido.
+- Consulta la tabla "shipping" para obtener el costo de envío y días estimados.
+- Si la ciudad no está en la tabla, informa que el envío es posible pero el costo y tiempo deben cotizarse aparte.
+- Recuerda: envío GRATIS en compras superiores a $60,000 COP.
+
+PASO 6 — MÉTODO DE PAGO:
+- Presenta las opciones: Contraentrega, Wompi (tarjeta/Nequi/PSE/Bancolombia), o Transferencia directa (Nequi/Daviplata).
+- Consulta el contexto "logistica_pagos" si necesitas detalles de cada método.
+
+PASO 7 — RESUMEN Y CONFIRMACIÓN:
+- Presenta un resumen claro con:
+  • Producto(s) y cantidad
+  • Precio unitario y subtotal
+  • Ciudad de entrega
+  • Costo de envío (o "GRATIS" si aplica)
+  • Total a pagar
+  • Método de pago elegido
+- Pide confirmación explícita al cliente antes de crear la orden.
+
+PASO 8 — CREACIÓN DE LA ORDEN:
+- Solo después de que el cliente confirme, crea la orden en la base de datos:
+  1. INSERT en "orders" con status='pending'
+  2. INSERT en "order_items" con los productos correspondientes
+- Confirma al cliente que su pedido fue creado exitosamente con el número de orden.
+
+NOTAS IMPORTANTES:
+- NO pidas toda la información de golpe. Ve paso a paso, de forma conversacional.
+- Si el cliente proporciona varios datos a la vez, aprovéchalos y salta los pasos ya cubiertos.
+- Si en cualquier momento el cliente cambia de opinión o quiere modificar algo, ajusta sin problema.
+- Siempre verifica el stock ANTES de presentar el resumen.`,
+    always_inject: true,
+  },
+
 ];
 
 const shipping = [
@@ -127,7 +184,10 @@ async function seed() {
         id SERIAL PRIMARY KEY,
         user_id BIGINT NOT NULL,
         date TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'pending'
+        status TEXT NOT NULL DEFAULT 'pending',
+        shipping_city TEXT NOT NULL DEFAULT '',
+        shipping_address TEXT NOT NULL DEFAULT '',
+        payment_method TEXT NOT NULL DEFAULT ''
       );
       CREATE TABLE IF NOT EXISTS order_items (
         id SERIAL PRIMARY KEY,
