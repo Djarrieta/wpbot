@@ -27,6 +27,7 @@ interface GenericFormProps<T> {
   onSubmit: (data: Omit<T, "id">) => void;
   onCancel: () => void;
   loading?: boolean;
+  onFieldChange?: (name: string, value: string | boolean) => void;
 }
 
 export function GenericForm<T extends Record<string, unknown>>({
@@ -35,6 +36,7 @@ export function GenericForm<T extends Record<string, unknown>>({
   onSubmit,
   onCancel,
   loading,
+  onFieldChange,
 }: GenericFormProps<T>) {
   const [values, setValues] = useState<Record<string, string | boolean>>(() => {
     const init: Record<string, string | boolean> = {};
@@ -75,6 +77,7 @@ export function GenericForm<T extends Record<string, unknown>>({
 
   function setValue(name: string, value: string | boolean) {
     setValues((prev) => ({ ...prev, [name]: value }));
+    onFieldChange?.(name, value);
   }
 
   const inputClass =

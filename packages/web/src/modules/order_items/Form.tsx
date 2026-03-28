@@ -29,6 +29,12 @@ const fields: FormField[] = [
     step: "0.01",
     required: true,
   },
+  {
+    name: "device_reference",
+    label: "Referencia del dispositivo",
+    type: "text",
+    placeholder: "Ej: Samsung Galaxy S24 Ultra",
+  },
 ];
 
 interface OrderItemFormProps {

@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import type { Item, WithId } from "@wpbot/shared";
 import { GenericForm, type FormField } from "@/components/GenericForm";
 
-const fields: FormField[] = [
+const baseFields: FormField[] = [
   {
     name: "name",
     label: "Nombre",
@@ -28,6 +29,9 @@ const fields: FormField[] = [
     ],
     required: true,
   },
+];
+
+const brandReferenceFields: FormField[] = [
   {
     name: "brand",
     label: "Marca",
@@ -42,6 +46,9 @@ const fields: FormField[] = [
     placeholder: "Ej: Galaxy S24 Ultra, iPhone 15 Pro",
     required: true,
   },
+];
+
+const tailFields: FormField[] = [
   {
     name: "price",
     label: "Precio",
@@ -69,6 +76,13 @@ const fields: FormField[] = [
   },
 ];
 
+function getFields(type: string): FormField[] {
+  if (type === "funda 3d") {
+    return [...baseFields, ...brandReferenceFields, ...tailFields];
+  }
+  return [...baseFields, ...tailFields];
+}
+
 interface ItemFormProps {
   initial?: WithId<Item>;
   onSubmit: (data: Omit<Item, "id">) => void;
@@ -76,6 +90,26 @@ interface ItemFormProps {
   loading?: boolean;
 }
 
-export function ItemForm(props: ItemFormProps) {
-  return <GenericForm<WithId<Item>> fields={fields} {...props} />;
+export function ItemForm({ initial, onSubmit, onCancel, loading }: ItemFormProps) {
+  const [type, setType] = useState<string>(initial?.type ?? "skin texturizado");
+  const fields = getFields(type);
+
+  return (
+    <GenericForm<WithId<Item>>
+      fields={fields}
+      initial={initial}
+      onSubmit={(data) => {
+        if (type !== "funda 3d") {
+          data.brand = "";
+          data.reference = "";
+        }
+        onSubmit(data);
+      }}
+      onCancel={onCancel}
+      loading={loading}
+      onFieldChange={(name, value) => {
+        if (name === "type") setType(value as string);
+      }}
+    />
+  );
 }

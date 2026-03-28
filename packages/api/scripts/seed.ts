@@ -4,14 +4,14 @@ const connectionString = process.env.PG_CONNECTION_STRING || "postgresql://wpbot
 
 const items = [
   // Skins Texturizados
-  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", type: "skin texturizado", brand: "Samsung", reference: "Galaxy S24 Ultra", price: 25000, stock: 50, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", type: "skin texturizado", brand: "Apple", reference: "iPhone 15 Pro Max", price: 28000, stock: 40, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", brand: "Xiaomi", reference: "Redmi Note 13 Pro", price: 22000, stock: 60, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", type: "skin texturizado", brand: "", reference: "", price: 25000, stock: 50, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", type: "skin texturizado", brand: "", reference: "", price: 28000, stock: 40, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", brand: "", reference: "", price: 22000, stock: 60, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
   // Skins Impresos
-  { name: "Skin Anime Dragon Ball", description: "Skin impreso alta resolución diseño Dragon Ball Z", type: "skin impreso", brand: "Samsung", reference: "Galaxy A55", price: 18000, stock: 100, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Arte Abstracto", description: "Skin impreso con diseño de arte abstracto vibrante", type: "skin impreso", brand: "Apple", reference: "iPhone 14", price: 18000, stock: 80, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Personalizado", description: "Skin impreso con foto o diseño personalizado del cliente", type: "skin impreso", brand: "Motorola", reference: "Moto G54", price: 20000, stock: 200, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Deportivo Fútbol", description: "Skin impreso con diseños de equipos de fútbol", type: "skin impreso", brand: "Samsung", reference: "Galaxy S23 FE", price: 18000, stock: 90, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin Anime Dragon Ball", description: "Skin impreso alta resolución diseño Dragon Ball Z", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 100, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin Arte Abstracto", description: "Skin impreso con diseño de arte abstracto vibrante", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 80, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin Personalizado", description: "Skin impreso con foto o diseño personalizado del cliente", type: "skin impreso", brand: "", reference: "", price: 20000, stock: 200, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin Deportivo Fútbol", description: "Skin impreso con diseños de equipos de fútbol", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 90, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
   // Fundas 3D
   { name: "Funda 3D Anime Naruto", description: "Carcasa 3D lenticular con efecto de movimiento Naruto", type: "funda 3d", brand: "Apple", reference: "iPhone 15", price: 35000, stock: 30, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
   { name: "Funda 3D Paisaje", description: "Carcasa 3D lenticular con efecto de profundidad paisaje", type: "funda 3d", brand: "Samsung", reference: "Galaxy S24", price: 35000, stock: 25, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
@@ -95,11 +95,14 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
 PASO 2 — PRODUCTO DESEADO:
 - Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda 3D, etc.
 - Si el diseño es personalizado, pídele que envíe la imagen o describa el diseño.
+- Para skins: busca por tipo y nombre/diseño (NO por brand/reference, ya que los skins son genéricos).
+- Para fundas 3D: busca por tipo, brand y reference (son específicas por modelo).
 
 PASO 3 — MODELO DE CELULAR:
 - Pregúntale la marca y modelo/referencia de su celular.
-- Consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad.
-- Si NO hay stock o no existe el producto para ese celular, infórmale amablemente y sugiere alternativas disponibles.
+- Para SKINS: el celular indicado se guardará en el campo "device_reference" de order_items al crear la orden. No es necesario verificar disponibilidad por modelo en items.
+- Para FUNDAS 3D: consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad.
+- Si NO hay stock o no existe el producto para ese celular (solo aplica a fundas 3D), infórmale amablemente y sugiere alternativas disponibles.
 
 PASO 4 — CANTIDAD:
 - Pregúntale cuántas unidades desea. Si no lo menciona, asume 1 unidad.
@@ -127,7 +130,7 @@ PASO 7 — RESUMEN Y CONFIRMACIÓN:
 PASO 8 — CREACIÓN DE LA ORDEN:
 - Solo después de que el cliente confirme, crea la orden en la base de datos:
   1. INSERT en "orders" con status='pending'
-  2. INSERT en "order_items" con los productos correspondientes
+  2. INSERT en "order_items" con los productos correspondientes. Si el item es un skin, incluye device_reference con la marca y modelo del celular del cliente. Si es funda 3D, deja device_reference vacío.
 - Confirma al cliente que su pedido fue creado exitosamente con el número de orden.
 
 NOTAS IMPORTANTES:
@@ -187,14 +190,16 @@ async function seed() {
         status TEXT NOT NULL DEFAULT 'pending',
         shipping_city TEXT NOT NULL DEFAULT '',
         shipping_address TEXT NOT NULL DEFAULT '',
-        payment_method TEXT NOT NULL DEFAULT ''
+        payment_method TEXT NOT NULL DEFAULT '',
+        collected_info JSONB NOT NULL DEFAULT '{}'
       );
       CREATE TABLE IF NOT EXISTS order_items (
         id SERIAL PRIMARY KEY,
         order_id INTEGER NOT NULL,
         item_id INTEGER NOT NULL,
         quantity INTEGER NOT NULL DEFAULT 1,
-        unit_price REAL NOT NULL DEFAULT 0
+        unit_price REAL NOT NULL DEFAULT 0,
+        device_reference TEXT NOT NULL DEFAULT ''
       );
       CREATE TABLE IF NOT EXISTS chat_history (
         id SERIAL PRIMARY KEY,

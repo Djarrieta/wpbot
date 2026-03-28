@@ -3,8 +3,8 @@ export type Item = {
   name: string;
   description: string;
   type: 'skin texturizado' | 'skin impreso' | 'funda 3d';
-  brand: string;
-  reference: string;
+  brand?: string;
+  reference?: string;
   price: number;
   stock: number;
   image_url: string;
@@ -42,6 +42,7 @@ export type Order = {
   shipping_city?: string;
   shipping_address?: string;
   payment_method?: string;
+  collected_info?: Record<string, string>;
 };
 
 export type OrderItem = {
@@ -50,6 +51,7 @@ export type OrderItem = {
   item_id: number;
   quantity: number;
   unit_price: number;
+  device_reference?: string;
 };
 
 export type Context = {

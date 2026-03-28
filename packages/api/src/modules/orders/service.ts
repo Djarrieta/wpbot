@@ -11,5 +11,6 @@ export function createOrdersRepository() {
     { name: 'shipping_city', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
     { name: 'shipping_address', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
     { name: 'payment_method', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+    { name: 'collected_info', type: 'JSONB', constraints: "NOT NULL DEFAULT '{}'" },
   ]);
 }

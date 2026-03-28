@@ -4,7 +4,7 @@ import { Repository, type BaseEntity } from './repository';
 
 export interface ColumnDef {
   name: string;
-  type: 'TEXT' | 'REAL' | 'INTEGER' | 'BIGINT' | 'BOOLEAN';
+  type: 'TEXT' | 'REAL' | 'INTEGER' | 'BIGINT' | 'BOOLEAN' | 'JSONB';
   constraints?: string;
 }
 
@@ -14,6 +14,7 @@ const PG_TYPE_MAP: Record<ColumnDef['type'], string> = {
   INTEGER: 'INTEGER',
   BIGINT: 'BIGINT',
   BOOLEAN: 'BOOLEAN',
+  JSONB: 'JSONB',
 };
 
 export class PgRepository<T extends BaseEntity> extends Repository<T> {

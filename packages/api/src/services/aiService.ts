@@ -7,12 +7,14 @@ import { ResponseGenerator } from "../core/responseGenerator";
 export class AIService extends ResponseGenerator {
   private model: ReturnType<ReturnType<typeof createOpenAI>>;
   private maxSteps: number;
+  private temperature: number;
 
   constructor(
     apiKey: string,
     modelName: string,
     maxSteps: number = 8,
-    baseURL?: string
+    baseURL?: string,
+    temperature: number = 0.4
   ) {
     super();
     const provider = createOpenAI({
@@ -21,6 +23,7 @@ export class AIService extends ResponseGenerator {
     });
     this.model = provider(modelName);
     this.maxSteps = maxSteps;
+    this.temperature = temperature;
   }
 
   async generateResponse(prompt: string): Promise<string> {
@@ -31,6 +34,7 @@ export class AIService extends ResponseGenerator {
     const result = await generateText({
       model: this.model,
       prompt,
+      temperature: this.temperature,
       tools: {
         query: tool({
           description:

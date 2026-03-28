@@ -9,5 +9,6 @@ export function createOrderItemsRepository() {
     { name: 'item_id', type: 'INTEGER', constraints: 'NOT NULL' },
     { name: 'quantity', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 1' },
     { name: 'unit_price', type: 'REAL', constraints: 'NOT NULL DEFAULT 0' },
+    { name: 'device_reference', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
   ]);
 }
