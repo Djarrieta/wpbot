@@ -21,27 +21,64 @@ const users = [
 ];
 
 const contextData: { topic: string; content: string; always_inject: boolean }[] = [
-  // Contextos que siempre se inyectan en el prompt
+  // Contextos que siempre se inyectan en el prompt para dar identidad base
   {
     topic: "mensaje_bienvenida",
-    content: "Hola! Bienvenido a 3DCase, la marca #1 🥇 en Colombia de fundas para celular en 3D, aquí lo proteges y le das todo tu estilo 😎 ¿Cuéntame por favor como te llamas y como te podemos ayudar?",
+    content: "¡Hola! Bienvenido a 3DCase, la marca #1 🥇 en Colombia de personalización y fundas para celular en 3D. Aquí protegemos tu equipo y le damos todo tu estilo 😎 ¿Cuéntame por favor cómo te llamas y en qué podemos ayudarte hoy?",
     always_inject: true,
   },
   {
     topic: "acerca_de_la_empresa",
-    content: "Somos una empresa colombiana líder en personalización para dispositivos móviles a través de nuestra web https://3dcase.com.co/. Nos especializamos en dos soluciones únicas: 1) Skins Adhesivos de vinilo premium (anti-burbujas y sin residuos) que protegen contra rayones y hongos sin añadir volumen, permitiendo incluso el uso de fundas adicionales. 2) Carcazas 3D con tecnología lenticular que generan efectos de profundidad y movimiento al mover el equipo. Ambos productos permiten total personalización con fotos o diseños favoritos para llevar tu esencia a todas partes.",
+    content: "3DCase es una empresa colombiana a la vanguardia de la innovación digital y protección de hardware para dispositivos móviles. Nos especializamos en soluciones de personalización de alto nivel a través de https://3dcase.com.co/. Utilizamos materiales de ingeniería, como polímeros flexibles y vinilos de precisión, para garantizar un ajuste perfecto. Nos destacamos por dos líneas principales: 1) Skins Adhesivos de vinilo premium que protegen sin añadir volumen y 2) Carcasas 3D con tecnología lenticular que generan efectos de profundidad y movimiento. Nuestra misión es fusionar diseño artístico y funcionalidad técnica.",
     always_inject: true,
   },
+
+  // Contextos específicos de productos (se inyectan solo si el usuario pregunta por ellos)
+  {
+    topic: "productos_skins_general",
+    content: "Los Skins Adhesivos son láminas de vinilo premium diseñadas para proteger el cuerpo del celular contra rayones, polvo y hongos sin alterar su peso ni grosor. Cuentan con tecnología anti-burbujas para una instalación sencilla y no dejan residuos al retirarlos. Son la opción ideal para quienes prefieren sentir el diseño original del equipo o para usar debajo de una funda transparente, brindando una doble capa de protección.",
+    always_inject: false,
+  },
+  {
+    topic: "productos_skins_impresos",
+    content: "Nuestros Skins Impresos ofrecen personalización visual total. El cliente puede elegir entre cientos de diseños de nuestra galería (anime, deportes, arte, películas) o subir su propia fotografía para crear un diseño exclusivo. La impresión es de alta resolución con tintas resistentes al desgaste, asegurando que los colores y detalles se mantengan vibrantes con el uso diario.",
+    always_inject: false,
+  },
+  {
+    topic: "productos_skins_texturizados",
+    content: "Los Skins Texturizados Premium están fabricados con materiales de alta gama (marcas como 3M y Oracal). Estos no solo decoran, sino que aportan una experiencia táctil superior y mejoran el agarre. Están disponibles en acabados sofisticados como Fibra de Carbono, Cuero, Panal de Abeja (Honey Comb), Madera y efectos Mate o Metálicos, dándole al dispositivo un aspecto sobrio y profesional.",
+    always_inject: false,
+  },
+  {
+    topic: "productos_fundas_y_carcasas",
+    content: "Contamos con dos tipos de protección externa: 1) La Funda Transparente de silicona flexible (TPU) con solo 2 milímetros de grosor, diseñada para ser ultraligera y permitir lucir el diseño del celular o un skin. 2) La Carcasa 3D, nuestro producto insignia, que incorpora tecnología lenticular para crear efectos visuales de movimiento y profundidad, fabricada en materiales de ingeniería altamente resistentes a impactos y caídas.",
+    always_inject: false,
+  },
+
+  {
+    topic: "productos_carcasas_3d_efectos",
+    content: "Nuestras Carcasas 3D utilizan tecnología lenticular de última generación. Al mover el celular, el diseño reacciona creando efectos de profundidad (3D real) o de movimiento (cambio entre dos imágenes diferentes). Es el producto ideal para quienes buscan un accesorio dinámico que no pasa desapercibido y que convierte cualquier diseño, desde anime hasta fotos familiares, en una pieza con vida propia.",
+    always_inject: false,
+  },
+  {
+    topic: "productos_carcasas_3d_resistencia",
+    content: "Más allá del impacto visual, la Carcasa 3D está construida para una protección robusta. Combina una placa posterior rígida donde se procesa el efecto 3D con bordes de poliuretano termoplástico (TPU) de alta densidad. Esta estructura absorbe impactos en las esquinas y protege la pantalla mediante bordes ligeramente elevados, garantizando que el estilo no comprometa la seguridad del dispositivo ante caídas accidentales.",
+    always_inject: false,
+  },
+
+  // Logística y Operaciones
   {
     topic: "logistica_envios",
-    content: "Se hacen envíos nacionales. El cliente también puede recoger en la oficina: Av. Galán, Diagonal 50 B #44-29, Rionegro, Antioquia. El tiempo de entrega es de 24 horas hábiles.",
+    content: "Realizamos envíos a toda Colombia principalmente a través de Coordinadora. También es posible solicitar el envío por Inter Rapidísimo asumiendo el costo extra (previa cotización por WhatsApp). El tiempo de despacho es de 24 a 48 horas hábiles tras confirmar el pago. Los tiempos de entrega estimados son: 1) Medellín, Área Metropolitana y Oriente Cercano: 1 a 3 días hábiles. 2) Ciudades principales: 1 a 4 días hábiles. 3) Otros municipios y poblaciones especiales: sujeto a la logística de la transportadora. Ofrecemos ENVÍO TERRESTRE GRATUITO en compras superiores a $60,000 COP. También puedes recoger tu pedido sin costo en nuestra oficina en Rionegro, Antioquia: Av. Galán, Diagonal 50 B #44-29.",
     always_inject: false,
   },
   {
     topic: "logistica_pagos",
-    content: "Métodos de pago disponibles: Wompi (plataforma de Bancolombia), transferencias por Nequi (cuenta 3001234567), Daviplata (cuenta 3009876543), y tarjetas de crédito/débito (Visa, Mastercard, American Express). Para pagos con Wompi, el cliente recibirá un link de pago seguro. Nequi y Daviplata: enviar comprobante al WhatsApp.",
+    content: "Ofrecemos múltiples métodos de pago seguros para tu comodidad: 1) Pago Contraentrega: paga en efectivo al recibir tu producto (disponible en gran parte del territorio nacional). 2) Wompi (Link de Pago): a través de esta plataforma de Bancolombia puedes pagar con Tarjetas de Crédito/Débito (Visa, Mastercard, Amex), Botón Bancolombia, Nequi y PSE. Es un proceso 100% seguro y encriptado. 3) Transferencia Directa: aceptamos Nequi (cuenta 3001234567) y Daviplata (cuenta 3009876543). Importante: Para transferencias directas, es obligatorio enviar el comprobante de pago a nuestro WhatsApp para validar el pedido e iniciar el proceso de producción/despacho.",
     always_inject: false,
   },
+
+
 ];
 
 const shipping = [
