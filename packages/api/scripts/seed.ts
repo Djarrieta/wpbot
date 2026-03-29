@@ -66,7 +66,7 @@ const contextData: { topic: string; content: string; always_inject: boolean }[] 
   },
   {
     topic: "productos_skins_texturizados",
-    content: "Los Skins Texturizados Premium están fabricados con materiales de alta gama (marcas como 3M y Oracal). Estos no solo decoran, sino que aportan una experiencia táctil superior y mejoran el agarre. Están disponibles en acabados sofisticados como Fibra de Carbono, Cuero, Panal de Abeja (Honey Comb), Madera y efectos Mate o Metálicos, dándole al dispositivo un aspecto sobrio y profesional.",
+    content: "Los Skins Texturizados Premium están fabricados con materiales de alta gama (marcas como 3M y Oracal). Estos no solo decoran, sino que aportan una experiencia táctil superior y mejoran el agarre. Están disponibles en acabados sofisticados como Fibra de Carbono, Cuero Negro y Madera Natural, dándole al dispositivo un aspecto sobrio y profesional.",
     always_inject: false,
   },
   {
