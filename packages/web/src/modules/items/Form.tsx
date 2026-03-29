@@ -25,6 +25,7 @@ const baseFields: FormField[] = [
     options: [
       { value: "skin texturizado", label: "Skin Texturizado" },
       { value: "skin impreso", label: "Skin Impreso" },
+      { value: "funda transparente", label: "Funda Transparente" },
       { value: "funda 3d", label: "Funda 3D" },
     ],
     required: true,
@@ -77,7 +78,7 @@ const tailFields: FormField[] = [
 ];
 
 function getFields(type: string): FormField[] {
-  if (type === "funda 3d") {
+  if (type === "funda 3d" || type === "funda transparente") {
     return [...baseFields, ...brandReferenceFields, ...tailFields];
   }
   return [...baseFields, ...tailFields];
@@ -99,7 +100,7 @@ export function ItemForm({ initial, onSubmit, onCancel, loading }: ItemFormProps
       fields={fields}
       initial={initial}
       onSubmit={(data) => {
-        if (type !== "funda 3d") {
+        if (type !== "funda 3d" && type !== "funda transparente") {
           data.brand = "";
           data.reference = "";
         }

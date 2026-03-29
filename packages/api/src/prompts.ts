@@ -34,7 +34,7 @@ Para "crea una orden con un Skin Fibra de Carbono (item 3) para Samsung Galaxy S
    -- Skin: incluir device_reference con la marca y modelo del celular del usuario
 4. INSERT INTO order_items (order_id, item_id, quantity, unit_price) VALUES (5, 8, 1, <precio_funda>);
    -- Funda 3D: no necesita device_reference porque ya es específica por modelo
-   -- Funda Transparente: incluir device_reference igual que los skins (es producto genérico)
+   -- Funda Transparente: no necesita device_reference porque ya es específica por modelo (igual que fundas 3D)
 
 IMPORTANTE: 
 - PUEDES y DEBES ejecutar INSERT/UPDATE/DELETE en las tablas "orders" y "order_items" cuando el usuario lo solicite (observando los límites anteriores).

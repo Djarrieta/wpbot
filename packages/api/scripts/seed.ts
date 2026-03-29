@@ -9,8 +9,28 @@ const items = [
   { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", brand: "", reference: "", price: 22000, stock: 60, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
   // Skins Impresos
   { name: "Skin impreso Personalizado", description: "Skin impreso alta resolución", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 100, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  // Fundas Transparentes
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm, ideal para lucir el diseño del celular o un skin", type: "funda transparente", brand: "", reference: "", price: 15000, stock: 100, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  // Fundas Transparentes (específicas por modelo, igual que Fundas 3D)
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Xiaomi Poco X6 Pro", type: "funda transparente", brand: "Xiaomi", reference: "Poco X6 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Xiaomi Redmi Note 13 Pro", type: "funda transparente", brand: "Xiaomi", reference: "Redmi Note 13 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Xiaomi Redmi Note 14 Pro", type: "funda transparente", brand: "Xiaomi", reference: "Redmi Note 14 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Xiaomi Poco X7 Pro", type: "funda transparente", brand: "Xiaomi", reference: "Poco X7 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 16", type: "funda transparente", brand: "Apple", reference: "iPhone 16", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 16 Pro", type: "funda transparente", brand: "Apple", reference: "iPhone 16 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 16 Pro Max", type: "funda transparente", brand: "Apple", reference: "iPhone 16 Pro Max", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 15", type: "funda transparente", brand: "Apple", reference: "iPhone 15", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 15 Pro Max", type: "funda transparente", brand: "Apple", reference: "iPhone 15 Pro Max", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 14", type: "funda transparente", brand: "Apple", reference: "iPhone 14", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 13", type: "funda transparente", brand: "Apple", reference: "iPhone 13", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy S25 Ultra", type: "funda transparente", brand: "Samsung", reference: "Galaxy S25 Ultra", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy S25", type: "funda transparente", brand: "Samsung", reference: "Galaxy S25", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy S24 Ultra", type: "funda transparente", brand: "Samsung", reference: "Galaxy S24 Ultra", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy S24", type: "funda transparente", brand: "Samsung", reference: "Galaxy S24", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy A55", type: "funda transparente", brand: "Samsung", reference: "Galaxy A55", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy A35", type: "funda transparente", brand: "Samsung", reference: "Galaxy A35", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy A15", type: "funda transparente", brand: "Samsung", reference: "Galaxy A15", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Motorola Moto G84", type: "funda transparente", brand: "Motorola", reference: "Moto G84", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Motorola Moto G54", type: "funda transparente", brand: "Motorola", reference: "Moto G54", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Huawei Nova 12i", type: "funda transparente", brand: "Huawei", reference: "Nova 12i", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
   // Fundas 3D
   { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Poco X6 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Poco X6 Pro", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
   { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 16", type: "funda 3d", brand: "Apple", reference: "iPhone 16", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
@@ -112,14 +132,15 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
 PASO 2 — PRODUCTO DESEADO:
 - Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda transparente, funda 3D, etc.
 - Si el diseño es personalizado, pídele que envíe la imagen o describa el diseño.
-- Para skins y fundas transparentes: busca por tipo y nombre/diseño (NO por brand/reference, ya que son productos genéricos).
-- Para fundas 3D: busca por tipo, brand y reference (son específicas por modelo).
+- Para skins: busca por tipo y nombre/diseño (NO por brand/reference, ya que son productos genéricos).
+- Para fundas transparentes y fundas 3D: busca por tipo, brand y reference (son específicas por modelo).
 
 PASO 3 — MODELO DE CELULAR:
 - Pregúntale la marca y modelo/referencia de su celular.
-- Para SKINS y FUNDAS TRANSPARENTES: el celular indicado se guardará en el campo "device_reference" de order_items al crear la orden. No es necesario verificar disponibilidad por modelo en items.
+- Para SKINS: el celular indicado se guardará en el campo "device_reference" de order_items al crear la orden. No es necesario verificar disponibilidad por modelo en items.
+- Para FUNDAS TRANSPARENTES: consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad (igual que fundas 3D).
 - Para FUNDAS 3D: consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad.
-- Si NO hay stock o no existe el producto para ese celular (solo aplica a fundas 3D), infórmale amablemente y sugiere alternativas disponibles.
+- Si NO hay stock o no existe el producto para ese celular (aplica a fundas transparentes y fundas 3D), infórmale amablemente y sugiere alternativas disponibles.
 
 PASO 4 — CANTIDAD:
 - Pregúntale cuántas unidades desea. Si no lo menciona, asume 1 unidad.
@@ -147,7 +168,7 @@ PASO 7 — RESUMEN Y CONFIRMACIÓN:
 PASO 8 — CREACIÓN DE LA ORDEN:
 - Solo después de que el cliente confirme, crea la orden en la base de datos:
   1. INSERT en "orders" con status='pending'
-  2. INSERT en "order_items" con los productos correspondientes. Si el item es un skin o funda transparente, incluye device_reference con la marca y modelo del celular del cliente. Si es funda 3D, deja device_reference vacío.
+  2. INSERT en "order_items" con los productos correspondientes. Si el item es un skin, incluye device_reference con la marca y modelo del celular del cliente. Si es funda transparente o funda 3D, deja device_reference vacío.
 - Confirma al cliente que su pedido fue creado exitosamente con el número de orden.
 
 NOTAS IMPORTANTES:
