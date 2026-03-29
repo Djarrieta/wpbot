@@ -4,6 +4,6 @@ import type { OrderItem } from './service';
 
 export class OrderItemsController extends GenericCrudController<OrderItem> {
   constructor(orderItemsService: Repository<OrderItem>) {
-    super(orderItemsService, 'OrderItem', ['order_id', 'item_id', 'quantity', 'unit_price']);
+    super(orderItemsService, 'OrderItem', ['order_id', 'item_id', 'item_name', 'quantity', 'unit_price']);
   }
 }

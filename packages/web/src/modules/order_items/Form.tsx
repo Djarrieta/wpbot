@@ -13,6 +13,12 @@ const fields: FormField[] = [
     required: true,
   },
   {
+    name: "item_name",
+    label: "Nombre del artículo",
+    type: "text",
+    placeholder: "Nombre del item al momento de la orden",
+  },
+  {
     name: "quantity",
     label: "Cantidad",
     type: "number",

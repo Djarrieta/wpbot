@@ -15,6 +15,7 @@ export function OrderItemsPage() {
         { key: "id", header: "ID" },
         { key: "order_id", header: "Order ID" },
         { key: "item_id", header: "Item ID" },
+        { key: "item_name", header: "Item" },
         { key: "quantity", header: "Quantity" },
         { key: "unit_price", header: "Unit Price" },
       ]}

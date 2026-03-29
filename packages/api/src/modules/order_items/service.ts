@@ -7,6 +7,7 @@ export function createOrderItemsRepository() {
   return new PgRepository<OrderItem>('order_items', [
     { name: 'order_id', type: 'INTEGER', constraints: 'NOT NULL' },
     { name: 'item_id', type: 'INTEGER', constraints: 'NOT NULL' },
+    { name: 'item_name', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
     { name: 'quantity', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 1' },
     { name: 'unit_price', type: 'REAL', constraints: 'NOT NULL DEFAULT 0' },
     { name: 'device_reference', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },

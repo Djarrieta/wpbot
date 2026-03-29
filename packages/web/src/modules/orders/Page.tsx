@@ -8,6 +8,7 @@ import { Modal } from "@/components/Modal";
 import { OrderForm } from "./Form";
 import { api } from "./api";
 import { api as orderItemsApi } from "../order_items/api";
+import { api as itemsApi } from "../items/api";
 import { OrderItemForm } from "../order_items/Form";
 
 export function OrdersPage() {
@@ -49,6 +50,17 @@ export function OrdersPage() {
     try {
       setLoadingItems(true);
       const items = await orderItemsApi.fetchAll({ order_id: orderId });
+      // Fill item_name from catalog for items missing it
+      const needsName = items.some((i) => !i.item_name);
+      if (needsName) {
+        const catalog = await itemsApi.fetchAll();
+        const catalogMap = new Map(catalog.map((c) => [c.id, c.name]));
+        for (const item of items) {
+          if (!item.item_name) {
+            item.item_name = catalogMap.get(item.item_id) ?? "";
+          }
+        }
+      }
       setOrderItems(items);
     } catch (e) {
       setError(
@@ -294,6 +306,7 @@ export function OrdersPage() {
             <Table
               columns={[
                 { key: "item_id", header: "ID Artículo" },
+                { key: "item_name", header: "Artículo" },
                 { key: "quantity", header: "Cant." },
                 { key: "unit_price", header: "Precio Unit." },
               ]}

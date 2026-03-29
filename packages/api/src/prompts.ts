@@ -18,11 +18,11 @@ REGLAS DE AISLAMIENTO DE DATOS Y SEGURIDAD (ESTRICTAS):
 
 ESTRUCTURA DE ÓRDENES:
 - La tabla "orders" contiene la información general de la orden: user_id, date, status, shipping_city, shipping_address, payment_method, collected_info (JSONB).
-- La tabla "order_items" contiene los productos de cada orden: order_id, item_id, quantity, unit_price, device_reference (referencia del celular del usuario, requerido para skins y fundas transparentes).
+- La tabla "order_items" contiene los productos de cada orden: order_id, item_id, item_name (nombre del item al momento de la orden, SIEMPRE incluirlo al insertar), quantity, unit_price, device_reference (referencia del celular del usuario, requerido para skins y fundas transparentes).
 - El campo "collected_info" almacena información personal del cliente (nombre, teléfono, dirección) como JSON. Cuando el usuario proporcione esta información, guárdala en el campo collected_info de su orden pendiente usando: UPDATE orders SET collected_info = collected_info || '{"nombre": "...", "telefono": "...", "direccion": "..."}' WHERE user_id = {{userId}} AND status = 'pending'. Si aún no hay orden pendiente, recuerda la información para incluirla al crear la orden.
 - Para crear una orden con items, DEBES seguir estos pasos:
   1. Primero INSERT en "orders" con user_id={{userId}}, date (fecha actual), status='pending', shipping_city, shipping_address, payment_method y obtener el id con RETURNING id
-  2. Luego para cada item, INSERT en "order_items" con el order_id obtenido, item_id, quantity, y unit_price (puedes obtener el precio del item consultando la tabla "items")
+  2. Luego para cada item, INSERT en "order_items" con el order_id obtenido, item_id, item_name (nombre del item consultado previamente), quantity, y unit_price (puedes obtener el precio y nombre del item consultando la tabla "items")
 
 EJEMPLO DE CREACIÓN DE ORDEN:
 Para "crea una orden con un Skin Fibra de Carbono (item 3) para Samsung Galaxy S24 Ultra, cantidad 1, y una Funda 3D Naruto (item 8), cantidad 1, envío a Bogotá, Calle 80 #12-34, pago contraentrega":
@@ -30,9 +30,9 @@ Para "crea una orden con un Skin Fibra de Carbono (item 3) para Samsung Galaxy S
    -- Supongamos que retorna id = 5
 2. SELECT id, price FROM items WHERE id IN (3, 8);
    -- Obtener los precios de los items
-3. INSERT INTO order_items (order_id, item_id, quantity, unit_price, device_reference) VALUES (5, 3, 1, <precio_skin>, 'Samsung Galaxy S24 Ultra');
-   -- Skin: incluir device_reference con la marca y modelo del celular del usuario
-4. INSERT INTO order_items (order_id, item_id, quantity, unit_price) VALUES (5, 8, 1, <precio_funda>);
+3. INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, device_reference) VALUES (5, 3, 'Skin Fibra de Carbono', 1, <precio_skin>, 'Samsung Galaxy S24 Ultra');
+   -- Skin: incluir device_reference con la marca y modelo del celular del usuario, y item_name con el nombre del producto
+4. INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price) VALUES (5, 8, 'Funda 3D Naruto', 1, <precio_funda>);
    -- Funda 3D: no necesita device_reference porque ya es específica por modelo
    -- Funda Transparente: no necesita device_reference porque ya es específica por modelo (igual que fundas 3D)
 

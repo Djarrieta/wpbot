@@ -2,79 +2,6 @@
 
 ---
 
-## Tarea 12: Guardar nombre del item en `order_items` y mostrarlo en la UI
-
-**Problema:** La tabla `order_items` solo guarda `item_id` como referencia al producto, pero no persiste el nombre del item. Esto causa dos problemas:
-
-1. **En la UI admin**, la tabla de Order Items muestra `item_id` (un número) en lugar del nombre del producto, lo cual no es informativo para el administrador.
-2. **Si un item se renombra o elimina**, se pierde la referencia de qué producto se ordenó originalmente. El nombre debe quedar "congelado" al momento de agregar el item a la orden (snapshot del nombre).
-
-**Modelo correcto:** Al insertar un `order_item`, se debe copiar el `name` del item referenciado y guardarlo en un campo `item_name` de `order_items`. Así la orden preserva la información original independientemente de cambios futuros en el catálogo.
-
-**Cambios:**
-
-### Base de datos y tipos
-
-1. **`packages/api/src/modules/order_items/service.ts`** — Agregar campo `item_name TEXT NOT NULL DEFAULT ''` al schema de la tabla `order_items`.
-
-2. **`packages/shared/src/types.ts`** — Agregar `item_name?: string` al tipo `OrderItem`:
-   ```typescript
-   export type OrderItem = {
-     id?: number;
-     order_id: number;
-     item_id: number;
-     item_name?: string;
-     quantity: number;
-     unit_price: number;
-     device_reference?: string;
-   };
-   ```
-
-### API (prompt del asistente)
-
-3. **`packages/api/src/prompts.ts`** — Actualizar la descripción de `order_items` para incluir `item_name`. En las instrucciones de creación de orden, indicar que al hacer INSERT en `order_items` se debe incluir `item_name` con el nombre del item consultado previamente. Ejemplo:
-
-   ```sql
-   INSERT INTO order_items (order_id, item_id, item_name, quantity, unit_price, device_reference)
-   VALUES (1, 5, 'Skin Fibra de Carbono', 1, 25000, 'Samsung Galaxy S24 Ultra');
-   ```
-
-4. **`packages/api/src/modules/order_items/controller.ts`** — Agregar `'item_name'` al array de `fieldNames` del constructor para que el CRUD permita recibir y guardar el campo.
-
-### UI (Web)
-
-5. **`packages/web/src/modules/order_items/Page.tsx`** — Agregar columna `item_name` a la tabla:
-
-   ```typescript
-   columns={[
-     { key: "id", header: "ID" },
-     { key: "order_id", header: "Order ID" },
-     { key: "item_id", header: "Item ID" },
-     { key: "item_name", header: "Item" },
-     { key: "quantity", header: "Quantity" },
-     { key: "unit_price", header: "Unit Price" },
-   ]}
-   ```
-
-6. **`packages/web/src/modules/order_items/Form.tsx`** — Agregar campo `item_name` al formulario (tipo texto, opcional — el asistente lo llena automáticamente, pero el admin puede editarlo manualmente):
-   ```typescript
-   {
-     name: "item_name",
-     label: "Nombre del artículo",
-     type: "text",
-     placeholder: "Nombre del item al momento de la orden",
-   },
-   ```
-
-### Notas
-
-- El campo se llama `item_name` (no `name`) para evitar confusión con otros campos y dejar claro que es una copia del nombre del item.
-- El `DEFAULT ''` permite que order_items existentes (creados antes de este cambio) no se rompan.
-- El asistente AI ya consulta los items antes de crear la orden (para verificar stock/precio), así que tiene acceso al `name` y solo debe incluirlo en el INSERT.
-- Requiere `bun db:reset` para recrear la tabla con el nuevo campo.
-
----
-
 ## Tarea 2: Sistema de resumen (summary) en chat_history
 
 **Problema:** Se inyectan los últimos 20 mensajes completos en cada prompt. Conversaciones largas consumen tokens innecesariamente.
@@ -444,5 +371,64 @@ export async function handleWebhook(req: Request): Promise<Response> {
 - El indicador "typing" (Telegram) se envía al procesar, no cuando llega el primer mensaje. Esto evita que el usuario vea "escribiendo..." durante la ventana de acumulación.
 - `handleWebhook` ya respondía 200 inmediatamente, así que el debounce no afecta el requisito de Meta de respuestas rápidas.
 - Si el usuario envía un solo mensaje, simplemente se procesa después de 3 segundos (delay mínimo aceptable).
+
+---
+
+## Tarea 13: Incluir imágenes de productos al presentar opciones al cliente
+
+**Problema:** Cuando el asistente le presenta opciones de productos al cliente (ej: tipos de skins texturizados, fundas disponibles, etc.), solo muestra texto con nombres y descripciones. El cliente no puede ver cómo luce el producto antes de elegir, lo que dificulta la decisión de compra.
+
+**Mejora:** El asistente debe consultar el campo `image_url` de la tabla `items` y incluir el link de la imagen junto a cada opción que presente. Así el cliente puede ver visualmente el producto antes de decidir.
+
+**Cambios:**
+
+### Contexto inyectado (seed — `contextData`)
+
+1. **`packages/api/scripts/seed.ts`** — Agregar un nuevo contexto en `contextData` con `always_inject: true` que instruya al asistente sobre el uso de imágenes:
+
+   ```typescript
+   {
+     topic: "presentacion_productos_con_imagenes",
+     content: `REGLA DE PRESENTACIÓN DE PRODUCTOS CON IMÁGENES:
+
+   Cada vez que presentes opciones de productos al cliente (skins, fundas, carcasas, etc.), DEBES:
+   1. Consultar la tabla "items" para obtener el campo "image_url" de cada producto relevante.
+   2. Incluir el link de la imagen junto a cada opción presentada, para que el cliente pueda ver cómo luce el producto.
+   3. El formato para presentar cada opción debe ser:
+      - Nombre del producto — breve descripción
+      - Precio: $XX,XXX COP
+      - Ver imagen: [link de image_url]
+
+   Ejemplo de presentación:
+   1. **Skin Fibra de Carbono** — acabado sofisticado con textura de fibra de carbono
+      💰 $25,000 COP
+      📸 Ver imagen: https://ejemplo.com/imagen-fibra-carbono.jpg
+
+   2. **Skin Cuero Negro** — textura de cuero negro premium
+      💰 $28,000 COP
+      📸 Ver imagen: https://ejemplo.com/imagen-cuero-negro.jpg
+
+   IMPORTANTE:
+   - SIEMPRE consulta la imagen del item desde la base de datos (SELECT image_url FROM items WHERE ...). NO inventes URLs de imágenes.
+   - Si un item no tiene image_url (campo vacío), simplemente omite la línea de imagen para ese producto.
+   - Aplica esta regla en TODOS los momentos donde presentes opciones: al listar tipos de productos, al mostrar disponibilidad, al sugerir alternativas, etc.`,
+     always_inject: true,
+   },
+   ```
+
+### Prompt del asistente
+
+2. **`packages/api/src/prompts.ts`** — En la sección `ESQUEMA DE LA BASE DE DATOS` o `INSTRUCCIONES`, agregar una instrucción explícita:
+
+   ```
+   - Cuando presentes opciones de productos al cliente, consulta el campo "image_url" de la tabla "items" e incluye el link de la imagen junto a cada opción. Esto permite al cliente ver el producto antes de elegir. Si image_url está vacío, omite la imagen para ese producto.
+   ```
+
+### Notas
+
+- El campo `image_url` ya existe en la tabla `items` y está poblado en el seed con URLs de ejemplo.
+- El cambio principal es en el prompt/contexto inyectado: instruir al asistente para que SIEMPRE consulte y muestre `image_url` al presentar opciones.
+- No se requieren cambios en la estructura de la base de datos ni en la API.
+- Requiere `bun db:reset` para que el nuevo contexto se inserte en la tabla `context`.
 
 ---
