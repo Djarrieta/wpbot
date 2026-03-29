@@ -258,4 +258,191 @@ Paginación server-side con query params `page` y `limit`. La API retorna un obj
 - `DEFAULT false` asegura compatibilidad con order_items existentes.
 - Requiere `bun db:reset` para recrear la tabla con el nuevo campo.
 
+## Tarea 15: Debounce de mensajes — evitar respuestas duplicadas cuando el usuario envía varios mensajes seguidos
+
+**Problema:** Cuando un usuario envía varios mensajes rápido (ej. "hola", "quiero pedir", "un skin para mi S24"), cada mensaje dispara una llamada independiente a `/assistant`. El asistente procesa cada uno por separado y responde múltiples veces, frecuentemente con respuestas repetitivas o incompletas (porque cada mensaje individual carece del contexto de los demás).
+
+**Ejemplo actual (incorrecto):**
+
+```
+Usuario: hola
+Usuario: quiero un skin
+Usuario: para mi samsung s24
+Asistente: ¡Hola! ¿En qué puedo ayudarte?
+Asistente:¡Hola! ¿En qué puedo ayudarte?¿Para qué modelo de celular lo necesitas?
+Asistente: ¡Hola! Tenemos el Skin Fibra de Carbono disponible para Samsung Galaxy S24...
+```
+
+**Comportamiento esperado:**
+
+```
+Usuario: hola
+Usuario: quiero un skin
+Usuario: para mi samsung s24
+Asistente: ¡Hola! Tenemos el Skin Fibra de Carbono disponible para Samsung Galaxy S24...
+```
+
+**Diseño elegido:** Debounce a nivel de canal (Telegram y WhatsApp). Cada canal acumula mensajes del mismo usuario en un buffer temporal. Después de un período de inactividad (ventana de debounce), combina todos los mensajes acumulados en uno solo y hace una única llamada a `/assistant`.
+
+**¿Por qué en el canal y no en la API?**
+
+- Cada canal ya maneja el envío de respuestas al usuario (Telegraf `ctx.reply`, WhatsApp `sendMessage`). Si el debounce estuviera en la API, habría que resolver cómo devolver la respuesta HTTP de forma asíncrona, ya que cada mensaje es un request HTTP independiente.
+- WhatsApp requiere responder 200 inmediatamente al webhook de Meta. El procesamiento ya es asíncrono de hecho.
+- No se requiere cambiar el contrato de la API.
+
+**Parámetros:**
+
+- Ventana de debounce: **3 segundos** (configurable via env `DEBOUNCE_MS`, default `3000`).
+- Combinación: los mensajes acumulados se unen con `\n` en orden cronológico.
+
+**Cambios:**
+
+### 1. Telegram (`packages/telegram/index.ts`)
+
+Agregar un `Map<number, { messages: string[], timer: Timer, ctx: Context }>` como buffer por usuario (keyed por `userId` de Telegram).
+
+Modificar el handler `bot.on(message("text"), ...)`:
+
+```typescript
+const DEBOUNCE_MS = Number(optionalEnv("DEBOUNCE_MS", "3000"));
+
+const pendingMessages = new Map<
+  number,
+  {
+    messages: string[];
+    timer: Timer;
+    ctx: any;
+    name?: string;
+  }
+>();
+
+bot.on(message("text"), async (ctx) => {
+  const user = ctx.from;
+  if (!user) {
+    await ctx.reply(
+      "Estoy teniendo problemas en el sistema. Dame un momento por favor.",
+    );
+    return;
+  }
+
+  const userId = user.id;
+  const name =
+    user.username ||
+    [user.first_name, user.last_name].filter(Boolean).join(" ");
+  const userMessage = ctx.message.text;
+  console.log(`Message from ${userId} (${name}): ${userMessage}`);
+
+  const pending = pendingMessages.get(userId);
+  if (pending) {
+    // Ya hay mensajes pendientes: acumular y resetear timer
+    pending.messages.push(userMessage);
+    pending.ctx = ctx; // usar el ctx más reciente para responder
+    clearTimeout(pending.timer);
+    pending.timer = setTimeout(() => processMessages(userId), DEBOUNCE_MS);
+  } else {
+    // Primer mensaje: crear buffer e iniciar timer
+    pendingMessages.set(userId, {
+      messages: [userMessage],
+      timer: setTimeout(() => processMessages(userId), DEBOUNCE_MS),
+      ctx,
+      name: name || undefined,
+    });
+  }
+});
+
+async function processMessages(userId: number) {
+  const pending = pendingMessages.get(userId);
+  if (!pending) return;
+  pendingMessages.delete(userId);
+
+  const combinedMessage = pending.messages.join("\n");
+  const { ctx, name } = pending;
+
+  console.log(
+    `Processing ${pending.messages.length} buffered message(s) from ${userId}`,
+  );
+
+  try {
+    await ctx.sendChatAction("typing");
+    const responseText = await callAssistant(combinedMessage, userId, name);
+    await ctx.reply(responseText);
+  } catch (error) {
+    console.error("Error processing message:", error);
+    await ctx.reply("Lo siento, hubo un error procesando tu mensaje.");
+  }
+}
+```
+
+### 2. WhatsApp (`packages/whatsapp/src/webhook.ts`)
+
+Mismo patrón. Agregar un `Map<string, { messages: string[], timer: Timer }>` como buffer por número de teléfono.
+
+Modificar `handleWebhook`:
+
+```typescript
+const DEBOUNCE_MS = Number(optionalEnv("DEBOUNCE_MS", "3000"));
+
+const pendingMessages = new Map<
+  string,
+  {
+    messages: string[];
+    timer: Timer;
+  }
+>();
+
+async function processMessages(phoneNumber: string) {
+  const pending = pendingMessages.get(phoneNumber);
+  if (!pending) return;
+  pendingMessages.delete(phoneNumber);
+
+  const combinedMessage = pending.messages.join("\n");
+  console.log(
+    `Processing ${pending.messages.length} buffered message(s) from ${phoneNumber}`,
+  );
+
+  const responseText = await callAssistant(combinedMessage, phoneNumber);
+  await sendMessage(phoneNumber, responseText);
+}
+
+export async function handleWebhook(req: Request): Promise<Response> {
+  try {
+    const body = await req.json();
+    const message = parseIncomingMessage(body);
+
+    if (message) {
+      const pending = pendingMessages.get(message.from);
+      if (pending) {
+        pending.messages.push(message.text);
+        clearTimeout(pending.timer);
+        pending.timer = setTimeout(
+          () => processMessages(message.from),
+          DEBOUNCE_MS,
+        );
+      } else {
+        pendingMessages.set(message.from, {
+          messages: [message.text],
+          timer: setTimeout(() => processMessages(message.from), DEBOUNCE_MS),
+        });
+      }
+    }
+
+    // Siempre responder 200 inmediatamente a Meta
+    return new Response("OK", { status: 200 });
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    return new Response("OK", { status: 200 });
+  }
+}
+```
+
+### Notas
+
+- La ventana de 3 segundos es un balance: lo suficientemente corta para no sentirse lenta, lo suficientemente larga para capturar una ráfaga de mensajes típica.
+- El buffer vive en memoria del proceso. Si el proceso se reinicia, se pierden los mensajes pendientes (aceptable — son solo unos segundos de ventana).
+- El web client NO necesita debounce porque su interfaz de chat manda un mensaje a la vez (el usuario escribe y presiona Enter con todo el texto completo).
+- Los mensajes combinados se unen con `\n`, lo cual el LLM interpreta naturalmente como un mensaje multi-línea.
+- El indicador "typing" (Telegram) se envía al procesar, no cuando llega el primer mensaje. Esto evita que el usuario vea "escribiendo..." durante la ventana de acumulación.
+- `handleWebhook` ya respondía 200 inmediatamente, así que el debounce no afecta el requisito de Meta de respuestas rápidas.
+- Si el usuario envía un solo mensaje, simplemente se procesa después de 3 segundos (delay mínimo aceptable).
+
 ---
