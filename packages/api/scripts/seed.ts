@@ -249,6 +249,7 @@ async function seed() {
         id SERIAL PRIMARY KEY,
         order_id INTEGER NOT NULL,
         item_id INTEGER NOT NULL,
+        item_name TEXT NOT NULL DEFAULT '',
         quantity INTEGER NOT NULL DEFAULT 1,
         unit_price REAL NOT NULL DEFAULT 0,
         device_reference TEXT NOT NULL DEFAULT ''
