@@ -53,7 +53,7 @@ export class AssistantController {
       : 'Sin contexto adicional.';
 
     return this.promptTemplate
-      .replace('{{userId}}', userId.toString())
+      .replaceAll('{{userId}}', userId.toString())
       .replace('{{userInfo}}', JSON.stringify(userInfo))
       .replace('{{schema}}', schema)
       .replace('{{contextTopicList}}', contextTopicList)

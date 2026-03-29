@@ -4,18 +4,35 @@ const connectionString = process.env.PG_CONNECTION_STRING || "postgresql://wpbot
 
 const items = [
   // Skins Texturizados
-  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", type: "skin texturizado", brand: "", reference: "", price: 25000, stock: 50, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", type: "skin texturizado", brand: "", reference: "", price: 28000, stock: 40, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", brand: "", reference: "", price: 22000, stock: 60, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", type: "skin texturizado", brand: "", reference: "", price: 25000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", type: "skin texturizado", brand: "", reference: "", price: 28000, stock: 40, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", brand: "", reference: "", price: 22000, stock: 60, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
   // Skins Impresos
-  { name: "Skin Anime Dragon Ball", description: "Skin impreso alta resolución diseño Dragon Ball Z", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 100, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Arte Abstracto", description: "Skin impreso con diseño de arte abstracto vibrante", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 80, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Personalizado", description: "Skin impreso con foto o diseño personalizado del cliente", type: "skin impreso", brand: "", reference: "", price: 20000, stock: 200, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Skin Deportivo Fútbol", description: "Skin impreso con diseños de equipos de fútbol", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 90, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Skin impreso Personalizado", description: "Skin impreso alta resolución", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 100, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  // Fundas Transparentes
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm, ideal para lucir el diseño del celular o un skin", type: "funda transparente", brand: "", reference: "", price: 15000, stock: 100, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
   // Fundas 3D
-  { name: "Funda 3D Anime Naruto", description: "Carcasa 3D lenticular con efecto de movimiento Naruto", type: "funda 3d", brand: "Apple", reference: "iPhone 15", price: 35000, stock: 30, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Funda 3D Paisaje", description: "Carcasa 3D lenticular con efecto de profundidad paisaje", type: "funda 3d", brand: "Samsung", reference: "Galaxy S24", price: 35000, stock: 25, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente", type: "funda 3d", brand: "Xiaomi", reference: "Poco X6 Pro", price: 40000, stock: 15, image_url: "https://images.unsplash.com/photo-1609692814857-4093e3a1b0e0?w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Poco X6 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Poco X6 Pro", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 16", type: "funda 3d", brand: "Apple", reference: "iPhone 16", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 16 Pro", type: "funda 3d", brand: "Apple", reference: "iPhone 16 Pro", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 16 Pro Max", type: "funda 3d", brand: "Apple", reference: "iPhone 16 Pro Max", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 15", type: "funda 3d", brand: "Apple", reference: "iPhone 15", price: 40000, stock: 25, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 15 Pro Max", type: "funda 3d", brand: "Apple", reference: "iPhone 15 Pro Max", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 14", type: "funda 3d", brand: "Apple", reference: "iPhone 14", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 13", type: "funda 3d", brand: "Apple", reference: "iPhone 13", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy S25 Ultra", type: "funda 3d", brand: "Samsung", reference: "Galaxy S25 Ultra", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy S25", type: "funda 3d", brand: "Samsung", reference: "Galaxy S25", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy S24 Ultra", type: "funda 3d", brand: "Samsung", reference: "Galaxy S24 Ultra", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy S24", type: "funda 3d", brand: "Samsung", reference: "Galaxy S24", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy A55", type: "funda 3d", brand: "Samsung", reference: "Galaxy A55", price: 40000, stock: 25, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy A35", type: "funda 3d", brand: "Samsung", reference: "Galaxy A35", price: 40000, stock: 25, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy A15", type: "funda 3d", brand: "Samsung", reference: "Galaxy A15", price: 40000, stock: 30, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Redmi Note 13 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Redmi Note 13 Pro", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Redmi Note 14 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Redmi Note 14 Pro", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Poco X7 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Poco X7 Pro", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Motorola Moto G84", type: "funda 3d", brand: "Motorola", reference: "Moto G84", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Motorola Moto G54", type: "funda 3d", brand: "Motorola", reference: "Moto G54", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Huawei Nova 12i", type: "funda 3d", brand: "Huawei", reference: "Nova 12i", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
 ];
 
 const users = [
@@ -93,14 +110,14 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
 - Si el cliente solo saluda, dale la bienvenida y pregúntale en qué le puedes ayudar.
 
 PASO 2 — PRODUCTO DESEADO:
-- Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda 3D, etc.
+- Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda transparente, funda 3D, etc.
 - Si el diseño es personalizado, pídele que envíe la imagen o describa el diseño.
-- Para skins: busca por tipo y nombre/diseño (NO por brand/reference, ya que los skins son genéricos).
+- Para skins y fundas transparentes: busca por tipo y nombre/diseño (NO por brand/reference, ya que son productos genéricos).
 - Para fundas 3D: busca por tipo, brand y reference (son específicas por modelo).
 
 PASO 3 — MODELO DE CELULAR:
 - Pregúntale la marca y modelo/referencia de su celular.
-- Para SKINS: el celular indicado se guardará en el campo "device_reference" de order_items al crear la orden. No es necesario verificar disponibilidad por modelo en items.
+- Para SKINS y FUNDAS TRANSPARENTES: el celular indicado se guardará en el campo "device_reference" de order_items al crear la orden. No es necesario verificar disponibilidad por modelo en items.
 - Para FUNDAS 3D: consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad.
 - Si NO hay stock o no existe el producto para ese celular (solo aplica a fundas 3D), infórmale amablemente y sugiere alternativas disponibles.
 
@@ -130,7 +147,7 @@ PASO 7 — RESUMEN Y CONFIRMACIÓN:
 PASO 8 — CREACIÓN DE LA ORDEN:
 - Solo después de que el cliente confirme, crea la orden en la base de datos:
   1. INSERT en "orders" con status='pending'
-  2. INSERT en "order_items" con los productos correspondientes. Si el item es un skin, incluye device_reference con la marca y modelo del celular del cliente. Si es funda 3D, deja device_reference vacío.
+  2. INSERT en "order_items" con los productos correspondientes. Si el item es un skin o funda transparente, incluye device_reference con la marca y modelo del celular del cliente. Si es funda 3D, deja device_reference vacío.
 - Confirma al cliente que su pedido fue creado exitosamente con el número de orden.
 
 NOTAS IMPORTANTES:

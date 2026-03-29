@@ -21,7 +21,7 @@ const aiService = new AIService(
   requireEnv("LLM_MODEL"),
   optionalEnvNumber("AI_MAX_STEPS", 8),
   requireEnv("LLM_BASE_URL"),
-  optionalEnvNumber("AI_TEMPERATURE", 0.6),
+  optionalEnvNumber("AI_TEMPERATURE", 0.4),
 );
 
 async function fetchQueryableTopics(): Promise<string[]> {
