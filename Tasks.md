@@ -75,39 +75,6 @@
 
 ---
 
-## Tarea 9: Fundas Transparentes deben ser específicas por modelo (como Fundas 3D)
-
-**Problema:** Actualmente, "Funda Transparente TPU" es un solo item genérico (sin `brand`/`reference`, precio $15,000). El sistema trata las fundas transparentes igual que los skins: producto genérico donde el modelo del celular se guarda en `device_reference` de `order_items`. Sin embargo, las fundas transparentes **sí son específicas por modelo** (cada molde es diferente) y deben tener items individuales por marca/referencia, igual que las Fundas 3D.
-
-**Modelo correcto:**
-
-- **Skins (texturizado/impreso):** genéricos, sin brand/reference. El celular se guarda en `device_reference` de `order_items`.
-- **Fundas Transparentes:** específicas por modelo. Cada item tiene `brand` y `reference`. Al ordenar, se verifica disponibilidad por modelo en `items`.
-- **Fundas 3D:** específicas por modelo (ya funciona así).
-
-**Cambios:**
-
-1. **`packages/api/scripts/seed.ts`** — Reemplazar el item genérico "Funda Transparente TPU" por items específicos por modelo, todos con `price: 20000`. Usar las mismas combinaciones de brand/reference que ya existen en Fundas 3D:
-   - Xiaomi: Poco X6 Pro, Redmi Note 13 Pro, Redmi Note 14 Pro, Poco X7 Pro
-   - Apple: iPhone 16, iPhone 16 Pro, iPhone 16 Pro Max, iPhone 15, iPhone 15 Pro Max, iPhone 14, iPhone 13
-   - Samsung: Galaxy S25 Ultra, Galaxy S25, Galaxy S24 Ultra, Galaxy S24, Galaxy A55, Galaxy A35, Galaxy A15
-   - Motorola: Moto G84, Moto G54
-   - Huawei: Nova 12i
-   - Cada item: `name: "Funda Transparente TPU"`, `description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para {brand} {reference}"`, `type: "funda transparente"`, `brand: "{brand}"`, `reference: "{reference}"`, `price: 20000`, `stock: 50`.
-
-2. **`packages/api/src/prompts.ts`** — Actualizar la línea que trata fundas transparentes como genéricas:
-   - Cambiar `-- Funda Transparente: incluir device_reference igual que los skins (es producto genérico)` por algo que indique que fundas transparentes son específicas por modelo, igual que fundas 3D. Buscar por tipo, brand y reference en `items`.
-
-3. **Contexto `flujo_creacion_orden`** en `seed.ts` — Actualizar las menciones de "fundas transparentes" para que ya no se traten como genéricas:
-   - **PASO 2:** Cambiar `"Para skins y fundas transparentes: busca por tipo y nombre/diseño (NO por brand/reference, ya que son productos genéricos)"` → `"Para skins: busca por tipo y nombre/diseño (NO por brand/reference, ya que son productos genéricos)"` y agregar `"Para fundas transparentes y fundas 3D: busca por tipo, brand y reference (son específicas por modelo)"`.
-   - **PASO 3:** Cambiar `"Para SKINS y FUNDAS TRANSPARENTES: el celular indicado se guardará en el campo 'device_reference'"` → `"Para SKINS: el celular indicado se guardará en el campo 'device_reference'"`. Agregar `"Para FUNDAS TRANSPARENTES: consulta la tabla 'items' filtrando por tipo, marca y referencia para verificar disponibilidad (igual que fundas 3D)"`.
-   - **PASO 3:** Cambiar `"Si NO hay stock o no existe el producto para ese celular (solo aplica a fundas 3D)"` → `"Si NO hay stock o no existe el producto para ese celular (aplica a fundas transparentes y fundas 3D)"`.
-   - **PASO 8:** Cambiar `"Si el item es un skin o funda transparente, incluye device_reference"` → `"Si el item es un skin, incluye device_reference"`. Y `"Si es funda 3D, deja device_reference vacío"` → `"Si es funda transparente o funda 3D, deja device_reference vacío"`.
-
-4. **`packages/web/src/modules/items/Form.tsx`** — Si hay lógica condicional que muestra brand/reference solo para `type === 'funda 3d'`, extender la condición a `type === 'funda 3d' || type === 'funda transparente'`.
-
----
-
 ## Tarea 2: Sistema de resumen (summary) en chat_history
 
 **Problema:** Se inyectan los últimos 20 mensajes completos en cada prompt. Conversaciones largas consumen tokens innecesariamente.
@@ -292,28 +259,3 @@ Paginación server-side con query params `page` y `limit`. La API retorna un obj
 - Requiere `bun db:reset` para recrear la tabla con el nuevo campo.
 
 ---
-
-## Tarea 14: No revelar cantidades exactas de stock al cliente
-
-**Problema:** Cuando el asistente consulta la tabla `items` para verificar disponibilidad, incluye el número exacto de unidades en stock en su respuesta al cliente. Por ejemplo: *"Precio: $20,000 COP. Stock disponible: 50 unidades."* Esto es información interna del negocio que no debe exponerse al cliente. El cliente solo necesita saber si el producto **está disponible o no**, no cuántas unidades hay en inventario.
-
-**Comportamiento actual (incorrecto):**
-
-> Tenemos disponible la funda transparente TPU para iPhone 14. Precio: $20,000 COP. Stock disponible: 50 unidades.
-
-**Comportamiento esperado:**
-
-> Tenemos disponible la funda transparente TPU para iPhone 14. Precio: $20,000 COP.
-
-**Regla:** El asistente debe consultar el campo `stock` internamente para verificar si hay disponibilidad (`stock > 0`), pero **NUNCA** debe mencionar la cantidad exacta de stock en su respuesta al cliente. Solo debe indicar:
-- Si hay stock: que el producto está disponible.
-- Si no hay stock (`stock = 0`): que el producto no está disponible y sugerir alternativas.
-
-**Cambios:**
-
-1. **`packages/api/src/prompts.ts`** — Agregar una regla explícita en la sección de INSTRUCCIONES:
-   - `"NUNCA reveles al cliente la cantidad exacta de stock/inventario de un producto. El stock es información interna. Solo indica si el producto está disponible o no disponible. Usa el campo stock internamente para verificar disponibilidad (stock > 0), pero no menciones números de inventario en tu respuesta."`
-
-2. **`packages/api/scripts/seed.ts`** — En el contexto `flujo_creacion_orden`, reforzar la regla en los pasos donde se verifica stock:
-   - **PASO 3:** Cambiar `"Si NO hay stock o no existe el producto para ese celular"` para incluir nota: `"Si NO hay stock o no existe el producto para ese celular, infórmale amablemente que no está disponible y sugiere alternativas. NUNCA le digas al cliente cuántas unidades hay en stock — solo confirma disponibilidad o no disponibilidad."`
-   - **NOTAS IMPORTANTES:** Agregar `"- NUNCA incluyas cantidades de stock en tus respuestas al cliente. El inventario es información interna del negocio."`
