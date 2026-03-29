@@ -309,6 +309,7 @@ export function OrdersPage() {
                 { key: "item_name", header: "Artículo" },
                 { key: "quantity", header: "Cant." },
                 { key: "unit_price", header: "Precio Unit." },
+                { key: "image_sent", header: "Imagen", render: (v) => (v ? "Sí" : "No") },
               ]}
               data={orderItems}
               keyField="id"

@@ -53,6 +53,7 @@ export type OrderItem = {
   quantity: number;
   unit_price: number;
   device_reference?: string;
+  image_sent?: boolean;
 };
 
 export type Context = {

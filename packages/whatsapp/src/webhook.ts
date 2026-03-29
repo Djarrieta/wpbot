@@ -18,13 +18,16 @@ function parseIncomingMessage(body: any): IncomingMessage | null {
 
   const message = messages[0];
   const from = message.from;
-  const text =
-    message.type === "text"
-      ? message.text.body
-      : null;
 
-  if (!text) return null;
-  return { from, text };
+  if (message.type === "text") {
+    return { from, text: message.text.body };
+  }
+
+  if (message.type === "image") {
+    return { from, text: "[imagen recibida]" };
+  }
+
+  return null;
 }
 
 async function sendMessage(to: string, text: string) {

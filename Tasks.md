@@ -87,104 +87,6 @@ Paginación server-side con query params `page` y `limit`. La API retorna un obj
 
 ---
 
-## Tarea 13: Rastreo de imagen personalizada en order_items para productos personalizados
-
-**Problema:** Los productos "Funda 3D Personalizada" y "Skin impreso Personalizado" requieren que el cliente envíe una imagen con su diseño. Actualmente no hay forma de saber si el cliente ya envió la imagen o no. El asistente necesita un campo en `order_items` para registrar que la imagen fue recibida, y el flujo de recolección de información debe incluir un paso explícito para solicitar y confirmar la imagen.
-
-**Aclaraciones:**
-
-- El asistente **NO debe validar** el contenido de la imagen (no analiza si es apropiada, si tiene buena resolución, etc.). Solo necesita saber que el usuario envió una imagen.
-- Los canales (WhatsApp, Telegram, Web) deben detectar cuando el usuario envía una imagen y notificar a la API que se recibió una imagen en el contexto de la conversación.
-- El campo `image_sent` es un booleano en `order_items` que indica si el cliente ya envió la imagen para ese item personalizado.
-
-**Productos que requieren imagen:**
-
-- Items con name que contenga "Personalizado/a" (actualmente: "Skin impreso Personalizado", "Funda 3D Personalizada").
-- Regla general: si el item tiene "personaliz" en su nombre (case-insensitive), requiere imagen.
-
-**Cambios:**
-
-### 1. Base de datos y tipos
-
-1. **`packages/api/scripts/seed.ts`** — Agregar campo `image_sent BOOLEAN NOT NULL DEFAULT false` a la tabla `order_items` en el CREATE TABLE.
-
-2. **`packages/shared/src/types.ts`** — Agregar `image_sent?: boolean` al tipo `OrderItem`:
-
-   ```typescript
-   export type OrderItem = {
-     id?: number;
-     order_id: number;
-     item_id: number;
-     quantity: number;
-     unit_price: number;
-     device_reference?: string;
-     image_sent?: boolean;
-   };
-   ```
-
-3. **`packages/api/src/modules/order_items/service.ts`** — Agregar `image_sent` al schema de la tabla (campo `BOOLEAN NOT NULL DEFAULT false`).
-
-4. **`packages/api/src/modules/order_items/controller.ts`** — Agregar `'image_sent'` al array de `fieldNames` del constructor.
-
-### 2. Prompt del asistente y flujo de orden
-
-5. **`packages/api/src/prompts.ts`** — En la sección ESTRUCTURA DE ÓRDENES, actualizar la descripción de `order_items` para incluir `image_sent`:
-   - `"La tabla "order_items" contiene [...] image_sent (booleano: indica si el cliente envió la imagen para productos personalizados)."`
-
-6. **`packages/api/scripts/seed.ts`** — Actualizar el contexto `flujo_creacion_orden`:
-
-   **PASO 2 (PRODUCTO DESEADO)** — Después de la línea sobre diseño personalizado, agregar:
-   - `"Si el producto es personalizado (el nombre contiene 'Personalizado/a'), el cliente DEBERÁ enviar una imagen con su diseño. Infórmale que necesita enviar la imagen. NO valides el contenido de la imagen."`
-
-   **Nuevo PASO intermedio (entre PASO 2 y PASO 3 actual) — IMAGEN PERSONALIZADA:**
-
-   ```
-   PASO 2.5 — IMAGEN PERSONALIZADA (solo productos personalizados):
-   - Si el producto seleccionado es personalizado, pídele al cliente que envíe la imagen que quiere usar para su diseño.
-   - Cuando el cliente envíe una imagen (el sistema te indicará con un mensaje "[imagen recibida]"), confirma la recepción y registra que la imagen fue recibida.
-   - NO analices ni valides el contenido de la imagen. Solo necesitas saber que fue enviada.
-   - Si el cliente envía texto en vez de imagen, recuérdale amablemente que necesitas la imagen como archivo adjunto.
-   - Puedes continuar con los demás pasos mientras esperas la imagen, pero NO crees la orden sin que la imagen haya sido enviada para items personalizados.
-   ```
-
-   **PASO 8 (CREACIÓN DE LA ORDEN)** — Agregar instrucción:
-   - `"Para items personalizados, incluye image_sent = true en el INSERT de order_items si el cliente ya envió la imagen. Si no la ha enviado, recuérdale antes de crear la orden."`
-
-### 3. Canales de mensajería — detección de imágenes
-
-7. **`packages/whatsapp/src/webhook.ts`** — Actualmente `parseIncomingMessage` descarta mensajes que no son de tipo `text` (retorna `null`). Modificar para detectar mensajes de tipo `image`:
-   - Si `message.type === 'image'`, retornar `{ from, text: "[imagen recibida]" }`.
-   - Esto permite que la imagen llegue al asistente como un mensaje de texto especial que el prompt puede interpretar.
-
-8. **`packages/telegram/index.ts`** — Aplicar la misma lógica: si el mensaje contiene una foto (`message.photo`), enviar `"[imagen recibida]"` como texto al asistente.
-
-9. **`packages/web/src/App.tsx`** (o el componente de chat) — Si existe un input de chat en la web, agregar un botón para adjuntar imagen. Al enviar una imagen, enviar `"[imagen recibida]"` como mensaje al API.
-
-### 4. UI Admin
-
-10. **`packages/web/src/modules/order_items/Page.tsx`** — Agregar columna `image_sent` a la tabla:
-
-    ```typescript
-    { key: "image_sent", header: "Imagen Enviada" }
-    ```
-
-11. **`packages/web/src/modules/order_items/Form.tsx`** — Agregar campo checkbox `image_sent` al formulario:
-    ```typescript
-    {
-      name: "image_sent",
-      label: "Imagen enviada",
-      type: "checkbox",
-    }
-    ```
-
-### Notas
-
-- El patrón `[imagen recibida]` es un marcador textual que los canales inyectan cuando detectan una imagen. El asistente AI lo interpreta como confirmación de que la imagen fue enviada. No se almacena la imagen en sí — solo el flag booleano.
-- En esta primera versión no se almacena la imagen. El flujo real de producción implica que el operador revisa las imágenes directamente desde WhatsApp/Telegram. El campo `image_sent` solo sirve para que el asistente y el admin sepan que el cliente cumplió con enviar su diseño.
-- Los productos no personalizados ignoran este campo (queda en `false` por defecto, sin impacto).
-- `DEFAULT false` asegura compatibilidad con order_items existentes.
-- Requiere `bun db:reset` para recrear la tabla con el nuevo campo.
-
 ## Tarea 15: Debounce de mensajes — evitar respuestas duplicadas cuando el usuario envía varios mensajes seguidos
 
 **Problema:** Cuando un usuario envía varios mensajes rápido (ej. "hola", "quiero pedir", "un skin para mi S24"), cada mensaje dispara una llamada independiente a `/assistant`. El asistente procesa cada uno por separado y responde múltiples veces, frecuentemente con respuestas repetitivas o incompletas (porque cada mensaje individual carece del contexto de los demás).
@@ -432,3 +334,215 @@ export async function handleWebhook(req: Request): Promise<Response> {
 - Requiere `bun db:reset` para que el nuevo contexto se inserte en la tabla `context`.
 
 ---
+
+## Tarea 16: Escalamiento a humano — campo `requires_human` y manejo de errores transparente
+
+**Problema:** Actualmente no existe un mecanismo para escalar una conversación a atención humana. Si el asistente AI no puede resolver algo, o si ocurre un error técnico (fallo de API, timeout del LLM, etc.), el sistema responde con mensajes genéricos de error como "Lo siento, hubo un error procesando tu mensaje." que rompen la ilusión de una conversación natural. El cliente NO debe notar que habla con un bot.
+
+**Objetivos:**
+
+1. Cuando ocurra cualquier error técnico, el cliente recibe una respuesta amigable tipo "Dame un momento por favor, estoy validando la información" en vez de un mensaje de error.
+2. Introducir un campo `requires_human` en `chat_history` que indica que la conversación necesita intervención humana.
+3. Si la última respuesta del asistente fue el mensaje de "espera" (indicando que hubo un error previo), los mensajes siguientes del mismo usuario NO deben procesarse con AI — se mantiene el bloqueo hasta que un humano intervenga.
+4. Un operador puede desbloquear la conversación desde el admin.
+
+**Mensaje estándar de espera:**
+
+```
+Dame un momento por favor, estoy validando la información.
+```
+
+Este es el mensaje que se envía al cliente en cualquier situación de error o escalamiento. Es intencionalmente vago y natural — suena como algo que un humano diría.
+
+**Flujo detallado:**
+
+```
+1. Llega mensaje del usuario
+2. Consultar el último registro de chat_history del usuario donde role = 'assistant'
+3. SI el último mensaje del asistente === "Dame un momento por favor, estoy validando la información."
+   → NO procesar con AI
+   → Marcar requires_human = true en ese registro (si no lo está ya)
+   → NO responder nada al usuario (silencio — ya le dijimos que espere)
+   → FIN
+4. SI NO → procesar normalmente con AI
+5. SI hay error durante el procesamiento (AI falla, timeout, error 500, etc.):
+   → Guardar mensaje del usuario en chat_history normalmente
+   → Guardar respuesta "Dame un momento por favor, estoy validando la información." como role = 'assistant' con requires_human = true
+   → Enviar ese mensaje al cliente
+   → FIN
+6. SI procesamiento exitoso → flujo normal (guardar respuesta, enviarla)
+```
+
+**Cambios:**
+
+### 1. Base de datos y tipos
+
+1. **`packages/shared/src/types.ts`** — Agregar `requires_human?: boolean` al tipo `ChatHistory`:
+
+   ```typescript
+   export type ChatHistory = {
+     id?: number;
+     user_id: number;
+     message: string;
+     role: "user" | "assistant";
+     timestamp: string;
+     requires_human?: boolean;
+   };
+   ```
+
+2. **`packages/api/scripts/seed.ts`** — Agregar campo `requires_human BOOLEAN NOT NULL DEFAULT false` a la tabla `chat_history` en el CREATE TABLE.
+
+3. **`packages/api/src/modules/chathistory/service.ts`** — Agregar `requires_human` al schema de la tabla (campo `BOOLEAN NOT NULL DEFAULT false`).
+
+4. **`packages/api/src/modules/chathistory/controller.ts`** — Agregar `'requires_human'` al array de `fieldNames` del constructor.
+
+### 2. Nuevos métodos en chathistory service
+
+5. **`packages/api/src/modules/chathistory/service.ts`** — Nuevos métodos:
+   - `getLastAssistantMessage(userId: number)`: retorna el último registro de `chat_history` donde `user_id = userId` y `role = 'assistant'`, ordenado por `id DESC`, `LIMIT 1`.
+   - `markRequiresHuman(messageId: number)`: actualiza `requires_human = true` en el registro con ese `id`.
+   - `isConversationBlocked(userId: number)`: verifica si el último mensaje del asistente es el mensaje de espera ("Dame un momento por favor, estoy validando la información."). Retorna `true` si la conversación está bloqueada.
+   - `unblockConversation(userId: number)`: busca el último registro con `requires_human = true` para ese usuario y lo actualiza a `false`. Esto permite que el operador desbloquee la conversación desde el admin.
+
+### 3. Modificar el flujo del asistente
+
+6. **`packages/api/src/controllers/assistantController.ts`** — Modificar `handle()`:
+
+   **Antes de procesar con AI**, agregar verificación:
+
+   ```
+   - Obtener el último mensaje del asistente para este usuario (getLastAssistantMessage)
+   - Si el mensaje === "Dame un momento por favor, estoy validando la información.":
+     → Marcar requires_human = true en ese registro
+     → Guardar el mensaje del usuario en chat_history (para que no se pierda)
+     → Retornar respuesta vacía o un indicador de "bloqueado" (no enviar nada al cliente)
+   ```
+
+   **En el catch de errores**, cambiar el manejo:
+
+   ```
+   - Guardar el mensaje del usuario en chat_history normalmente
+   - Guardar "Dame un momento por favor, estoy validando la información." como respuesta del asistente con requires_human = true
+   - Retornar ese mensaje como respuesta (para que el canal lo envíe al cliente)
+   - NO retornar HTTP 500 — retornar 200 con el mensaje de espera como respuesta normal
+   ```
+
+7. **Definir constante** en `packages/api/src/constants.ts`:
+   ```typescript
+   export const HUMAN_ESCALATION_MESSAGE =
+     "Dame un momento por favor, estoy validando la información.";
+   ```
+
+### 4. Canales de mensajería — manejo de respuestas vacías/bloqueadas
+
+8. **`packages/telegram/index.ts`** — Modificar `callAssistant()` y el manejo de respuesta:
+   - Si la API retorna un indicador de "bloqueado" (ej: `{ response: "", blocked: true }`), NO enviar nada al usuario (silencio).
+   - Eliminar el mensaje de error genérico "Lo siento, hubo un error procesando tu mensaje." — ahora la API siempre retorna 200 con un mensaje válido o indicador de bloqueo.
+
+9. **`packages/whatsapp/src/webhook.ts`** — Misma lógica: si la respuesta indica bloqueo, no enviar nada. Eliminar mensaje de error genérico.
+
+10. **`packages/web/src/App.tsx`** — Si hay chat web, aplicar misma lógica: si respuesta bloqueada, no mostrar nada nuevo.
+
+### 5. UI Admin — visibilidad de conversaciones escaladas
+
+11. **`packages/web/src/modules/chathistory/Page.tsx`** — Agregar columna `requires_human` a la tabla:
+
+    ```typescript
+    { key: "requires_human", header: "Requiere Humano" }
+    ```
+
+12. **`packages/web/src/modules/chathistory/Form.tsx`** — Agregar campo checkbox `requires_human` al formulario para que el operador pueda marcarlo/desmarcarlo manualmente:
+    ```typescript
+    {
+      name: "requires_human",
+      label: "Requiere atención humana",
+      type: "checkbox",
+    }
+    ```
+
+### 6. Endpoint para desbloquear conversación (opcional pero recomendado)
+
+13. **`packages/api/src/modules/chathistory/controller.ts`** — Agregar ruta custom `POST /chat_history/unblock/:userId`:
+    - Llama a `chatHistoryService.unblockConversation(userId)`.
+    - Opcionalmente inserta un mensaje del asistente tipo "Listo, ya puedo ayudarte. ¿En qué te puedo colaborar?" para reanudar la conversación naturalmente cuando el operador resuelva el tema.
+    - Retorna `{ success: true }`.
+
+### Notas
+
+- El mensaje "Dame un momento por favor, estoy validando la información." es intencionalmente genérico y humano. Suena natural tanto para un error técnico como para una pausa genuina. El cliente no tiene forma de distinguirlo de una respuesta humana real.
+- El silencio en mensajes subsecuentes (cuando la conversación está bloqueada) es intencional: ya le dijimos "dame un momento", responder de nuevo sería extraño. El operador humano debería intervenir directamente por el canal correspondiente.
+- `requires_human = false` por defecto asegura compatibilidad con registros existentes.
+- La API NUNCA retorna HTTP 500 al canal por errores del AI — siempre retorna 200 con el mensaje de espera. Esto evita que los canales muestren sus propios mensajes de error genéricos.
+- El operador puede ver conversaciones escaladas filtrando `requires_human = true` en el admin de `chat_history`.
+- Requiere `bun db:reset` para recrear la tabla con el nuevo campo.
+
+---
+
+## Tarea 17: Escalamiento a logística cuando la ciudad de envío no está en la tabla shipping
+
+**Problema:** Cuando el cliente indica una ciudad de envío que no existe en la tabla `shipping` (ej: Rionegro, Bucaramanga, Pereira, etc.), el asistente actualmente responde algo como "Rionegro no está en nuestra tabla de envíos. El envío es posible pero el costo y tiempo deben cotizarse aparte" y luego continúa preguntando la dirección exacta. Esto es incorrecto porque:
+
+1. El asistente NO tiene forma de cotizar el envío — no tiene esa información.
+2. Continuar el flujo sin costo de envío genera un resumen incompleto (sin costo total real).
+3. El cliente queda en un limbo donde la orden se crearía sin datos de envío verificados.
+
+**Comportamiento esperado:**
+
+```
+Asistente: ¿A qué ciudad necesitas el envío?
+Cliente: Rionegro
+Asistente: Dame un momento por favor, valido con el área de logística el costo de envío a Rionegro.
+[conversación pausada — se marca requires_human = true]
+```
+
+El asistente debe **pausar la conversación** y escalar a un humano para que el área de logística cotice el envío manualmente. Una vez el operador tenga el costo, puede desbloquear la conversación y continuar.
+
+**Relación con Tarea 16:** Esta tarea depende del sistema de escalamiento humano de Tarea 16 (`requires_human`). El flujo de ciudad no encontrada es un **caso específico** de escalamiento — usa el mismo mecanismo de bloqueo, pero con un mensaje contextualizado al envío en lugar del mensaje genérico de error.
+
+**Cambios:**
+
+### 1. Prompt del asistente — modificar PASO 5
+
+1. **`packages/api/scripts/seed.ts`** — En el contexto `flujo_creacion_orden`, modificar **PASO 5 — CIUDAD DE ENTREGA**:
+
+   **Actual:**
+
+   ```
+   - Si la ciudad no está en la tabla, informa que el envío es posible pero el costo y tiempo deben cotizarse aparte.
+   ```
+
+   **Nuevo:**
+
+   ```
+   - Si la ciudad no está en la tabla "shipping", responde EXACTAMENTE: "Dame un momento por favor, valido con el área de logística el costo de envío a [ciudad]." (reemplazando [ciudad] por la ciudad que indicó el cliente). NO continúes con los siguientes pasos. NO preguntes la dirección. La conversación queda pausada hasta que un operador valide el costo de envío.
+   - IMPORTANTE: No improvises ni intentes cotizar tú mismo. Solo las ciudades que están en la tabla "shipping" tienen costo/tiempo definido. Para el resto, se requiere validación manual del equipo de logística.
+   ```
+
+### 2. Detección del mensaje de escalamiento en el flujo del asistente
+
+2. **`packages/api/src/controllers/assistantController.ts`** — Después de que el AI genere su respuesta en `handle()`, verificar si la respuesta contiene el patrón de escalamiento de logística:
+   - Si la respuesta del AI contiene "valido con el área de logística el costo de envío", marcar `requires_human = true` en el registro de `chat_history` correspondiente a esa respuesta.
+   - Esto aprovecha el mecanismo de Tarea 16: la próxima vez que el usuario envíe un mensaje, el sistema detectará que la última respuesta del asistente tiene `requires_human = true` y no procesará con AI.
+
+   **Alternativa más simple (recomendada):** En vez de detectar el patrón en el texto, hacer que el asistente use el mismo mensaje estándar de Tarea 16 ("Dame un momento por favor, estoy validando la información.") para que el flujo de bloqueo funcione automáticamente. Pero esto pierde el contexto de "logística" en el mensaje. La detección por patrón parcial es más natural para el cliente.
+
+3. **`packages/api/src/constants.ts`** — Agregar constante para el patrón de detección:
+   ```typescript
+   export const LOGISTICS_ESCALATION_PATTERN =
+     "valido con el área de logística";
+   ```
+
+### 3. Lógica de post-procesamiento
+
+4. **`packages/api/src/controllers/assistantController.ts`** — En `handle()`, después de guardar la respuesta del asistente en `chat_history`:
+   - Verificar si `response.includes(LOGISTICS_ESCALATION_PATTERN)`.
+   - Si es así, actualizar el registro recién creado con `requires_human = true`.
+   - Esto bloquea la conversación hasta que un operador la desbloquee.
+
+### Notas
+
+- **Depende de Tarea 16**: el campo `requires_human` y el mecanismo de bloqueo/desbloqueo deben estar implementados primero.
+- El mensaje "Dame un momento por favor, valido con el área de logística el costo de envío a [ciudad]" es más informativo que el mensaje genérico de Tarea 16. El cliente sabe específicamente por qué debe esperar — validación de logística, no un error genérico.
+- El operador puede ver en el admin que la conversación está bloqueada, leer el historial para ver qué ciudad pidió el cliente, cotizar el envío, y luego desbloquear la conversación respondiendo con el costo.
+- No se requieren cambios en la tabla `shipping` ni en su servicio. El cambio es puramente en el prompt/contexto y en la lógica de detección post-respuesta del asistente.
+- Requiere `bun db:reset` para actualizar el contexto `flujo_creacion_orden` con las nuevas instrucciones del PASO 5.

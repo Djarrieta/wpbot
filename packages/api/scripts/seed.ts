@@ -132,8 +132,16 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
 PASO 2 — PRODUCTO DESEADO:
 - Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda transparente, funda 3D, etc.
 - Si el diseño es personalizado, pídele que envíe la imagen o describa el diseño.
+- Si el producto es personalizado (el nombre contiene 'Personalizado/a'), el cliente DEBERÁ enviar una imagen con su diseño. Infórmale que necesita enviar la imagen. NO valides el contenido de la imagen.
 - Para skins: busca por tipo y nombre/diseño (NO por brand/reference, ya que son productos genéricos).
 - Para fundas transparentes y fundas 3D: busca por tipo, brand y reference (son específicas por modelo).
+
+PASO 2.5 — IMAGEN PERSONALIZADA (solo productos personalizados):
+- Si el producto seleccionado es personalizado (nombre contiene 'personaliz', case-insensitive), pídele al cliente que envíe la imagen que quiere usar para su diseño.
+- Cuando el cliente envíe una imagen (el sistema te indicará con un mensaje "[imagen recibida]"), confirma la recepción y registra que la imagen fue recibida.
+- NO analices ni valides el contenido de la imagen. Solo necesitas saber que fue enviada.
+- Si el cliente envía texto en vez de imagen, recuérdale amablemente que necesitas la imagen como archivo adjunto.
+- Puedes continuar con los demás pasos mientras esperas la imagen, pero NO crees la orden sin que la imagen haya sido enviada para items personalizados.
 
 PASO 3 — MODELO DE CELULAR:
 - Pregúntale la marca y modelo/referencia de su celular.
@@ -182,6 +190,7 @@ PASO 10 — CREACIÓN DE LA ORDEN:
 - Solo después de que el cliente confirme, crea la orden en la base de datos:
   1. INSERT en "orders" con status='pending', shipping_city con la ciudad, shipping_address con la dirección exacta, payment_method con el método de pago, y collected_info con el JSON del nombre y teléfono del cliente.
   2. INSERT en "order_items" con los productos correspondientes. Si el item es un skin, incluye device_reference con la marca y modelo del celular del cliente. Si es funda transparente o funda 3D, deja device_reference vacío.
+  3. Para items personalizados, incluye image_sent = true en el INSERT de order_items si el cliente ya envió la imagen. Si no la ha enviado, recuérdale antes de crear la orden.
 - Confirma al cliente que su pedido fue creado exitosamente con el número de orden.
 
 NOTAS IMPORTANTES:
@@ -252,7 +261,8 @@ async function seed() {
         item_name TEXT NOT NULL DEFAULT '',
         quantity INTEGER NOT NULL DEFAULT 1,
         unit_price REAL NOT NULL DEFAULT 0,
-        device_reference TEXT NOT NULL DEFAULT ''
+        device_reference TEXT NOT NULL DEFAULT '',
+        image_sent BOOLEAN NOT NULL DEFAULT false
       );
       CREATE TABLE IF NOT EXISTS chat_history (
         id SERIAL PRIMARY KEY,

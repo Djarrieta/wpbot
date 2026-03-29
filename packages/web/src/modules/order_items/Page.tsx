@@ -18,6 +18,11 @@ export function OrderItemsPage() {
         { key: "item_name", header: "Item" },
         { key: "quantity", header: "Quantity" },
         { key: "unit_price", header: "Unit Price" },
+        {
+          key: "image_sent",
+          header: "Imagen Enviada",
+          render: (v) => (v ? "Sí" : "No"),
+        },
       ]}
       FormComponent={OrderItemForm}
     />

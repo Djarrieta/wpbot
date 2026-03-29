@@ -30,6 +30,9 @@ export function OrderItemForm({
   const [unitPrice, setUnitPrice] = useState<string>(
     initial?.unit_price != null ? String(initial.unit_price) : "",
   );
+  const [imageSent, setImageSent] = useState<boolean>(
+    initial?.image_sent ?? false,
+  );
 
   useEffect(() => {
     itemsApi.fetchAll().then((data) => {
@@ -58,6 +61,7 @@ export function OrderItemForm({
       device_reference: [item?.brand, item?.reference]
         .filter(Boolean)
         .join(" "),
+      image_sent: imageSent,
     });
   }
 
@@ -121,6 +125,18 @@ export function OrderItemForm({
           required
           className={inputClass}
         />
+      </label>
+
+      <label className="flex items-center gap-2 text-left">
+        <input
+          type="checkbox"
+          checked={imageSent}
+          onChange={(e) => setImageSent(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
+        />
+        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          Imagen enviada
+        </span>
       </label>
 
       <div className="flex justify-end gap-3 mt-2">

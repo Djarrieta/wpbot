@@ -11,5 +11,6 @@ export function createOrderItemsRepository() {
     { name: 'quantity', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 1' },
     { name: 'unit_price', type: 'REAL', constraints: 'NOT NULL DEFAULT 0' },
     { name: 'device_reference', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+    { name: 'image_sent', type: 'BOOLEAN', constraints: 'NOT NULL DEFAULT false' },
   ]);
 }

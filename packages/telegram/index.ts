@@ -45,6 +45,27 @@ bot.on(message("text"), async (ctx) => {
   }
 });
 
+bot.on(message("photo"), async (ctx) => {
+  const user = ctx.from;
+  if (!user) {
+    await ctx.reply("Estoy teniendo problemas en el sistema. Dame un momento por favor.");
+    return;
+  }
+
+  const userId = user.id;
+  const name = user.username || [user.first_name, user.last_name].filter(Boolean).join(" ");
+  console.log(`Photo from ${userId} (${name})`);
+
+  try {
+    await ctx.sendChatAction("typing");
+    const responseText = await callAssistant("[imagen recibida]", userId, name || undefined);
+    await ctx.reply(responseText);
+  } catch (error) {
+    console.error("Error processing photo message:", error);
+    await ctx.reply("Lo siento, hubo un error procesando tu mensaje.");
+  }
+});
+
 bot.catch((err, ctx) => {
   console.error("Telegraf error:", err);
   ctx.reply("Estoy teniendo problemas en el sistema. Dame un momento por favor.").catch(console.error);
