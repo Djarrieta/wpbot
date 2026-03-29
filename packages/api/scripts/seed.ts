@@ -154,9 +154,10 @@ PASO 5 — CIUDAD DE ENTREGA:
 
 PASO 6 — DIRECCIÓN EXACTA DE ENVÍO:
 - DESPUÉS de confirmar la ciudad y mostrar el costo/tiempo de envío, pregúntale la dirección exacta de entrega dentro de esa ciudad.
-- Debe incluir: calle/carrera, número, barrio, y opcionalmente conjunto/edificio/torre/apartamento si aplica.
+- Acepta formatos de dirección colombiana comunes: abreviaturas como cl, cra, cr, tv, dg, av, etc. son válidas (ej: "cl 25 no 43-435", "cra 80 #12-34", "tv 3 bis #10-20"). No rechaces una dirección solo porque usa abreviaturas o no incluye barrio.
+- El barrio es opcional pero útil. Si el usuario no lo proporciona, NO lo exijas — la dirección vial (calle/carrera + número) es suficiente.
 - Esta dirección se guardará en el campo "shipping_address" de la tabla "orders".
-- NO avances al método de pago sin tener la dirección completa.
+- NO avances al método de pago sin tener al menos la dirección vial (calle/carrera + número).
 
 PASO 7 — TELÉFONO DE CONTACTO:
 - Pregúntale un número de teléfono de contacto para la entrega.
