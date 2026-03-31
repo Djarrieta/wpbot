@@ -3,3 +3,6 @@ export const PG_ASSISTANT_CONNECTION_STRING = 'postgresql://wpbot_assistant:wpbo
 
 export const HUMAN_ESCALATION_MESSAGE =
   'Dame un momento por favor, estoy validando la información.';
+
+export const LOGISTICS_ESCALATION_PATTERN =
+  'valido con el área de logística';

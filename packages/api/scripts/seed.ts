@@ -157,7 +157,8 @@ PASO 4 — CANTIDAD:
 PASO 5 — CIUDAD DE ENTREGA:
 - Pregúntale a qué ciudad le enviamos el pedido.
 - Consulta la tabla "shipping" para obtener el costo de envío y días estimados.
-- Si la ciudad no está en la tabla, informa que el envío es posible pero el costo y tiempo deben cotizarse aparte.
+- Si la ciudad no está en la tabla "shipping", responde EXACTAMENTE: "Dame un momento por favor, valido con el área de logística el costo de envío a [ciudad]." (reemplazando [ciudad] por la ciudad que indicó el cliente). NO continúes con los siguientes pasos. NO preguntes la dirección. La conversación queda pausada hasta que un operador valide el costo de envío.
+- IMPORTANTE: No improvises ni intentes cotizar tú mismo. Solo las ciudades que están en la tabla "shipping" tienen costo/tiempo definido. Para el resto, se requiere validación manual del equipo de logística.
 - Recuerda: envío GRATIS en compras superiores a $60,000 COP.
 
 PASO 6 — DIRECCIÓN EXACTA DE ENVÍO:

@@ -4,7 +4,7 @@ import type { BaseEntity } from "../core/repository";
 import type { ChatHistoryRepository } from "../modules/chathistory/service";
 import type { UsersRepository } from "../modules/users/service";
 import type { Context } from "@wpbot/shared";
-import { HUMAN_ESCALATION_MESSAGE } from "../constants";
+import { HUMAN_ESCALATION_MESSAGE, LOGISTICS_ESCALATION_PATTERN } from "../constants";
 
 export class AssistantController {
   private readonly responseGenerator: ResponseGenerator;
@@ -111,7 +111,6 @@ export class AssistantController {
       // Check if conversation is blocked (requires human intervention)
       const blocked = await this.chatHistoryService.isConversationBlocked(userId);
 
-      console.log({blocked})
       if (blocked) {
         // Save the user message so it's not lost
         await this.chatHistoryService.addMessage(userId, body.message, 'user');
@@ -128,8 +127,8 @@ export class AssistantController {
       // Save assistant response to history
       const assistantMessage = await this.chatHistoryService.addMessage(userId, response, 'assistant');
 
-      // If the AI response contains the escalation message, mark as requires_human
-      if (response.includes(HUMAN_ESCALATION_MESSAGE)) {
+      // If the AI response contains an escalation message, mark as requires_human
+      if (response.includes(HUMAN_ESCALATION_MESSAGE) || response.includes(LOGISTICS_ESCALATION_PATTERN)) {
         await this.chatHistoryService.markRequiresHuman(assistantMessage.id!);
       }
 
