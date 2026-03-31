@@ -68,8 +68,23 @@ const contextData: { topic: string; content: string; always_inject: boolean }[] 
     always_inject: true,
   },
   {
-    topic: "acerca_de_la_empresa",
-    content: "3DCase es una empresa colombiana a la vanguardia de la innovación digital y protección de hardware para dispositivos móviles. Nos especializamos en soluciones de personalización de alto nivel a través de https://3dcase.com.co/. Utilizamos materiales de ingeniería, como polímeros flexibles y vinilos de precisión, para garantizar un ajuste perfecto. Nos destacamos por dos líneas principales: 1) Skins Adhesivos de vinilo premium que protegen sin añadir volumen y 2) Carcasas 3D con tecnología lenticular que generan efectos de profundidad y movimiento. Nuestra misión es fusionar diseño artístico y funcionalidad técnica.",
+    topic: "acerca_de_la_empresa_1",
+    content: "3DCase es una empresa colombiana a la vanguardia de la innovación digital y protección de hardware para dispositivos móviles. Nos especializamos en soluciones de personalización de alto nivel a través de https://3dcase.com.co/.",
+    always_inject: true,
+  },
+  {
+    topic: "acerca_de_la_empresa_2",
+    content: "Utilizamos materiales de ingeniería, como polímeros flexibles y vinilos de precisión, para garantizar un ajuste perfecto.",
+    always_inject: true,
+  },
+  {
+    topic: "acerca_de_la_empresa_3",
+    content: "Nos destacamos por dos líneas principales: 1) Skins Adhesivos de vinilo premium que protegen sin añadir volumen y 2) Carcasas 3D con tecnología lenticular que generan efectos de profundidad y movimiento.",
+    always_inject: true,
+  },
+  {
+    topic: "acerca_de_la_empresa_4",
+    content: "Nuestra misión es fusionar diseño artístico y funcionalidad técnica.",
     always_inject: true,
   },
 

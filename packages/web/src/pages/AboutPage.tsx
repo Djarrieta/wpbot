@@ -1,7 +1,41 @@
 import { Link } from "react-router";
 import { SessionIcon } from "@/components/SessionIcon";
+import { useEffect, useState } from "react";
+import type { Context, WithId } from "@wpbot/shared";
+
+const NUMBERED_SUFFIX_RE = /^(.+)_(\d+)$/;
+
+function useContextGroup(prefix: string) {
+  const [paragraphs, setParagraphs] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/context")
+      .then((r) => r.json())
+      .then((rows: WithId<Context>[]) => {
+        const matching = rows
+          .filter((c) => {
+            const m = c.topic.match(NUMBERED_SUFFIX_RE);
+            return m && m[1] === prefix;
+          })
+          .sort((a, b) => {
+            const na = parseInt(a.topic.match(NUMBERED_SUFFIX_RE)?.[2] ?? "0");
+            const nb = parseInt(b.topic.match(NUMBERED_SUFFIX_RE)?.[2] ?? "0");
+            return na - nb;
+          })
+          .map((c) => c.content);
+        setParagraphs(matching.length > 0 ? matching : []);
+      })
+      .catch(() => setParagraphs([]))
+      .finally(() => setLoading(false));
+  }, [prefix]);
+
+  return { paragraphs, loading };
+}
 
 export default function AboutPage() {
+  const { paragraphs, loading } = useContextGroup("acerca_de_la_empresa");
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -40,46 +74,30 @@ export default function AboutPage() {
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white m-0 mb-4">
           Sobre Nosotros
         </h2>
-        <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-6">
-          Somos wpbot, una tienda comprometida con ofrecer los mejores productos
-          a nuestros clientes. Nuestro objetivo es brindar una experiencia de
-          compra sencilla, rápida y confiable.
-        </p>
-        <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-6">
-          Trabajamos día a día para mejorar nuestro catálogo y garantizar la
-          mejor calidad en cada uno de nuestros artículos.
-        </p>
 
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-8">
-          <div className="text-center">
-            <span className="text-4xl block mb-3">🎯</span>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0 mb-2">
-              Misión
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 m-0">
-              Facilitar el acceso a productos de calidad con un servicio
-              excepcional.
-            </p>
+        {loading ? (
+          <div className="space-y-4 animate-pulse">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-full"
+              />
+            ))}
           </div>
-          <div className="text-center">
-            <span className="text-4xl block mb-3">👁️</span>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0 mb-2">
-              Visión
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 m-0">
-              Ser la tienda en línea preferida por nuestros clientes.
+        ) : paragraphs.length > 0 ? (
+          paragraphs.map((text, i) => (
+            <p
+              key={i}
+              className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-6"
+            >
+              {text}
             </p>
-          </div>
-          <div className="text-center">
-            <span className="text-4xl block mb-3">💡</span>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0 mb-2">
-              Valores
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 m-0">
-              Transparencia, calidad y compromiso con el cliente.
-            </p>
-          </div>
-        </div>
+          ))
+        ) : (
+          <p className="text-gray-400 dark:text-gray-500 italic">
+            No hay información disponible.
+          </p>
+        )}
       </main>
     </div>
   );
