@@ -50,7 +50,7 @@ ESQUEMA DE LA BASE DE DATOS:
 
 CONTEXTO CONSULTABLE:
 Tienes contexto adicional disponible en la tabla "context". Temas consultables: {{contextTopicList}}.
-Consulta los temas relevantes usando la herramienta query (SELECT content FROM context WHERE topic = '...') si la pregunta del usuario se relaciona con alguno de estos temas.
+Consulta los temas relevantes usando la herramienta query si la pregunta del usuario se relaciona con alguno de estos temas. Algunos temas pueden estar divididos en partes numeradas (ej. 'tema_1', 'tema_2'). Para obtener el contenido completo usa: SELECT content FROM context WHERE topic = 'nombre_tema' OR topic LIKE 'nombre_tema_%' ORDER BY topic
 
 HISTORIAL DE CONVERSACIÓN:
 Esta es la conversación hasta ahora:

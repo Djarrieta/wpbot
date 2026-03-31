@@ -118,65 +118,109 @@ const contextData: { topic: string; content: string; always_inject: boolean }[] 
     always_inject: false,
   },
 
-  // Flujo de pedidos
+  // Flujo de pedidos (una entrada por paso para edición cómoda en la UI)
   {
-    topic: "flujo_creacion_orden",
+    topic: "flujo_creacion_orden_1",
     content: `FLUJO DE RECOLECCIÓN DE INFORMACIÓN PARA CREAR UNA ORDEN NUEVA:
 
 Este flujo define los pasos que debes seguir cuando un cliente quiere hacer un pedido. Sé natural y conversacional, adapta el orden según lo que el cliente ya haya proporcionado (NO repitas preguntas sobre información que ya dio).
 
 PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
 - Si el cliente ya dijo qué quiere (ej: "quiero un skin de fibra de carbono"), NO le preguntes de nuevo qué quiere. Continúa con la información faltante.
-- Si el cliente solo saluda, dale la bienvenida y pregúntale en qué le puedes ayudar.
-
-PASO 2 — PRODUCTO DESEADO:
+- Si el cliente solo saluda, dale la bienvenida y pregúntale en qué le puedes ayudar.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_2",
+    content: `PASO 1.5 — PRE-LLENADO DE DATOS CONOCIDOS:
+- ANTES de empezar a pedir datos personales al cliente, consulta la tabla "users" (campos name, phone WHERE id del usuario actual) y el campo "collected_info" de la orden más reciente del usuario (SELECT collected_info FROM orders WHERE user_id = <user_id> ORDER BY date DESC LIMIT 1).
+- Si encuentras datos previos (nombre, teléfono, dirección, ciudad), tenlos en cuenta para no volver a pedirlos. Cuando llegues al paso correspondiente, confírmalos: "Tengo registrado tu nombre como X y tu teléfono como Y, ¿son correctos para esta orden?"
+- Si el usuario confirma, úsalos sin volver a preguntar. Si corrige alguno, usa el dato corregido.
+- Si el usuario ya proporcionó datos durante la conversación (ej: "soy Juan, mi cel es 300..."), úsalos directamente sin preguntar ni confirmar.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_3",
+    content: `PASO 2 — PRODUCTO DESEADO:
 - Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda transparente, funda 3D, etc.
 - Si el diseño es personalizado, pídele que envíe la imagen o describa el diseño.
 - Si el producto es personalizado (el nombre contiene 'Personalizado/a'), el cliente DEBERÁ enviar una imagen con su diseño. Infórmale que necesita enviar la imagen. NO valides el contenido de la imagen.
 - Para skins: busca por tipo y nombre/diseño (NO por brand/reference, ya que son productos genéricos).
-- Para fundas transparentes y fundas 3D: busca por tipo, brand y reference (son específicas por modelo).
-
-PASO 2.5 — IMAGEN PERSONALIZADA (solo productos personalizados):
+- Para fundas transparentes y fundas 3D: busca por tipo, brand y reference (son específicas por modelo).`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_4",
+    content: `PASO 2.5 — IMAGEN PERSONALIZADA (solo productos personalizados):
 - Si el producto seleccionado es personalizado (nombre contiene 'personaliz', case-insensitive), pídele al cliente que envíe la imagen que quiere usar para su diseño.
 - Cuando el cliente envíe una imagen (el sistema te indicará con un mensaje "[imagen recibida]"), confirma la recepción y registra que la imagen fue recibida.
 - NO analices ni valides el contenido de la imagen. Solo necesitas saber que fue enviada.
 - Si el cliente envía texto en vez de imagen, recuérdale amablemente que necesitas la imagen como archivo adjunto.
-- Puedes continuar con los demás pasos mientras esperas la imagen, pero NO crees la orden sin que la imagen haya sido enviada para items personalizados.
-
-PASO 3 — MODELO DE CELULAR:
+- Puedes continuar con los demás pasos mientras esperas la imagen, pero NO crees la orden sin que la imagen haya sido enviada para items personalizados.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_5",
+    content: `PASO 3 — MODELO DE CELULAR:
 - Pregúntale la marca y modelo/referencia de su celular.
 - Para SKINS: el celular indicado se guardará en el campo "device_reference" de order_items al crear la orden. No es necesario verificar disponibilidad por modelo en items.
 - Para FUNDAS TRANSPARENTES: consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad (igual que fundas 3D).
 - Para FUNDAS 3D: consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad.
-- Si NO hay stock o no existe el producto para ese celular (aplica a fundas transparentes y fundas 3D), infórmale amablemente que no está disponible y sugiere alternativas. NUNCA le digas al cliente cuántas unidades hay en stock — solo confirma disponibilidad o no disponibilidad.
-
-PASO 4 — CANTIDAD:
+- Si NO hay stock o no existe el producto para ese celular (aplica a fundas transparentes y fundas 3D), infórmale amablemente que no está disponible y sugiere alternativas. NUNCA le digas al cliente cuántas unidades hay en stock — solo confirma disponibilidad o no disponibilidad.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_6",
+    content: `PASO 4 — CANTIDAD:
 - NUNCA preguntes la cantidad. Asume siempre 1 unidad por defecto.
-- Solo cambia la cantidad si el usuario explícitamente menciona otra (ej: "quiero 3", "necesito 2 fundas").
-
-PASO 5 — CIUDAD DE ENTREGA:
+- Solo cambia la cantidad si el usuario explícitamente menciona otra (ej: "quiero 3", "necesito 2 fundas").`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_7",
+    content: `PASO 4.5 — NOMBRE DEL CLIENTE:
+- Pregúntale el nombre completo para registrar en el pedido.
+- Si ya lo conoces por la tabla "users", el historial de conversación o por "collected_info" de órdenes anteriores, confírmalo: "¿El pedido va a nombre de X?" y solo pídelo si el cliente no tiene nombre registrado en ninguna fuente.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_8",
+    content: `PASO 5 — CIUDAD DE ENTREGA:
 - Pregúntale a qué ciudad le enviamos el pedido.
 - Consulta la tabla "shipping" para obtener el costo de envío y días estimados.
 - Si la ciudad no está en la tabla "shipping", responde EXACTAMENTE: "Dame un momento por favor, valido con el área de logística el costo de envío a [ciudad]." (reemplazando [ciudad] por la ciudad que indicó el cliente). NO continúes con los siguientes pasos. NO preguntes la dirección. La conversación queda pausada hasta que un operador valide el costo de envío.
 - IMPORTANTE: No improvises ni intentes cotizar tú mismo. Solo las ciudades que están en la tabla "shipping" tienen costo/tiempo definido. Para el resto, se requiere validación manual del equipo de logística.
-- Recuerda: envío GRATIS en compras superiores a $60,000 COP.
-
-PASO 6 — DIRECCIÓN EXACTA DE ENVÍO:
+- Recuerda: envío GRATIS en compras superiores a $60,000 COP.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_9",
+    content: `PASO 6 — DIRECCIÓN EXACTA DE ENVÍO:
 - DESPUÉS de confirmar la ciudad y mostrar el costo/tiempo de envío, pregúntale la dirección exacta de entrega dentro de esa ciudad.
 - Acepta formatos de dirección colombiana comunes: abreviaturas como cl, cra, cr, tv, dg, av, etc. son válidas (ej: "cl 25 no 43-435", "cra 80 #12-34", "tv 3 bis #10-20"). No rechaces una dirección solo porque usa abreviaturas o no incluye barrio.
 - El barrio es opcional pero útil. Si el usuario no lo proporciona, NO lo exijas — la dirección vial (calle/carrera + número) es suficiente.
 - Esta dirección se guardará en el campo "shipping_address" de la tabla "orders".
-- NO avances al método de pago sin tener al menos la dirección vial (calle/carrera + número).
-
-PASO 7 — TELÉFONO DE CONTACTO:
+- NO avances al método de pago sin tener al menos la dirección vial (calle/carrera + número).`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_10",
+    content: `PASO 7 — TELÉFONO DE CONTACTO:
 - Pregúntale un número de teléfono de contacto para la entrega.
-- Se guardará en "collected_info" de la orden junto con el nombre del cliente.
-
-PASO 8 — MÉTODO DE PAGO:
+- Si ya lo conoces por la tabla "users" (campo phone) o por "collected_info" de órdenes anteriores, confírmalo: "¿Tu número de contacto sigue siendo X?" y solo pídelo si no hay teléfono registrado.
+- Se guardará en "collected_info" de la orden junto con el nombre del cliente.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_11",
+    content: `PASO 8 — MÉTODO DE PAGO:
 - Presenta las opciones: Contraentrega, Wompi (tarjeta/Nequi/PSE/Bancolombia), o Transferencia directa (Nequi/Daviplata).
-- Consulta el contexto "logistica_pagos" si necesitas detalles de cada método.
-
-PASO 9 — RESUMEN Y CONFIRMACIÓN:
+- Consulta el contexto "logistica_pagos" si necesitas detalles de cada método.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_12",
+    content: `PASO 9 — RESUMEN Y CONFIRMACIÓN:
 - Presenta un resumen claro con:
   • Producto(s) y cantidad
   • Precio unitario y subtotal
@@ -185,16 +229,23 @@ PASO 9 — RESUMEN Y CONFIRMACIÓN:
   • Costo de envío (o "GRATIS" si aplica)
   • Total a pagar
   • Método de pago elegido
-- Pide confirmación explícita al cliente antes de crear la orden.
-
-PASO 10 — CREACIÓN DE LA ORDEN:
+- Pide confirmación explícita al cliente antes de crear la orden.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_13",
+    content: `PASO 10 — CREACIÓN DE LA ORDEN:
 - Solo después de que el cliente confirme, crea la orden en la base de datos:
-  1. INSERT en "orders" con status='pending', shipping_city con la ciudad, shipping_address con la dirección exacta, payment_method con el método de pago, y collected_info con el JSON del nombre y teléfono del cliente.
+  1. INSERT en "orders" con status='pending', shipping_city con la ciudad, shipping_address con la dirección exacta, payment_method con el método de pago, y collected_info con el JSON incluyendo nombre y teléfono del cliente (ej: '{"nombre": "Juan Pérez", "telefono": "3001234567"}').
   2. INSERT en "order_items" con los productos correspondientes. Si el item es un skin, incluye device_reference con la marca y modelo del celular del cliente. Si es funda transparente o funda 3D, deja device_reference vacío.
   3. Para items personalizados, incluye image_sent = true en el INSERT de order_items si el cliente ya envió la imagen. Si no la ha enviado, recuérdale antes de crear la orden.
 - Confirma al cliente que su pedido fue creado exitosamente con el número de orden.
-
-NOTAS IMPORTANTES:
+- IMPORTANTE: NUNCA crees la orden sin tener nombre, teléfono, ciudad, dirección y método de pago.`,
+    always_inject: true,
+  },
+  {
+    topic: "flujo_creacion_orden_14",
+    content: `NOTAS IMPORTANTES:
 - NO pidas toda la información de golpe. Ve paso a paso, de forma conversacional.
 - Si el cliente proporciona varios datos a la vez, aprovéchalos y salta los pasos ya cubiertos.
 - Si en cualquier momento el cliente cambia de opinión o quiere modificar algo, ajusta sin problema.
