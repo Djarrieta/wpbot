@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import type { Order, OrderItem, WithId } from "@wpbot/shared";
 import { Table } from "@/components/Table";
 import { Button } from "@/components/Button";
@@ -16,6 +16,22 @@ export function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20;
+
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  function handleSearchChange(value: string) {
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(value);
+      setPage(1);
+    }, 300);
+  }
 
   // Order modals
   const [showCreate, setShowCreate] = useState(false);
@@ -38,13 +54,20 @@ export function OrdersPage() {
     try {
       setLoading(true);
       setError(null);
-      setOrders(await api.fetchAll());
+      const params: Record<string, string | number> & {
+        page: number;
+        limit: number;
+      } = { page, limit };
+      if (searchQuery) params.search = searchQuery;
+      const result = await api.fetchPaginated(params);
+      setOrders(result.data);
+      setTotalPages(result.totalPages);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al obtener pedidos");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, searchQuery]);
 
   const loadOrderItems = useCallback(async (orderId: number) => {
     try {
@@ -181,6 +204,43 @@ export function OrdersPage() {
         <Button onClick={() => setShowCreate(true)}>+ Nuevo Pedido</Button>
       </div>
 
+      <div className="relative mb-4">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+          />
+        </svg>
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          placeholder="Buscar..."
+          className="w-full pl-9 pr-9 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        {searchInput && (
+          <button
+            onClick={() => {
+              setSearchInput("");
+              setSearchQuery("");
+              setPage(1);
+              if (debounceRef.current) clearTimeout(debounceRef.current);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 bg-transparent border-none cursor-pointer"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
       {error && (
         <div className="p-4 mb-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300">
           {error}
@@ -201,6 +261,9 @@ export function OrdersPage() {
         ]}
         data={orders}
         keyField="id"
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
         actions={(order) => (
           <>
             <Button
@@ -309,7 +372,11 @@ export function OrdersPage() {
                 { key: "item_name", header: "Artículo" },
                 { key: "quantity", header: "Cant." },
                 { key: "unit_price", header: "Precio Unit." },
-                { key: "image_sent", header: "Imagen", render: (v) => (v ? "Sí" : "No") },
+                {
+                  key: "image_sent",
+                  header: "Imagen",
+                  render: (v) => (v ? "Sí" : "No"),
+                },
               ]}
               data={orderItems}
               keyField="id"

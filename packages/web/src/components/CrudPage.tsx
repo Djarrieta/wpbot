@@ -1,4 +1,10 @@
-import { useEffect, useCallback, useState, type ComponentType } from "react";
+import {
+  useEffect,
+  useCallback,
+  useState,
+  useRef,
+  type ComponentType,
+} from "react";
 import { Table } from "./Table";
 import { Button } from "./Button";
 import { Modal } from "./Modal";
@@ -41,6 +47,19 @@ export function CrudPage<T extends { id: number }>({
   const [totalPages, setTotalPages] = useState(1);
   const limit = 20;
 
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  function handleSearchChange(value: string) {
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(value);
+      setPage(1);
+    }, 300);
+  }
+
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<T | null>(null);
   const [deleting, setDeleting] = useState<T | null>(null);
@@ -48,7 +67,12 @@ export function CrudPage<T extends { id: number }>({
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      const result = await api.fetchPaginated({ page, limit });
+      const params: Record<string, string | number> & {
+        page: number;
+        limit: number;
+      } = { page, limit };
+      if (searchQuery) params.search = searchQuery;
+      const result = await api.fetchPaginated(params);
       setData(result.data);
       setTotalPages(result.totalPages);
     } catch (e) {
@@ -60,7 +84,7 @@ export function CrudPage<T extends { id: number }>({
     } finally {
       setInitialLoad(false);
     }
-  }, [api, entityNamePlural, page]);
+  }, [api, entityNamePlural, page, searchQuery]);
 
   useEffect(() => {
     loadData();
@@ -137,6 +161,43 @@ export function CrudPage<T extends { id: number }>({
             + Nuevo {entityName}
           </Button>
         </div>
+      </div>
+
+      <div className="relative mb-4">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+          />
+        </svg>
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          placeholder="Buscar..."
+          className="w-full pl-9 pr-9 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        {searchInput && (
+          <button
+            onClick={() => {
+              setSearchInput("");
+              setSearchQuery("");
+              setPage(1);
+              if (debounceRef.current) clearTimeout(debounceRef.current);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 bg-transparent border-none cursor-pointer"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {error && (

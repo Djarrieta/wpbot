@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import type { User, WithId } from "@wpbot/shared";
 import { Table } from "@/components/Table";
 import { Button } from "@/components/Button";
@@ -14,6 +14,22 @@ export function UsersPage() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20;
+
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  function handleSearchChange(value: string) {
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(value);
+      setPage(1);
+    }, 300);
+  }
 
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<WithId<User> | null>(null);
@@ -22,13 +38,20 @@ export function UsersPage() {
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      setData(await api.fetchAll());
+      const params: Record<string, string | number> & {
+        page: number;
+        limit: number;
+      } = { page, limit };
+      if (searchQuery) params.search = searchQuery;
+      const result = await api.fetchPaginated(params);
+      setData(result.data);
+      setTotalPages(result.totalPages);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al cargar usuarios");
     } finally {
       setInitialLoad(false);
     }
-  }, []);
+  }, [page, searchQuery]);
 
   useEffect(() => {
     loadData();
@@ -37,9 +60,9 @@ export function UsersPage() {
   async function handleCreate(formData: Omit<WithId<User>, "id">) {
     try {
       setSaving(true);
-      const created = await api.create(formData);
-      setData((prev) => [...prev, created]);
+      await api.create(formData);
       setShowCreate(false);
+      loadData();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al crear usuario");
     } finally {
@@ -51,14 +74,9 @@ export function UsersPage() {
     if (!editing) return;
     try {
       setSaving(true);
-      const updated = await api.update(editing.id, formData);
-      // If merged, the edited user may have been absorbed — reload
-      if ((updated as any).merged) {
-        await loadData();
-      } else {
-        setData((prev) => prev.map((r) => (r.id === editing.id ? updated : r)));
-      }
+      await api.update(editing.id, formData);
       setEditing(null);
+      loadData();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al actualizar usuario");
     } finally {
@@ -71,8 +89,8 @@ export function UsersPage() {
     try {
       setSaving(true);
       await api.delete(deleting.id);
-      setData((prev) => prev.filter((r) => r.id !== deleting.id));
       setDeleting(null);
+      loadData();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al eliminar usuario");
     } finally {
@@ -98,6 +116,43 @@ export function UsersPage() {
         </div>
       </div>
 
+      <div className="relative mb-4">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+          />
+        </svg>
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          placeholder="Buscar..."
+          className="w-full pl-9 pr-9 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        {searchInput && (
+          <button
+            onClick={() => {
+              setSearchInput("");
+              setSearchQuery("");
+              setPage(1);
+              if (debounceRef.current) clearTimeout(debounceRef.current);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 bg-transparent border-none cursor-pointer"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
       {error && (
         <div className="flex justify-between items-center bg-red-900/20 border border-red-600 text-red-400 px-4 py-3 rounded-md mb-4">
           {error}
@@ -120,6 +175,9 @@ export function UsersPage() {
         ]}
         data={data}
         keyField="id"
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
         actions={(row) => (
           <>
             <Button variant="secondary" onClick={() => setEditing(row)}>
