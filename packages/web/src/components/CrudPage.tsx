@@ -29,6 +29,8 @@ interface CrudPageProps<T> {
     loading?: boolean;
   }>;
   nameField?: keyof T;
+  extraActions?: (row: T) => React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function CrudPage<T extends { id: number }>({
@@ -38,6 +40,8 @@ export function CrudPage<T extends { id: number }>({
   columns,
   FormComponent,
   nameField = "name" as keyof T,
+  extraActions,
+  children,
 }: CrudPageProps<T>) {
   const [data, setData] = useState<T[]>([]);
   const [initialLoad, setInitialLoad] = useState(true);
@@ -221,6 +225,7 @@ export function CrudPage<T extends { id: number }>({
         onPageChange={setPage}
         actions={(row) => (
           <>
+            {extraActions?.(row)}
             <Button variant="secondary" onClick={() => setEditing(row)}>
               Editar
             </Button>
@@ -284,6 +289,8 @@ export function CrudPage<T extends { id: number }>({
           </div>
         )}
       </Modal>
+
+      {children}
     </div>
   );
 }

@@ -34,7 +34,8 @@ const columns = [
 export function ChatHistoryPage() {
   return (
     <CrudPage<WithId<ChatHistory>>
-      title="Historial de Chat"
+      entityName="Chat"
+      entityNamePlural="Historial de Chat"
       api={api}
       columns={columns}
       FormComponent={ChatHistoryForm}

@@ -55,3 +55,29 @@
 - Si el usuario ya proporcionó los datos en la conversación (ej: "soy Juan, mi cel es 300..."), el bot debe usarlos sin volver a preguntar.
 
 ---
+
+## Tarea 14: Agrupar contextos numerados (ej. flujo_creacion_orden_1, \_2, …) en la UI
+
+**Problema:** El contexto `flujo_creacion_orden` ya existe y funciona bien, pero es muy largo para editar cómodamente en la UI. Lo ideal es poder partirlo en registros más pequeños (`flujo_creacion_orden_1`, `flujo_creacion_orden_2`, etc.) y que la aplicación los agrupe y concatene automáticamente en el orden correcto.
+
+**Solución:** Detectar contextos cuyo nombre termine en `_N` (donde N es un número) y agruparlos como partes de un mismo contexto lógico.
+
+### Cambios
+
+1. **Backend — `packages/api/src/modules/context/service.ts`** (o donde se construye el prompt):
+   - Al obtener contextos para inyectar en el prompt, agrupar los que compartan el mismo prefijo base (ej. `flujo_creacion_orden`) y tengan sufijos `_1`, `_2`, etc.
+   - Concatenar sus contenidos en orden numérico ascendente y tratarlos como un solo bloque de contexto.
+
+2. **Frontend — UI de contextos** (`packages/web/src/modules/context/`):
+   - En la tabla/listado, mostrar visualmente que ciertos contextos pertenecen al mismo grupo (ej. icono de agrupación, indentación, o badge con el nombre base).
+   - Opcional: permitir expandir/colapsar el grupo para ver las partes individuales.
+
+3. **Sin cambios al schema de BD**: los registros de contexto se siguen almacenando individualmente; la agrupación es puramente lógica a la hora de leer y presentar.
+
+### Notas
+
+- El patrón de detección es: `nombre_base` + `_` + `dígitos` al final (regex: `/^(.+)_(\d+)$/`).
+- Contextos sin sufijo numérico se tratan normalmente (sin agrupar).
+- Si existe tanto `flujo_creacion_orden` (sin número) como `flujo_creacion_orden_1`, el sin número se trata como parte 0 o se ignora según se decida al implementar.
+
+---

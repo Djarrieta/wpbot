@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useCallback, useState } from "react";
 import type { Order, OrderItem, WithId } from "@wpbot/shared";
+import { CrudPage } from "@/components/CrudPage";
 import { Table } from "@/components/Table";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
@@ -12,32 +13,6 @@ import { api as itemsApi } from "../items/api";
 import { OrderItemForm } from "../order_items/Form";
 
 export function OrdersPage() {
-  const [orders, setOrders] = useState<WithId<Order>[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const limit = 20;
-
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  function handleSearchChange(value: string) {
-    setSearchInput(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setSearchQuery(value);
-      setPage(1);
-    }, 300);
-  }
-
-  // Order modals
-  const [showCreate, setShowCreate] = useState(false);
-  const [editing, setEditing] = useState<WithId<Order> | null>(null);
-  const [deleting, setDeleting] = useState<WithId<Order> | null>(null);
-
   // Order items state
   const [viewingOrder, setViewingOrder] = useState<WithId<Order> | null>(null);
   const [orderItems, setOrderItems] = useState<WithId<OrderItem>[]>([]);
@@ -49,31 +24,13 @@ export function OrdersPage() {
   const [deletingItem, setDeletingItem] = useState<WithId<OrderItem> | null>(
     null,
   );
-
-  const loadOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const params: Record<string, string | number> & {
-        page: number;
-        limit: number;
-      } = { page, limit };
-      if (searchQuery) params.search = searchQuery;
-      const result = await api.fetchPaginated(params);
-      setOrders(result.data);
-      setTotalPages(result.totalPages);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al obtener pedidos");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, searchQuery]);
+  const [savingItem, setSavingItem] = useState(false);
+  const [itemError, setItemError] = useState<string | null>(null);
 
   const loadOrderItems = useCallback(async (orderId: number) => {
     try {
       setLoadingItems(true);
       const items = await orderItemsApi.fetchAll({ order_id: orderId });
-      // Fill item_name from catalog for items missing it
       const needsName = items.some((i) => !i.item_name);
       if (needsName) {
         const catalog = await itemsApi.fetchAll();
@@ -86,7 +43,7 @@ export function OrdersPage() {
       }
       setOrderItems(items);
     } catch (e) {
-      setError(
+      setItemError(
         e instanceof Error
           ? e.message
           : "Error al obtener artículos del pedido",
@@ -96,249 +53,80 @@ export function OrdersPage() {
     }
   }, []);
 
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
-
-  useEffect(() => {
-    if (viewingOrder) {
-      loadOrderItems(viewingOrder.id);
-    }
-  }, [viewingOrder, loadOrderItems]);
-
-  // Order CRUD handlers
-  async function handleCreate(data: Omit<Order, "id">) {
-    try {
-      setSaving(true);
-      await api.create(data);
-      setShowCreate(false);
-      await loadOrders();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al crear pedido");
-    } finally {
-      setSaving(false);
-    }
+  function handleViewOrder(order: WithId<Order>) {
+    setViewingOrder(order);
+    loadOrderItems(order.id);
   }
 
-  async function handleUpdate(data: Omit<Order, "id">) {
-    if (!editing) return;
-    try {
-      setSaving(true);
-      await api.update(editing.id, data);
-      setEditing(null);
-      await loadOrders();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al actualizar pedido");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!deleting) return;
-    try {
-      setSaving(true);
-      await api.delete(deleting.id);
-      setDeleting(null);
-      await loadOrders();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al eliminar pedido");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // Order Items CRUD handlers
   async function handleAddItem(data: Omit<OrderItem, "id">) {
     if (!viewingOrder) return;
     try {
-      setSaving(true);
+      setSavingItem(true);
       await orderItemsApi.create({ ...data, order_id: viewingOrder.id });
       setShowAddItem(false);
       await loadOrderItems(viewingOrder.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al agregar artículo");
+      setItemError(
+        e instanceof Error ? e.message : "Error al agregar artículo",
+      );
     } finally {
-      setSaving(false);
+      setSavingItem(false);
     }
   }
 
   async function handleUpdateItem(data: Omit<OrderItem, "id">) {
     if (!editingItem || !viewingOrder) return;
     try {
-      setSaving(true);
+      setSavingItem(true);
       await orderItemsApi.update(editingItem.id, data);
       setEditingItem(null);
       await loadOrderItems(viewingOrder.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al actualizar artículo");
+      setItemError(
+        e instanceof Error ? e.message : "Error al actualizar artículo",
+      );
     } finally {
-      setSaving(false);
+      setSavingItem(false);
     }
   }
 
   async function handleDeleteItem() {
     if (!deletingItem || !viewingOrder) return;
     try {
-      setSaving(true);
+      setSavingItem(true);
       await orderItemsApi.delete(deletingItem.id);
       setDeletingItem(null);
       await loadOrderItems(viewingOrder.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al eliminar artículo");
+      setItemError(
+        e instanceof Error ? e.message : "Error al eliminar artículo",
+      );
     } finally {
-      setSaving(false);
+      setSavingItem(false);
     }
   }
 
-  if (loading) {
-    return <div className="p-6 text-gray-500">Cargando pedidos...</div>;
-  }
-
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Pedidos
-        </h1>
-        <Button onClick={() => setShowCreate(true)}>+ Nuevo Pedido</Button>
-      </div>
-
-      <div className="relative mb-4">
-        <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
-          />
-        </svg>
-        <input
-          type="text"
-          value={searchInput}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Buscar..."
-          className="w-full pl-9 pr-9 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-        {searchInput && (
-          <button
-            onClick={() => {
-              setSearchInput("");
-              setSearchQuery("");
-              setPage(1);
-              if (debounceRef.current) clearTimeout(debounceRef.current);
-            }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 bg-transparent border-none cursor-pointer"
-          >
-            ✕
-          </button>
-        )}
-      </div>
-
-      {error && (
-        <div className="p-4 mb-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300">
-          {error}
-          <button className="ml-2 underline" onClick={() => setError(null)}>
-            Cerrar
-          </button>
-        </div>
+    <CrudPage<WithId<Order>>
+      entityName="Pedido"
+      entityNamePlural="Pedidos"
+      api={api}
+      columns={[
+        { key: "id", header: "ID" },
+        { key: "user_id", header: "ID Usuario" },
+        { key: "date", header: "Fecha" },
+        { key: "status", header: "Estado" },
+        { key: "shipping_city", header: "Ciudad" },
+        { key: "payment_method", header: "Pago" },
+      ]}
+      FormComponent={OrderForm}
+      nameField="id"
+      extraActions={(order) => (
+        <Button variant="secondary" onClick={() => handleViewOrder(order)}>
+          Artículos
+        </Button>
       )}
-
-      <Table
-        columns={[
-          { key: "id", header: "ID" },
-          { key: "user_id", header: "ID Usuario" },
-          { key: "date", header: "Fecha" },
-          { key: "status", header: "Estado" },
-          { key: "shipping_city", header: "Ciudad" },
-          { key: "payment_method", header: "Pago" },
-        ]}
-        data={orders}
-        keyField="id"
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        actions={(order) => (
-          <>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setViewingOrder(order)}
-            >
-              Artículos
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setEditing(order)}
-            >
-              Editar
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={() => setDeleting(order)}
-            >
-              Eliminar
-            </Button>
-          </>
-        )}
-      />
-
-      {/* Create Order Modal */}
-      <Modal
-        open={showCreate}
-        title="Crear Pedido"
-        onClose={() => setShowCreate(false)}
-      >
-        <OrderForm
-          onSubmit={handleCreate}
-          onCancel={() => setShowCreate(false)}
-          loading={saving}
-        />
-      </Modal>
-
-      {/* Edit Order Modal */}
-      <Modal
-        open={!!editing}
-        title="Editar Pedido"
-        onClose={() => setEditing(null)}
-      >
-        {editing && (
-          <OrderForm
-            initial={editing}
-            onSubmit={handleUpdate}
-            onCancel={() => setEditing(null)}
-            loading={saving}
-          />
-        )}
-      </Modal>
-
-      {/* Delete Order Confirmation */}
-      <Modal
-        open={!!deleting}
-        title="Eliminar Pedido"
-        onClose={() => setDeleting(null)}
-      >
-        <p className="mb-4 text-gray-700 dark:text-gray-300">
-          ¿Estás seguro que deseas eliminar el Pedido #{deleting?.id}?
-        </p>
-        <div className="flex gap-2 justify-end">
-          <Button variant="secondary" onClick={() => setDeleting(null)}>
-            Cancelar
-          </Button>
-          <Button variant="danger" onClick={handleDelete} disabled={saving}>
-            {saving ? "Eliminando..." : "Eliminar"}
-          </Button>
-        </div>
-      </Modal>
-
+    >
       {/* Order Items Modal */}
       <Modal
         open={!!viewingOrder}
@@ -346,6 +134,7 @@ export function OrdersPage() {
         onClose={() => {
           setViewingOrder(null);
           setOrderItems([]);
+          setItemError(null);
         }}
       >
         <div className="min-w-[500px]">
@@ -358,6 +147,18 @@ export function OrdersPage() {
               + Agregar Artículo
             </Button>
           </div>
+
+          {itemError && (
+            <div className="flex justify-between items-center bg-red-900/20 border border-red-600 text-red-400 px-4 py-3 rounded-md mb-4">
+              {itemError}
+              <button
+                className="bg-transparent border-none text-red-400 cursor-pointer text-base px-1"
+                onClick={() => setItemError(null)}
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {loadingItems ? (
             <p className="text-gray-500">Cargando artículos...</p>
@@ -401,7 +202,6 @@ export function OrdersPage() {
             />
           )}
 
-          {/* Total */}
           {orderItems.length > 0 && (
             <div className="mt-4 text-right font-semibold text-gray-900 dark:text-white">
               Total: $
@@ -422,7 +222,7 @@ export function OrdersPage() {
         <OrderItemForm
           onSubmit={handleAddItem}
           onCancel={() => setShowAddItem(false)}
-          loading={saving}
+          loading={savingItem}
         />
       </Modal>
 
@@ -437,7 +237,7 @@ export function OrdersPage() {
             initial={editingItem}
             onSubmit={handleUpdateItem}
             onCancel={() => setEditingItem(null)}
-            loading={saving}
+            loading={savingItem}
           />
         )}
       </Modal>
@@ -455,11 +255,15 @@ export function OrdersPage() {
           <Button variant="secondary" onClick={() => setDeletingItem(null)}>
             Cancelar
           </Button>
-          <Button variant="danger" onClick={handleDeleteItem} disabled={saving}>
-            {saving ? "Eliminando..." : "Eliminar"}
+          <Button
+            variant="danger"
+            onClick={handleDeleteItem}
+            disabled={savingItem}
+          >
+            {savingItem ? "Eliminando..." : "Eliminar"}
           </Button>
         </div>
       </Modal>
-    </div>
+    </CrudPage>
   );
 }
