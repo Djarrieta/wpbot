@@ -4,6 +4,7 @@ import { requireEnv, optionalEnv } from "@wpbot/shared";
 
 const BOT_TOKEN = requireEnv("TELEGRAM_BOT_TOKEN");
 const API_URL = optionalEnv("API_URL", "http://localhost:4000");
+const DEBOUNCE_MS = Number(optionalEnv("DEBOUNCE_MS", "3000"));
 
 async function callAssistant(userMessage: string, telegramId: number, name?: string): Promise<string | null> {
   const response = await fetch(`${API_URL}/assistant`, {
@@ -24,6 +25,72 @@ async function callAssistant(userMessage: string, telegramId: number, name?: str
 
 const bot = new Telegraf(BOT_TOKEN);
 
+const pendingMessages = new Map<
+  number,
+  {
+    messages: string[];
+    timer: Timer;
+    ctx: any;
+    name?: string;
+  }
+>();
+
+const processingUsers = new Set<number>();
+
+async function processMessages(userId: number) {
+  const pending = pendingMessages.get(userId);
+  if (!pending) return;
+
+  // If already processing for this user, skip — messages stay buffered
+  // and will be picked up after the current call finishes.
+  if (processingUsers.has(userId)) return;
+
+  pendingMessages.delete(userId);
+  processingUsers.add(userId);
+
+  const combinedMessage = pending.messages.join("\n");
+  const { ctx, name } = pending;
+
+  console.log(
+    `Processing ${pending.messages.length} buffered message(s) from ${userId}`,
+  );
+
+  try {
+    await ctx.sendChatAction("typing");
+    const responseText = await callAssistant(combinedMessage, userId, name);
+    if (responseText) await ctx.reply(responseText);
+  } catch (error) {
+    console.error("Error processing message:", error);
+    await ctx.reply("Lo siento, hubo un error procesando tu mensaje.");
+  } finally {
+    processingUsers.delete(userId);
+
+    // If new messages arrived while we were processing, process them now
+    const next = pendingMessages.get(userId);
+    if (next) {
+      clearTimeout(next.timer);
+      next.timer = setTimeout(() => processMessages(userId), DEBOUNCE_MS);
+    }
+  }
+}
+
+function bufferMessage(userId: number, text: string, ctx: any, name?: string) {
+  const pending = pendingMessages.get(userId);
+  if (pending) {
+    pending.messages.push(text);
+    pending.ctx = ctx;
+    clearTimeout(pending.timer);
+    pending.timer = setTimeout(() => processMessages(userId), DEBOUNCE_MS);
+  } else {
+    pendingMessages.set(userId, {
+      messages: [text],
+      timer: setTimeout(() => processMessages(userId), DEBOUNCE_MS),
+      ctx,
+      name,
+    });
+  }
+}
+
 bot.on(message("text"), async (ctx) => {
   const user = ctx.from;
   if (!user) {
@@ -36,13 +103,7 @@ bot.on(message("text"), async (ctx) => {
   const userMessage = ctx.message.text;
   console.log(`Message from ${userId} (${name}): ${userMessage}`);
 
-  try {
-    await ctx.sendChatAction("typing");
-    const responseText = await callAssistant(userMessage, userId, name || undefined);
-    if (responseText) await ctx.reply(responseText);
-  } catch (error) {
-    console.error("Error processing message:", error);
-  }
+  bufferMessage(userId, userMessage, ctx, name || undefined);
 });
 
 bot.on(message("photo"), async (ctx) => {
@@ -56,13 +117,7 @@ bot.on(message("photo"), async (ctx) => {
   const name = user.username || [user.first_name, user.last_name].filter(Boolean).join(" ");
   console.log(`Photo from ${userId} (${name})`);
 
-  try {
-    await ctx.sendChatAction("typing");
-    const responseText = await callAssistant("[imagen recibida]", userId, name || undefined);
-    if (responseText) await ctx.reply(responseText);
-  } catch (error) {
-    console.error("Error processing photo message:", error);
-  }
+  bufferMessage(userId, "[imagen recibida]", ctx, name || undefined);
 });
 
 bot.catch((err, ctx) => {

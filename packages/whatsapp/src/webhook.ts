@@ -6,6 +6,7 @@ const BASE_URL = requireEnv("WHATSAPP_BASE_URL");
 const API_VERSION = requireEnv("WHATSAPP_API_VERSION");
 const VERIFY_TOKEN = optionalEnv("WHATSAPP_VERIFY_TOKEN", "");
 const API_URL = optionalEnv("API_URL", "http://localhost:4000");
+const DEBOUNCE_MS = Number(optionalEnv("DEBOUNCE_MS", "3000"));
 
 interface IncomingMessage {
   from: string;
@@ -69,6 +70,46 @@ async function callAssistant(message: string, phoneNumber: string): Promise<stri
   return data.response;
 }
 
+const pendingMessages = new Map<
+  string,
+  {
+    messages: string[];
+    timer: Timer;
+  }
+>();
+
+const processingUsers = new Set<string>();
+
+async function processMessages(phoneNumber: string) {
+  const pending = pendingMessages.get(phoneNumber);
+  if (!pending) return;
+
+  if (processingUsers.has(phoneNumber)) return;
+
+  pendingMessages.delete(phoneNumber);
+  processingUsers.add(phoneNumber);
+
+  const combinedMessage = pending.messages.join("\n");
+  console.log(
+    `Processing ${pending.messages.length} buffered message(s) from ${phoneNumber}`,
+  );
+
+  try {
+    const responseText = await callAssistant(combinedMessage, phoneNumber);
+    if (responseText) {
+      await sendMessage(phoneNumber, responseText);
+    }
+  } finally {
+    processingUsers.delete(phoneNumber);
+
+    const next = pendingMessages.get(phoneNumber);
+    if (next) {
+      clearTimeout(next.timer);
+      next.timer = setTimeout(() => processMessages(phoneNumber), DEBOUNCE_MS);
+    }
+  }
+}
+
 export function handleVerification(req: Request): Response {
   const url = new URL(req.url);
   const mode = url.searchParams.get("hub.mode");
@@ -90,9 +131,19 @@ export async function handleWebhook(req: Request): Promise<Response> {
 
     const message = parseIncomingMessage(body);
     if (message) {
-      const responseText = await callAssistant(message.text, message.from);
-      if (responseText) {
-        await sendMessage(message.from, responseText);
+      const pending = pendingMessages.get(message.from);
+      if (pending) {
+        pending.messages.push(message.text);
+        clearTimeout(pending.timer);
+        pending.timer = setTimeout(
+          () => processMessages(message.from),
+          DEBOUNCE_MS,
+        );
+      } else {
+        pendingMessages.set(message.from, {
+          messages: [message.text],
+          timer: setTimeout(() => processMessages(message.from), DEBOUNCE_MS),
+        });
       }
     }
 
