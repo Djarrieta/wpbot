@@ -2,57 +2,65 @@ import pg from "pg";
 
 const connectionString = process.env.PG_CONNECTION_STRING || "postgresql://wpbot:wpbot@localhost:4003/wpbot";
 
-const items = [
-  // Skins Texturizados
-  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", type: "skin texturizado", brand: "", reference: "", price: 25000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", type: "skin texturizado", brand: "", reference: "", price: 28000, stock: 40, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", brand: "", reference: "", price: 22000, stock: 60, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+const products = [
+  // Skins Texturizados (requires_device: false → 1 item each with no brand/reference)
+  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", type: "skin texturizado", price: 25000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 50 },
+  { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", type: "skin texturizado", price: 28000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 40 },
+  { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", price: 22000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 60 },
   // Skins Impresos
-  { name: "Skin impreso Personalizado", description: "Skin impreso alta resolución", type: "skin impreso", brand: "", reference: "", price: 18000, stock: 100, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  // Fundas Transparentes (específicas por modelo, igual que Fundas 3D)
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Xiaomi Poco X6 Pro", type: "funda transparente", brand: "Xiaomi", reference: "Poco X6 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Xiaomi Redmi Note 13 Pro", type: "funda transparente", brand: "Xiaomi", reference: "Redmi Note 13 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Xiaomi Redmi Note 14 Pro", type: "funda transparente", brand: "Xiaomi", reference: "Redmi Note 14 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Xiaomi Poco X7 Pro", type: "funda transparente", brand: "Xiaomi", reference: "Poco X7 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 16", type: "funda transparente", brand: "Apple", reference: "iPhone 16", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 16 Pro", type: "funda transparente", brand: "Apple", reference: "iPhone 16 Pro", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 16 Pro Max", type: "funda transparente", brand: "Apple", reference: "iPhone 16 Pro Max", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 15", type: "funda transparente", brand: "Apple", reference: "iPhone 15", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 15 Pro Max", type: "funda transparente", brand: "Apple", reference: "iPhone 15 Pro Max", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 14", type: "funda transparente", brand: "Apple", reference: "iPhone 14", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Apple iPhone 13", type: "funda transparente", brand: "Apple", reference: "iPhone 13", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy S25 Ultra", type: "funda transparente", brand: "Samsung", reference: "Galaxy S25 Ultra", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy S25", type: "funda transparente", brand: "Samsung", reference: "Galaxy S25", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy S24 Ultra", type: "funda transparente", brand: "Samsung", reference: "Galaxy S24 Ultra", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy S24", type: "funda transparente", brand: "Samsung", reference: "Galaxy S24", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy A55", type: "funda transparente", brand: "Samsung", reference: "Galaxy A55", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy A35", type: "funda transparente", brand: "Samsung", reference: "Galaxy A35", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Samsung Galaxy A15", type: "funda transparente", brand: "Samsung", reference: "Galaxy A15", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Motorola Moto G84", type: "funda transparente", brand: "Motorola", reference: "Moto G84", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Motorola Moto G54", type: "funda transparente", brand: "Motorola", reference: "Moto G54", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm para Huawei Nova 12i", type: "funda transparente", brand: "Huawei", reference: "Nova 12i", price: 20000, stock: 50, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Skin impreso Personalizado", description: "Skin impreso alta resolución", type: "skin impreso", price: 18000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 100 },
+  // Fundas Transparentes (requires_device: true → N items, one per model)
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm", type: "funda transparente", price: 20000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
+    variants: [
+      { brand: "Xiaomi", reference: "Poco X6 Pro", stock: 50 },
+      { brand: "Xiaomi", reference: "Redmi Note 13 Pro", stock: 50 },
+      { brand: "Xiaomi", reference: "Redmi Note 14 Pro", stock: 50 },
+      { brand: "Xiaomi", reference: "Poco X7 Pro", stock: 50 },
+      { brand: "Apple", reference: "iPhone 16", stock: 50 },
+      { brand: "Apple", reference: "iPhone 16 Pro", stock: 50 },
+      { brand: "Apple", reference: "iPhone 16 Pro Max", stock: 50 },
+      { brand: "Apple", reference: "iPhone 15", stock: 50 },
+      { brand: "Apple", reference: "iPhone 15 Pro Max", stock: 50 },
+      { brand: "Apple", reference: "iPhone 14", stock: 50 },
+      { brand: "Apple", reference: "iPhone 13", stock: 50 },
+      { brand: "Samsung", reference: "Galaxy S25 Ultra", stock: 50 },
+      { brand: "Samsung", reference: "Galaxy S25", stock: 50 },
+      { brand: "Samsung", reference: "Galaxy S24 Ultra", stock: 50 },
+      { brand: "Samsung", reference: "Galaxy S24", stock: 50 },
+      { brand: "Samsung", reference: "Galaxy A55", stock: 50 },
+      { brand: "Samsung", reference: "Galaxy A35", stock: 50 },
+      { brand: "Samsung", reference: "Galaxy A15", stock: 50 },
+      { brand: "Motorola", reference: "Moto G84", stock: 50 },
+      { brand: "Motorola", reference: "Moto G54", stock: 50 },
+      { brand: "Huawei", reference: "Nova 12i", stock: 50 },
+    ],
+  },
   // Fundas 3D
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Poco X6 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Poco X6 Pro", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 16", type: "funda 3d", brand: "Apple", reference: "iPhone 16", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 16 Pro", type: "funda 3d", brand: "Apple", reference: "iPhone 16 Pro", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 16 Pro Max", type: "funda 3d", brand: "Apple", reference: "iPhone 16 Pro Max", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 15", type: "funda 3d", brand: "Apple", reference: "iPhone 15", price: 40000, stock: 25, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 15 Pro Max", type: "funda 3d", brand: "Apple", reference: "iPhone 15 Pro Max", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 14", type: "funda 3d", brand: "Apple", reference: "iPhone 14", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Apple iPhone 13", type: "funda 3d", brand: "Apple", reference: "iPhone 13", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy S25 Ultra", type: "funda 3d", brand: "Samsung", reference: "Galaxy S25 Ultra", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy S25", type: "funda 3d", brand: "Samsung", reference: "Galaxy S25", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy S24 Ultra", type: "funda 3d", brand: "Samsung", reference: "Galaxy S24 Ultra", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy S24", type: "funda 3d", brand: "Samsung", reference: "Galaxy S24", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy A55", type: "funda 3d", brand: "Samsung", reference: "Galaxy A55", price: 40000, stock: 25, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy A35", type: "funda 3d", brand: "Samsung", reference: "Galaxy A35", price: 40000, stock: 25, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Samsung Galaxy A15", type: "funda 3d", brand: "Samsung", reference: "Galaxy A15", price: 40000, stock: 30, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Redmi Note 13 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Redmi Note 13 Pro", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Redmi Note 14 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Redmi Note 14 Pro", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Xiaomi Poco X7 Pro", type: "funda 3d", brand: "Xiaomi", reference: "Poco X7 Pro", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Motorola Moto G84", type: "funda 3d", brand: "Motorola", reference: "Moto G84", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Motorola Moto G54", type: "funda 3d", brand: "Motorola", reference: "Moto G54", price: 40000, stock: 20, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente para Huawei Nova 12i", type: "funda 3d", brand: "Huawei", reference: "Nova 12i", price: 40000, stock: 15, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente", type: "funda 3d", price: 40000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
+    variants: [
+      { brand: "Xiaomi", reference: "Poco X6 Pro", stock: 15 },
+      { brand: "Xiaomi", reference: "Redmi Note 13 Pro", stock: 20 },
+      { brand: "Xiaomi", reference: "Redmi Note 14 Pro", stock: 20 },
+      { brand: "Xiaomi", reference: "Poco X7 Pro", stock: 15 },
+      { brand: "Apple", reference: "iPhone 16", stock: 20 },
+      { brand: "Apple", reference: "iPhone 16 Pro", stock: 20 },
+      { brand: "Apple", reference: "iPhone 16 Pro Max", stock: 15 },
+      { brand: "Apple", reference: "iPhone 15", stock: 25 },
+      { brand: "Apple", reference: "iPhone 15 Pro Max", stock: 15 },
+      { brand: "Apple", reference: "iPhone 14", stock: 20 },
+      { brand: "Apple", reference: "iPhone 13", stock: 20 },
+      { brand: "Samsung", reference: "Galaxy S25 Ultra", stock: 20 },
+      { brand: "Samsung", reference: "Galaxy S25", stock: 20 },
+      { brand: "Samsung", reference: "Galaxy S24 Ultra", stock: 15 },
+      { brand: "Samsung", reference: "Galaxy S24", stock: 20 },
+      { brand: "Samsung", reference: "Galaxy A55", stock: 25 },
+      { brand: "Samsung", reference: "Galaxy A35", stock: 25 },
+      { brand: "Samsung", reference: "Galaxy A15", stock: 30 },
+      { brand: "Motorola", reference: "Moto G84", stock: 20 },
+      { brand: "Motorola", reference: "Moto G54", stock: 20 },
+      { brand: "Huawei", reference: "Nova 12i", stock: 15 },
+    ],
+  },
 ];
 
 const users = [
@@ -284,16 +292,21 @@ async function seed() {
   try {
     // Create tables matching the API's PgRepository schema exactly
     await client.query(`
-      CREATE TABLE IF NOT EXISTS items (
+      CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT NOT NULL DEFAULT '',
-        type TEXT NOT NULL DEFAULT 'skin impreso',
+        type TEXT NOT NULL DEFAULT 'skin texturizado',
+        price DOUBLE PRECISION NOT NULL DEFAULT 0,
+        image_url TEXT NOT NULL DEFAULT '',
+        requires_device BOOLEAN NOT NULL DEFAULT false
+      );
+      CREATE TABLE IF NOT EXISTS items (
+        id SERIAL PRIMARY KEY,
+        product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
         brand TEXT NOT NULL DEFAULT '',
         reference TEXT NOT NULL DEFAULT '',
-        price DOUBLE PRECISION NOT NULL DEFAULT 0,
-        stock INTEGER NOT NULL DEFAULT 0,
-        image_url TEXT NOT NULL DEFAULT ''
+        stock INTEGER NOT NULL DEFAULT 0
       );
       CREATE TABLE IF NOT EXISTS users (
         id BIGSERIAL PRIMARY KEY,
@@ -355,18 +368,35 @@ async function seed() {
     `);
 
     // Clear existing data
-    await client.query("TRUNCATE items, users, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
+    await client.query("TRUNCATE products, items, users, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
     await client.query("TRUNCATE user_identities RESTART IDENTITY CASCADE");
 
-    console.log("Seeding items...");
-    const createdItems: { id: number }[] = [];
-    for (const item of items) {
-      const res = await client.query(
-        "INSERT INTO items (name, description, type, brand, reference, price, stock, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
-        [item.name, item.description, item.type, item.brand, item.reference, item.price, item.stock, item.image_url]
+    console.log("Seeding products & items...");
+    for (const product of products) {
+      const { variants, stock, ...productData } = product as typeof product & { variants?: { brand: string; reference: string; stock: number }[]; stock?: number };
+      const pRes = await client.query(
+        "INSERT INTO products (name, description, type, price, image_url, requires_device) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+        [productData.name, productData.description, productData.type, productData.price, productData.image_url, productData.requires_device]
       );
-      createdItems.push(res.rows[0]);
-      console.log(`  Created item: ${item.name} (id: ${res.rows[0].id})`);
+      const productId = pRes.rows[0].id;
+      console.log(`  Created product: ${productData.name} (id: ${productId})`);
+
+      if (variants && variants.length > 0) {
+        for (const v of variants) {
+          await client.query(
+            "INSERT INTO items (product_id, brand, reference, stock) VALUES ($1, $2, $3, $4)",
+            [productId, v.brand, v.reference, v.stock]
+          );
+        }
+        console.log(`    Created ${variants.length} item variants`);
+      } else {
+        // Non-device product: single item with no brand/reference
+        await client.query(
+          "INSERT INTO items (product_id, brand, reference, stock) VALUES ($1, $2, $3, $4)",
+          [productId, "", "", stock ?? 0]
+        );
+        console.log(`    Created 1 item (generic)`);
+      }
     }
 
     console.log("Seeding users...");

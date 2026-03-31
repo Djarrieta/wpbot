@@ -1,4 +1,5 @@
 import type { ResourceRoute } from '../core/types';
+import products, { init as initProducts } from './products';
 import items, { init as initItems } from './items';
 import users, { init as initUsers } from './users';
 import chathistory, { init as initChatHistory } from './chathistory';
@@ -8,6 +9,7 @@ import context, { init as initContext } from './context';
 import shipping, { init as initShipping } from './shipping';
 
 export const modules: ResourceRoute[] = [
+  products,
   items,
   users,
   chathistory,
@@ -18,6 +20,6 @@ export const modules: ResourceRoute[] = [
 ];
 
 export async function initModules() {
-  await Promise.all([initItems(), initUsers(), initChatHistory(), initOrders(), initOrderItems(), initContext(), initShipping()]);
+  await Promise.all([initProducts(), initItems(), initUsers(), initChatHistory(), initOrders(), initOrderItems(), initContext(), initShipping()]);
 }
 

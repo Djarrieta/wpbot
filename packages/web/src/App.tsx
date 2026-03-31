@@ -12,6 +12,9 @@ const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ItemsPage = lazy(() =>
   import("@/modules/items/Page").then((m) => ({ default: m.ItemsPage })),
 );
+const ProductsPage = lazy(() =>
+  import("@/modules/products/Page").then((m) => ({ default: m.ProductsPage })),
+);
 const UsersPage = lazy(() =>
   import("@/modules/users/Page").then((m) => ({ default: m.UsersPage })),
 );
@@ -44,6 +47,7 @@ export function App() {
         <Route element={<AuthGuard />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<DashboardPage />} />
+            <Route path="/admin/products" element={<ProductsPage />} />
             <Route path="/admin/items" element={<ItemsPage />} />
             <Route path="/admin/users" element={<UsersPage />} />
             <Route path="/admin/orders" element={<OrdersPage />} />

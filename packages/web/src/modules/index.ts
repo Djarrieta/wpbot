@@ -1,4 +1,5 @@
 import type { ModuleConfig } from './types';
+import products from './products';
 import items from './items';
 import users from './users';
 import orders from './orders';
@@ -7,6 +8,7 @@ import shipping from './shipping';
 import chathistory from './chathistory';
 
 export const modules: ModuleConfig[] = [
+  products,
   items,
   users,
   orders,

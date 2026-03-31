@@ -1,7 +1,7 @@
 import type { ModuleConfig } from '../types';
 
 export default {
-  basePath: '/admin/items',
-  label: 'Variantes',
-  icon: '📱',
+  basePath: '/admin/products',
+  label: 'Productos',
+  icon: '🏷️',
 } satisfies ModuleConfig;

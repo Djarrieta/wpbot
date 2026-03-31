@@ -1,42 +1,36 @@
 "use client";
 
-import type { Item, WithId } from "@wpbot/shared";
+import { useEffect, useState } from "react";
+import type { Item, Product, WithId } from "@wpbot/shared";
 import { CrudPage } from "@/components/CrudPage";
 import { ItemForm } from "./Form";
 import { api } from "./api";
+import { api as productsApi } from "../products/api";
 
 export function ItemsPage() {
+  const [productMap, setProductMap] = useState<Map<number, string>>(new Map());
+
+  useEffect(() => {
+    productsApi.fetchAll().then((products) => {
+      setProductMap(new Map(products.map((p) => [p.id, p.name])));
+    });
+  }, []);
+
   return (
     <CrudPage<WithId<Item>>
-      entityName="Artículo"
-      entityNamePlural="Artículos"
+      entityName="Variante"
+      entityNamePlural="Variantes (Items)"
       api={api}
       columns={[
         { key: "id", header: "ID" },
-        { key: "name", header: "Nombre" },
-        { key: "type", header: "Tipo" },
+        {
+          key: "product_id",
+          header: "Producto",
+          render: (v) => productMap.get(Number(v)) ?? `#${v}`,
+        },
         { key: "brand", header: "Marca" },
         { key: "reference", header: "Referencia" },
-        {
-          key: "price",
-          header: "Precio",
-          render: (v) => `$${Number(v).toLocaleString()}`,
-        },
         { key: "stock", header: "Stock" },
-        {
-          key: "image_url",
-          header: "Imagen",
-          render: (v) =>
-            v ? (
-              <img
-                src={String(v)}
-                alt=""
-                className="w-10 h-10 rounded object-cover"
-              />
-            ) : (
-              "—"
-            ),
-        },
       ]}
       FormComponent={ItemForm}
     />

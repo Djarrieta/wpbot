@@ -1,5 +1,5 @@
 export interface Stats {
-    totalItems: number;
+    totalProducts: number;
     totalValue: number;
     avgPrice: number;
 }

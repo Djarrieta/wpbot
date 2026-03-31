@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import type { Item, WithId } from "@wpbot/shared";
+import type { Item, Product, WithId } from "@wpbot/shared";
 import { SessionIcon } from "@/components/SessionIcon";
 
 declare global {
@@ -21,22 +21,37 @@ declare global {
   }
 }
 
-async function fetchItems(): Promise<WithId<Item>[]> {
-  const res = await fetch("/api/items");
-  if (!res.ok) throw new Error(`Failed to fetch items: ${res.status}`);
-  const items: WithId<Item>[] = await res.json();
-  return items.filter((item) => item.stock > 0);
+type ProductWithItems = WithId<Product> & { items: WithId<Item>[] };
+
+async function fetchStore(): Promise<ProductWithItems[]> {
+  const [productsRes, itemsRes] = await Promise.all([
+    fetch("/api/products"),
+    fetch("/api/items"),
+  ]);
+  if (!productsRes.ok)
+    throw new Error(`Failed to fetch products: ${productsRes.status}`);
+  if (!itemsRes.ok)
+    throw new Error(`Failed to fetch items: ${itemsRes.status}`);
+  const products: WithId<Product>[] = await productsRes.json();
+  const items: WithId<Item>[] = await itemsRes.json();
+
+  return products
+    .map((p) => ({
+      ...p,
+      items: items.filter((i) => i.product_id === p.id && i.stock > 0),
+    }))
+    .filter((p) => p.items.length > 0);
 }
 
 function formatPrice(price: number) {
-  return `$${price.toFixed(2)}`;
+  return `$${price.toLocaleString()}`;
 }
 
-async function startWompiCheckout(item: WithId<Item>) {
+async function startWompiCheckout(productId: number) {
   const res = await fetch("/api/wompi/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ itemId: item.id }),
+    body: JSON.stringify({ itemId: productId }),
   });
   if (!res.ok) {
     const err = await res
@@ -58,14 +73,76 @@ async function startWompiCheckout(item: WithId<Item>) {
   });
 }
 
+function ProductCard({ product }: { product: ProductWithItems }) {
+  const [selectedItemId, setSelectedItemId] = useState<number>(
+    product.items[0].id,
+  );
+
+  return (
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+      {product.image_url && (
+        <img
+          src={product.image_url}
+          alt={product.name}
+          className="w-full h-48 object-cover"
+        />
+      )}
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0">
+            {product.name}
+          </h3>
+          <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap ml-3">
+            {formatPrice(product.price)}
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 m-0 line-clamp-3">
+          {product.description || "Sin descripción"}
+        </p>
+
+        {product.requires_device && product.items.length > 0 && (
+          <div className="mt-3">
+            <label
+              htmlFor={`model-${product.id}`}
+              className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"
+            >
+              Selecciona tu modelo
+            </label>
+            <select
+              id={`model-${product.id}`}
+              value={selectedItemId}
+              onChange={(e) => setSelectedItemId(Number(e.target.value))}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+            >
+              {product.items.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.brand} {item.reference}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => startWompiCheckout(product.id)}
+          className="mt-4 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 text-sm transition-colors cursor-pointer"
+        >
+          Comprar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function StorePage() {
-  const [items, setItems] = useState<WithId<Item>[]>([]);
+  const [products, setProducts] = useState<ProductWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchItems()
-      .then(setItems)
+    fetchStore()
+      .then(setProducts)
       .catch((e) =>
         setError(e instanceof Error ? e.message : "Error loading products"),
       )
@@ -125,45 +202,14 @@ export default function StorePage() {
               />
             ))}
           </div>
-        ) : items.length === 0 ? (
+        ) : products.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-16">
             No hay productos disponibles.
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
-              >
-                {item.image_url && (
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-48 object-cover"
-                  />
-                )}
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0">
-                      {item.name}
-                    </h3>
-                    <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap ml-3">
-                      {formatPrice(item.price)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 m-0 line-clamp-3">
-                    {item.description || "Sin descripción"}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => startWompiCheckout(item)}
-                    className="mt-4 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 text-sm transition-colors cursor-pointer"
-                  >
-                    Comprar
-                  </button>
-                </div>
-              </div>
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}

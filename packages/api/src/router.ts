@@ -2,7 +2,7 @@ import { HealthController } from "./controllers/healthController";
 import { AssistantController } from "./controllers/assistantController";
 import { AIService } from "./services/aiService";
 import { modules } from "./modules";
-import { service as itemsService } from "./modules/items";
+import { service as productsService } from "./modules/products";
 import { handleGoogleRedirect, handleGoogleCallback, handleGetSession, handleLogout, verifySession } from "./auth";
 import { optionalEnv } from "@wpbot/shared";
 import type { Route } from "./core/types";
@@ -78,11 +78,11 @@ const routes: Route[] = [
     method: "GET",
     pathname: "/stats",
     handler: async () => {
-      const allItems = await itemsService.getAll();
-      const totalItems = allItems.length;
-      const totalValue = allItems.reduce((sum, item) => sum + item.price, 0);
-      const avgPrice = totalItems > 0 ? totalValue / totalItems : 0;
-      return Response.json({ totalItems, totalValue, avgPrice });
+      const allProducts = await productsService.getAll();
+      const totalProducts = allProducts.length;
+      const totalValue = allProducts.reduce((sum, p) => sum + p.price, 0);
+      const avgPrice = totalProducts > 0 ? totalValue / totalProducts : 0;
+      return Response.json({ totalProducts, totalValue, avgPrice });
     },
   },
   {
@@ -96,11 +96,11 @@ const routes: Route[] = [
       if (!body.itemId) {
         return Response.json({ error: "itemId is required" }, { status: 400 });
       }
-      const item = await itemsService.getById(body.itemId);
-      if (!item) {
-        return Response.json({ error: "Item not found" }, { status: 404 });
+      const product = await productsService.getById(body.itemId);
+      if (!product) {
+        return Response.json({ error: "Product not found" }, { status: 404 });
       }
-      const amountInCents = Math.round(item.price * 100);
+      const amountInCents = Math.round(product.price * 100);
       const reference = `wpbot-${body.itemId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
       const concat = `${reference}${amountInCents}COP${WOMPI_INTEGRITY_SECRET}`;
       const encoded = new TextEncoder().encode(concat);
@@ -205,7 +205,7 @@ export async function router(req: Request): Promise<Response> {
   // Resource routes — public read for /items, admin required for everything else
   const resourceResponse = handleResourceRoutes(req.method, pathname, req);
   if (resourceResponse) {
-    const isPublicRead = req.method === "GET" && (pathname === "/items" || /^\/items\/\d+$/.test(pathname));
+    const isPublicRead = req.method === "GET" && (pathname === "/products" || /^\/products\/\d+$/.test(pathname) || pathname === "/items" || /^\/items\/\d+$/.test(pathname));
     if (!isPublicRead) {
       const adminError = await requireAdmin(req);
       if (adminError) return withCors(adminError, WEB_ORIGIN);

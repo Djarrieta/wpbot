@@ -1,13 +1,19 @@
-export type Item = {
+export type Product = {
   id?: number;
   name: string;
   description: string;
-  type: 'skin texturizado' | 'skin impreso' | 'funda 3d';
-  brand?: string;
-  reference?: string;
+  type: 'skin texturizado' | 'skin impreso' | 'funda transparente' | 'funda 3d';
   price: number;
-  stock: number;
   image_url: string;
+  requires_device: boolean;
+};
+
+export type Item = {
+  id?: number;
+  product_id: number;
+  brand: string;
+  reference: string;
+  stock: number;
 };
 
 export type User = {
