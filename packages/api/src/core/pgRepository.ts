@@ -1,6 +1,6 @@
 import pg from 'pg';
 import { getPool, type PoolRole } from './dbPool';
-import { Repository, type BaseEntity } from './repository';
+import { Repository, type BaseEntity, type PaginatedResult } from './repository';
 
 export interface ColumnDef {
   name: string;
@@ -87,6 +87,42 @@ export class PgRepository<T extends BaseEntity> extends Repository<T> {
       values
     );
     return result.rows as T[];
+  }
+
+  async getAllPaginated(page: number, limit: number, filter?: Record<string, string>): Promise<PaginatedResult<T>> {
+    let whereClause = '';
+    let values: string[] = [];
+
+    if (filter && Object.keys(filter).length > 0) {
+      const validFilters = Object.entries(filter).filter(([key]) =>
+        this.fieldNames.includes(key)
+      );
+      if (validFilters.length > 0) {
+        const whereClauses = validFilters.map(([key], i) => `${key} = $${i + 1}`);
+        values = validFilters.map(([, value]) => value);
+        whereClause = ` WHERE ${whereClauses.join(' AND ')}`;
+      }
+    }
+
+    const countResult = await this.pool.query(
+      `SELECT COUNT(*) FROM ${this.tableName}${whereClause}`,
+      values
+    );
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    const offset = (page - 1) * limit;
+    const dataResult = await this.pool.query(
+      `SELECT * FROM ${this.tableName}${whereClause} ORDER BY id ASC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+      [...values, limit, offset]
+    );
+
+    return {
+      data: dataResult.rows as T[],
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async getById(id: number): Promise<T | null> {

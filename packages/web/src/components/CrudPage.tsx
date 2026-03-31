@@ -37,6 +37,9 @@ export function CrudPage<T extends { id: number }>({
   const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20;
 
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<T | null>(null);
@@ -45,7 +48,9 @@ export function CrudPage<T extends { id: number }>({
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      setData(await api.fetchAll());
+      const result = await api.fetchPaginated({ page, limit });
+      setData(result.data);
+      setTotalPages(result.totalPages);
     } catch (e) {
       setError(
         e instanceof Error
@@ -55,7 +60,7 @@ export function CrudPage<T extends { id: number }>({
     } finally {
       setInitialLoad(false);
     }
-  }, [api, entityNamePlural]);
+  }, [api, entityNamePlural, page]);
 
   useEffect(() => {
     loadData();
@@ -64,9 +69,9 @@ export function CrudPage<T extends { id: number }>({
   async function handleCreate(formData: Omit<T, "id">) {
     try {
       setSaving(true);
-      const created = await api.create(formData);
-      setData((prev) => [...prev, created]);
+      await api.create(formData);
       setShowCreate(false);
+      loadData();
     } catch (e) {
       setError(
         e instanceof Error
@@ -82,9 +87,9 @@ export function CrudPage<T extends { id: number }>({
     if (!editing) return;
     try {
       setSaving(true);
-      const updated = await api.update(editing.id, formData);
-      setData((prev) => prev.map((r) => (r.id === editing.id ? updated : r)));
+      await api.update(editing.id, formData);
       setEditing(null);
+      loadData();
     } catch (e) {
       setError(
         e instanceof Error
@@ -101,8 +106,8 @@ export function CrudPage<T extends { id: number }>({
     try {
       setSaving(true);
       await api.delete(deleting.id);
-      setData((prev) => prev.filter((r) => r.id !== deleting.id));
       setDeleting(null);
+      loadData();
     } catch (e) {
       setError(
         e instanceof Error
@@ -150,6 +155,9 @@ export function CrudPage<T extends { id: number }>({
         columns={columns}
         data={data}
         keyField={"id" as keyof T}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
         actions={(row) => (
           <>
             <Button variant="secondary" onClick={() => setEditing(row)}>

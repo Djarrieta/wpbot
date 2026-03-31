@@ -9,9 +9,20 @@ interface TableProps<T> {
   data: T[];
   keyField: keyof T;
   actions?: (row: T) => React.ReactNode;
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
-export function Table<T>({ columns, data, keyField, actions }: TableProps<T>) {
+export function Table<T>({
+  columns,
+  data,
+  keyField,
+  actions,
+  page,
+  totalPages,
+  onPageChange,
+}: TableProps<T>) {
   return (
     <table className="w-full border-collapse">
       <thead>
@@ -66,6 +77,39 @@ export function Table<T>({ columns, data, keyField, actions }: TableProps<T>) {
           ))
         )}
       </tbody>
+      {page !== undefined &&
+        totalPages !== undefined &&
+        onPageChange &&
+        totalPages > 1 && (
+          <tfoot>
+            <tr>
+              <td
+                colSpan={columns.length + (actions ? 1 : 0)}
+                className="border border-gray-200 dark:border-gray-700 px-4 py-2.5"
+              >
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => onPageChange(page - 1)}
+                    disabled={page <= 1}
+                    className="px-3 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    ← Anterior
+                  </button>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Página {page} de {totalPages}
+                  </span>
+                  <button
+                    onClick={() => onPageChange(page + 1)}
+                    disabled={page >= totalPages}
+                    className="px-3 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Siguiente →
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+        )}
     </table>
   );
 }

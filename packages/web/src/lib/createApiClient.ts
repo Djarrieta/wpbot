@@ -1,5 +1,14 @@
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface ApiClient<T> {
   fetchAll(params?: Record<string, string | number>): Promise<T[]>;
+  fetchPaginated(params: { page: number; limit: number } & Record<string, string | number>): Promise<PaginatedResponse<T>>;
   create(entity: Omit<T, "id">): Promise<T>;
   update(id: number, entity: Partial<Omit<T, "id">>): Promise<T>;
   delete(id: number): Promise<void>;
@@ -19,6 +28,17 @@ export function createApiClient<T>(basePath: string, entityName: string): ApiCli
         }
         url = `${proxyPath}?${searchParams.toString()}`;
       }
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to fetch ${entityName}s: ${res.status}`);
+      return res.json();
+    },
+
+    async fetchPaginated(params: { page: number; limit: number } & Record<string, string | number>): Promise<PaginatedResponse<T>> {
+      const searchParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(params)) {
+        searchParams.set(key, String(value));
+      }
+      const url = `${proxyPath}?${searchParams.toString()}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Failed to fetch ${entityName}s: ${res.status}`);
       return res.json();

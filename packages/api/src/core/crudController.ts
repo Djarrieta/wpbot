@@ -16,8 +16,20 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
     const url = new URL(req.url);
     const filter: Record<string, string> = {};
     url.searchParams.forEach((value, key) => {
-      filter[key] = value;
+      if (key !== 'page' && key !== 'limit') {
+        filter[key] = value;
+      }
     });
+
+    const pageParam = url.searchParams.get('page');
+    const limitParam = url.searchParams.get('limit');
+
+    if (pageParam || limitParam) {
+      const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
+      const limit = Math.max(1, Math.min(100, parseInt(limitParam ?? '20', 10) || 20));
+      return Response.json(await this.service.getAllPaginated(page, limit, filter));
+    }
+
     return Response.json(await this.service.getAll(filter));
   }
 
