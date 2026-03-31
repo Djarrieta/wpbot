@@ -52,7 +52,7 @@ async function sendMessage(to: string, text: string) {
   return result;
 }
 
-async function callAssistant(message: string, phoneNumber: string): Promise<string> {
+async function callAssistant(message: string, phoneNumber: string): Promise<string | null> {
   const response = await fetch(`${API_URL}/assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -61,10 +61,11 @@ async function callAssistant(message: string, phoneNumber: string): Promise<stri
 
   if (!response.ok) {
     console.error("Assistant API error:", response.status);
-    return "Lo siento, hubo un error procesando tu mensaje.";
+    return null;
   }
 
-  const data = (await response.json()) as { response: string };
+  const data = (await response.json()) as { response: string; blocked?: boolean };
+  if (data.blocked) return null;
   return data.response;
 }
 
@@ -90,7 +91,9 @@ export async function handleWebhook(req: Request): Promise<Response> {
     const message = parseIncomingMessage(body);
     if (message) {
       const responseText = await callAssistant(message.text, message.from);
-      await sendMessage(message.from, responseText);
+      if (responseText) {
+        await sendMessage(message.from, responseText);
+      }
     }
 
     return new Response("OK", { status: 200 });

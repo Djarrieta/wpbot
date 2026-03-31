@@ -4,6 +4,7 @@ import type { BaseEntity } from "../core/repository";
 import type { ChatHistoryRepository } from "../modules/chathistory/service";
 import type { UsersRepository } from "../modules/users/service";
 import type { Context } from "@wpbot/shared";
+import { HUMAN_ESCALATION_MESSAGE } from "../constants";
 
 export class AssistantController {
   private readonly responseGenerator: ResponseGenerator;
@@ -63,6 +64,8 @@ export class AssistantController {
   }
 
   async handle(req: Request): Promise<Response> {
+    let userId: number | undefined;
+
     try {
       const body = await req.json() as {
         message?: string;
@@ -88,7 +91,6 @@ export class AssistantController {
       }
 
       // Resolve user: prefer provider-based, fall back to email lookup
-      let userId: number;
       if (body.provider && body.providerId) {
         const user = await this.usersService.resolveByIdentity(
           body.provider,
@@ -106,6 +108,16 @@ export class AssistantController {
         );
       }
 
+      // Check if conversation is blocked (requires human intervention)
+      const blocked = await this.chatHistoryService.isConversationBlocked(userId);
+
+      console.log({blocked})
+      if (blocked) {
+        // Save the user message so it's not lost
+        await this.chatHistoryService.addMessage(userId, body.message, 'user');
+        return Response.json({ response: "", blocked: true });
+      }
+
       const prompt = await this.buildPrompt(body.message, userId);
 
       // Save user message to history
@@ -114,15 +126,27 @@ export class AssistantController {
       const response = await this.responseGenerator.generateResponse(prompt);
 
       // Save assistant response to history
-      await this.chatHistoryService.addMessage(userId, response, 'assistant');
+      const assistantMessage = await this.chatHistoryService.addMessage(userId, response, 'assistant');
+
+      // If the AI response contains the escalation message, mark as requires_human
+      if (response.includes(HUMAN_ESCALATION_MESSAGE)) {
+        await this.chatHistoryService.markRequiresHuman(assistantMessage.id!);
+      }
 
       return Response.json({ response });
     } catch (error) {
       console.error("Error processing assistant request:", error);
-      return Response.json(
-        { error: "Internal server error" },
-        { status: 500 }
-      );
+
+      // Save the escalation message if we know the user
+      if (userId) {
+        try {
+          await this.chatHistoryService.addMessage(userId, HUMAN_ESCALATION_MESSAGE, 'assistant', true);
+        } catch (innerError) {
+          console.error("Failed to save escalation message:", innerError);
+        }
+      }
+
+      return Response.json({ response: HUMAN_ESCALATION_MESSAGE });
     }
   }
 }

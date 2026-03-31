@@ -138,6 +138,9 @@ const routes: Route[] = [
   },
 ];
 
+// Regex to match /chathistory/unblock/:userId
+const unblockPattern = /^\/chathistory\/unblock\/(\d+)$/;
+
 const COOKIE_NAME = "wpbot_session";
 
 async function requireAdmin(req: Request): Promise<Response | null> {
@@ -217,6 +220,23 @@ export async function router(req: Request): Promise<Response> {
 
   if (route) {
     const res = await route.handler(req);
+    return withCors(res, WEB_ORIGIN);
+  }
+
+  // Custom route: POST /chathistory/unblock/:userId
+  const unblockMatch = req.method === "POST" && pathname.match(unblockPattern);
+  if (unblockMatch) {
+    const adminError = await requireAdmin(req);
+    if (adminError) return withCors(adminError, WEB_ORIGIN);
+    const targetUserId = parseInt(unblockMatch[1]!, 10);
+    await chatHistoryService.unblockConversation(targetUserId);
+    // Insert a resumption message so the conversation flows naturally
+    await chatHistoryService.addMessage(
+      targetUserId,
+      "Listo, ya puedo ayudarte. ¿En qué te puedo colaborar?",
+      "assistant",
+    );
+    const res = Response.json({ success: true });
     return withCors(res, WEB_ORIGIN);
   }
 

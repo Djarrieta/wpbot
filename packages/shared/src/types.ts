@@ -32,6 +32,7 @@ export type ChatHistory = {
   message: string;
   role: 'user' | 'assistant';
   timestamp: string;
+  requires_human?: boolean;
 };
 
 export type Order = {

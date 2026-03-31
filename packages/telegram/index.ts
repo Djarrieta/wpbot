@@ -5,7 +5,7 @@ import { requireEnv, optionalEnv } from "@wpbot/shared";
 const BOT_TOKEN = requireEnv("TELEGRAM_BOT_TOKEN");
 const API_URL = optionalEnv("API_URL", "http://localhost:4000");
 
-async function callAssistant(userMessage: string, telegramId: number, name?: string): Promise<string> {
+async function callAssistant(userMessage: string, telegramId: number, name?: string): Promise<string | null> {
   const response = await fetch(`${API_URL}/assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -14,10 +14,11 @@ async function callAssistant(userMessage: string, telegramId: number, name?: str
 
   if (!response.ok) {
     console.error("Assistant API error:", response.status);
-    return "Lo siento, hubo un error procesando tu mensaje.";
+    return null;
   }
 
-  const data = (await response.json()) as { response: string };
+  const data = (await response.json()) as { response: string; blocked?: boolean };
+  if (data.blocked) return null;
   return data.response;
 }
 
@@ -38,10 +39,9 @@ bot.on(message("text"), async (ctx) => {
   try {
     await ctx.sendChatAction("typing");
     const responseText = await callAssistant(userMessage, userId, name || undefined);
-    await ctx.reply(responseText);
+    if (responseText) await ctx.reply(responseText);
   } catch (error) {
     console.error("Error processing message:", error);
-    await ctx.reply("Lo siento, hubo un error procesando tu mensaje.");
   }
 });
 
@@ -59,10 +59,9 @@ bot.on(message("photo"), async (ctx) => {
   try {
     await ctx.sendChatAction("typing");
     const responseText = await callAssistant("[imagen recibida]", userId, name || undefined);
-    await ctx.reply(responseText);
+    if (responseText) await ctx.reply(responseText);
   } catch (error) {
     console.error("Error processing photo message:", error);
-    await ctx.reply("Lo siento, hubo un error procesando tu mensaje.");
   }
 });
 

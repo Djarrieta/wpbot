@@ -24,6 +24,11 @@ const ContextPage = lazy(() =>
 const ShippingPage = lazy(() =>
   import("@/modules/shipping/Page").then((m) => ({ default: m.ShippingPage })),
 );
+const ChatHistoryPage = lazy(() =>
+  import("@/modules/chathistory/Page").then((m) => ({
+    default: m.ChatHistoryPage,
+  })),
+);
 
 function Fallback() {
   return <PageSkeleton />;
@@ -44,6 +49,7 @@ export function App() {
             <Route path="/admin/orders" element={<OrdersPage />} />
             <Route path="/admin/context" element={<ContextPage />} />
             <Route path="/admin/shipping" element={<ShippingPage />} />
+            <Route path="/admin/chathistory" element={<ChatHistoryPage />} />
           </Route>
         </Route>
       </Routes>

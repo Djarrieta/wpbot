@@ -269,7 +269,8 @@ async function seed() {
         user_id BIGINT NOT NULL,
         message TEXT NOT NULL,
         role TEXT NOT NULL DEFAULT 'user',
-        timestamp TEXT NOT NULL
+        timestamp TEXT NOT NULL,
+        requires_human BOOLEAN NOT NULL DEFAULT false
       );
       CREATE TABLE IF NOT EXISTS context (
         id SERIAL PRIMARY KEY,

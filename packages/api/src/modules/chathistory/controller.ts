@@ -4,6 +4,6 @@ import type { ChatHistory } from './service';
 
 export class ChatHistoryController extends GenericCrudController<ChatHistory> {
   constructor(chatHistoryService: Repository<ChatHistory>) {
-    super(chatHistoryService, 'ChatHistory', ['user_id', 'message', 'role', 'timestamp']);
+    super(chatHistoryService, 'ChatHistory', ['user_id', 'message', 'role', 'timestamp', 'requires_human']);
   }
 }
