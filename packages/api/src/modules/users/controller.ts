@@ -6,7 +6,7 @@ export class UsersController extends GenericCrudController<User> {
   private usersRepo: UsersRepository;
 
   constructor(usersService: UsersRepository) {
-    super(usersService, 'User', ['email']);
+    super(usersService, 'User', ['email'], ['name', 'email', 'phone']);
     this.usersRepo = usersService;
   }
 

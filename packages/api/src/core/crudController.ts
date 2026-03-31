@@ -5,18 +5,21 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
   protected service: Repository<T>;
   protected entityName: string;
   private requiredFields: string[];
+  protected searchColumns: string[];
 
-  constructor(service: Repository<T>, entityName: string, requiredFields: string[]) {
+  constructor(service: Repository<T>, entityName: string, requiredFields: string[], searchColumns: string[] = ['name']) {
     this.service = service;
     this.entityName = entityName;
     this.requiredFields = requiredFields;
+    this.searchColumns = searchColumns;
   }
 
   async getAll(req: Request): Promise<Response> {
     const url = new URL(req.url);
+    const search = url.searchParams.get('search') ?? undefined;
     const filter: Record<string, string> = {};
     url.searchParams.forEach((value, key) => {
-      if (key !== 'page' && key !== 'limit') {
+      if (key !== 'page' && key !== 'limit' && key !== 'search') {
         filter[key] = value;
       }
     });
@@ -27,7 +30,7 @@ export class GenericCrudController<T extends BaseEntity> implements CrudControll
     if (pageParam || limitParam) {
       const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
       const limit = Math.max(1, Math.min(100, parseInt(limitParam ?? '20', 10) || 20));
-      return Response.json(await this.service.getAllPaginated(page, limit, filter));
+      return Response.json(await this.service.getAllPaginated(page, limit, filter, search, this.searchColumns));
     }
 
     return Response.json(await this.service.getAll(filter));

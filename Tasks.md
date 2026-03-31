@@ -86,3 +86,56 @@ Paginación server-side con query params `page` y `limit`. La API retorna un obj
 - El endpoint de la API sigue compatible: sin `page`/`limit` retorna array plano (para el AI assistant), con `page`/`limit` retorna objeto paginado (para la UI admin).
 
 ---
+
+## Tarea 11: Input de búsqueda dinámica para campos de relación (SearchSelect)
+
+**Problema:** En formularios como `OrderItemForm`, se cargan **todos** los registros relacionados con `fetchAll()` y se muestran en un `<select>` estático. Esto no escala: con cientos de items, el dropdown se vuelve inutilizable y el fetch inicial es costoso.
+
+**Solución:** Componente `SearchSelect` reutilizable que busca registros dinámicamente conforme el usuario escribe, usando el endpoint paginado de la API (Tarea 10) con un parámetro de búsqueda.
+
+### Cambios en la API
+
+1. **`packages/api/src/core/pgRepository.ts`** — Agregar soporte de búsqueda textual a `getAllPaginated()`:
+   - Aceptar un parámetro opcional `search?: string` y `searchColumns?: string[]`.
+   - Si se reciben, agregar condición `WHERE (col1 ILIKE '%search%' OR col2 ILIKE '%search%' ...)` usando parámetros preparados (prevenir SQL injection).
+   - Esto permite que el endpoint existente `GET /items?page=1&limit=10&search=camisa` retorne solo los items que coincidan.
+
+2. **`packages/api/src/core/crudController.ts`** — Leer query param `search` y pasarlo a `getAllPaginated()`. Cada módulo define sus columnas buscables en su configuración (por defecto `['name']`).
+
+3. **Configuración por módulo** — Cada servicio/módulo puede declarar `searchColumns` (ej: items → `['name', 'description']`, users → `['name', 'email', 'phone']`). Si no se declara, usar `['name']` como fallback.
+
+### Cambios en la UI (Web)
+
+4. **Nuevo componente `packages/web/src/components/SearchSelect.tsx`**:
+   - Props:
+     - `apiClient`: cliente API del módulo relacionado (ej: `itemsApi`).
+     - `value`: ID del registro seleccionado (controlado).
+     - `onChange(id, record)`: callback al seleccionar un registro.
+     - `labelKey`: campo a mostrar como texto (default `'name'`).
+     - `valueKey`: campo a usar como valor (default `'id'`).
+     - `placeholder`: texto del input.
+   - Comportamiento:
+     - Input de texto con debounce (~300ms).
+     - Al escribir, llama a `apiClient.fetchPaginated({ page: 1, limit: 10, search: inputValue })`.
+     - Muestra dropdown con los resultados debajo del input.
+     - Al seleccionar un resultado, cierra el dropdown, muestra el label seleccionado en el input, y llama `onChange`.
+     - Botón para limpiar la selección.
+     - Estado de carga (spinner o texto "Buscando...").
+     - Si el input está vacío, mostrar los primeros 10 resultados (carga inicial ligera).
+   - Estilos: consistentes con el diseño actual (dark mode, bordes grises, etc).
+
+5. **`packages/web/src/lib/createApiClient.ts`** — Asegurar que `fetchPaginated()` acepte un parámetro `search` opcional y lo pase como query param.
+
+6. **`packages/web/src/modules/order_items/Form.tsx`** — Refactorizar:
+   - Reemplazar el `<select>` estático de items por `<SearchSelect>`.
+   - Eliminar el `useEffect` que hace `fetchAll()` de todos los items.
+   - En el `onChange` del `SearchSelect`, seguir auto-poblando `unit_price` con el precio del item seleccionado.
+
+### Notas
+
+- **Depende de Tarea 10** (paginación) para el endpoint `fetchPaginated`.
+- El componente `SearchSelect` es genérico y reutilizable para cualquier campo de relación futuro (ej: seleccionar usuario en una orden, seleccionar orden en un envío).
+- Usar debounce para no hacer una request por cada keystroke.
+- El parámetro `search` usa `ILIKE` (case-insensitive) de PostgreSQL.
+
+---

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import type { Item, OrderItem, WithId } from "@wpbot/shared";
 import { Button } from "@/components/Button";
+import { SearchSelect } from "@/components/SearchSelect";
 import { api as itemsApi } from "../items/api";
 
 interface OrderItemFormProps {
@@ -18,12 +19,10 @@ export function OrderItemForm({
   onCancel,
   loading,
 }: OrderItemFormProps) {
-  const [items, setItems] = useState<WithId<Item>[]>([]);
-  const [loadingItems, setLoadingItems] = useState(true);
-
-  const [selectedItemId, setSelectedItemId] = useState<string>(
-    initial?.item_id ? String(initial.item_id) : "",
+  const [selectedItemId, setSelectedItemId] = useState<number>(
+    initial?.item_id ?? 0,
   );
+  const [selectedItem, setSelectedItem] = useState<WithId<Item> | null>(null);
   const [quantity, setQuantity] = useState<string>(
     initial?.quantity ? String(initial.quantity) : "1",
   );
@@ -34,39 +33,32 @@ export function OrderItemForm({
     initial?.image_sent ?? false,
   );
 
-  useEffect(() => {
-    itemsApi.fetchAll().then((data) => {
-      setItems(data);
-      setLoadingItems(false);
-    });
-  }, []);
-
-  function handleItemChange(itemId: string) {
-    setSelectedItemId(itemId);
-    const item = items.find((i) => i.id === Number(itemId));
-    if (item) {
-      setUnitPrice(String(item.price));
+  function handleItemChange(id: number, record: WithId<Item> | null) {
+    setSelectedItemId(id);
+    setSelectedItem(record);
+    if (record) {
+      setUnitPrice(String(record.price));
     }
   }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const item = items.find((i) => i.id === Number(selectedItemId));
+    const item = selectedItem;
     onSubmit({
       order_id: initial?.order_id ?? 0,
-      item_id: Number(selectedItemId),
-      item_name: item?.name ?? "",
+      item_id: selectedItemId,
+      item_name: item?.name ?? initial?.item_name ?? "",
       quantity: Number(quantity),
       unit_price: Number(unitPrice),
-      device_reference: [item?.brand, item?.reference]
-        .filter(Boolean)
-        .join(" "),
+      device_reference: item
+        ? [item.brand, item.reference].filter(Boolean).join(" ")
+        : initial?.device_reference ?? "",
       image_sent: imageSent,
     });
   }
 
   const isValid =
-    selectedItemId !== "" && Number(quantity) >= 1 && Number(unitPrice) >= 0;
+    selectedItemId > 0 && Number(quantity) >= 1 && Number(unitPrice) >= 0;
 
   const inputClass =
     "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
@@ -77,25 +69,18 @@ export function OrderItemForm({
         <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
           Artículo
         </span>
-        {loadingItems ? (
-          <p className="text-sm text-gray-500">Cargando artículos...</p>
-        ) : (
-          <select
-            value={selectedItemId}
-            onChange={(e) => handleItemChange(e.target.value)}
-            className={inputClass}
-            required
-            autoFocus
-          >
-            <option value="">Seleccionar artículo...</option>
-            {items.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name} — ${item.price}
-                {item.brand ? ` (${item.brand} ${item.reference ?? ""})` : ""}
-              </option>
-            ))}
-          </select>
-        )}
+        <SearchSelect<WithId<Item>>
+          apiClient={itemsApi}
+          value={selectedItemId}
+          onChange={handleItemChange}
+          labelKey="name"
+          placeholder="Buscar artículo..."
+          required
+          autoFocus
+          renderOption={(item) =>
+            `${item.name} — $${item.price}${item.brand ? ` (${item.brand} ${item.reference ?? ""})` : ""}`
+          }
+        />
       </label>
 
       <label className="flex flex-col gap-1 text-left">

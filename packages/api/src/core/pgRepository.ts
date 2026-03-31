@@ -89,20 +89,31 @@ export class PgRepository<T extends BaseEntity> extends Repository<T> {
     return result.rows as T[];
   }
 
-  async getAllPaginated(page: number, limit: number, filter?: Record<string, string>): Promise<PaginatedResult<T>> {
-    let whereClause = '';
-    let values: string[] = [];
+  async getAllPaginated(page: number, limit: number, filter?: Record<string, string>, search?: string, searchColumns?: string[]): Promise<PaginatedResult<T>> {
+    const conditions: string[] = [];
+    const values: (string | number)[] = [];
 
     if (filter && Object.keys(filter).length > 0) {
       const validFilters = Object.entries(filter).filter(([key]) =>
         this.fieldNames.includes(key)
       );
-      if (validFilters.length > 0) {
-        const whereClauses = validFilters.map(([key], i) => `${key} = $${i + 1}`);
-        values = validFilters.map(([, value]) => value);
-        whereClause = ` WHERE ${whereClauses.join(' AND ')}`;
+      for (const [key, value] of validFilters) {
+        values.push(value);
+        conditions.push(`${key} = $${values.length}`);
       }
     }
+
+    if (search && searchColumns && searchColumns.length > 0) {
+      const validSearchCols = searchColumns.filter((col) => this.fieldNames.includes(col));
+      if (validSearchCols.length > 0) {
+        values.push(`%${search}%`);
+        const paramIndex = values.length;
+        const searchClauses = validSearchCols.map((col) => `${col} ILIKE $${paramIndex}`);
+        conditions.push(`(${searchClauses.join(' OR ')})`);
+      }
+    }
+
+    const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
 
     const countResult = await this.pool.query(
       `SELECT COUNT(*) FROM ${this.tableName}${whereClause}`,

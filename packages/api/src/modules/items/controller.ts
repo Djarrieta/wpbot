@@ -4,6 +4,6 @@ import type { Item } from './service';
 
 export class ItemsController extends GenericCrudController<Item> {
   constructor(itemsService: Repository<Item>) {
-    super(itemsService, 'Item', ['name', 'description', 'type', 'brand', 'reference', 'price', 'stock', 'image_url']);
+    super(itemsService, 'Item', ['name', 'description', 'type', 'brand', 'reference', 'price', 'stock', 'image_url'], ['name', 'description', 'brand', 'reference']);
   }
 }
