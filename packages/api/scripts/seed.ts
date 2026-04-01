@@ -168,8 +168,9 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
 - Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda transparente, funda 3D, etc.
 - Si el diseño es personalizado, pídele que envíe la imagen o describa el diseño.
 - Si el producto es personalizado (el nombre contiene 'Personalizado/a'), el cliente DEBERÁ enviar una imagen con su diseño. Infórmale que necesita enviar la imagen. NO valides el contenido de la imagen.
-- Para skins: busca por tipo y nombre/diseño (NO por brand/reference, ya que son productos genéricos).
-- Para fundas transparentes y fundas 3D: busca por tipo, brand y reference (son específicas por modelo).`,
+- Busca el producto en la tabla "products" por nombre y/o tipo para identificarlo internamente.
+- NO muestres el precio aún en este paso. El precio SOLO se confirma en el PASO 3 junto con la disponibilidad, DESPUÉS de verificar stock en "items".
+- Si el producto requiere modelo de celular, pasa DIRECTAMENTE al PASO 3 para preguntarlo. No confirmes ni muestres precio antes de conocer el modelo y verificar stock.`,
     always_inject: true,
   },
   {
@@ -184,12 +185,14 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
   },
   {
     topic: "flujo_creacion_orden_5",
-    content: `PASO 3 — MODELO DE CELULAR:
-- Pregúntale la marca y modelo/referencia de su celular.
-- Para SKINS: el celular indicado se guardará en el campo "device_reference" de order_items al crear la orden. No es necesario verificar disponibilidad por modelo en items.
-- Para FUNDAS TRANSPARENTES: consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad (igual que fundas 3D).
-- Para FUNDAS 3D: consulta la tabla "items" filtrando por tipo, marca y referencia para verificar disponibilidad.
-- Si NO hay stock o no existe el producto para ese celular (aplica a fundas transparentes y fundas 3D), infórmale amablemente que no está disponible y sugiere alternativas. NUNCA le digas al cliente cuántas unidades hay en stock — solo confirma disponibilidad o no disponibilidad.`,
+    content: `PASO 3 — MODELO DE CELULAR Y CONFIRMACIÓN DE DISPONIBILIDAD + PRECIO:
+- Si el producto requiere especificar modelo de celular, pregúntale la marca y modelo/referencia de su celular.
+- Verifica disponibilidad buscando en la tabla "items" por product_id + brand + reference y comprobando que stock > 0.
+- Si NO hay stock o no existe la variante para ese celular, infórmale amablemente que no está disponible para ese modelo y sugiere alternativas (otros modelos disponibles del mismo producto, u otros productos similares).
+- Si el producto NO requiere modelo de celular, verifica stock directamente en "items" por product_id.
+- SOLO DESPUÉS de verificar disponibilidad en "items", confirma al cliente el precio (obtenido de products.price) junto con la disponibilidad en UNA SOLA respuesta. Ejemplo: "Tenemos disponible la Funda Transparente TPU para tu Samsung Galaxy S24. El precio es $20,000 COP."
+- REGLA ESTRICTA: NUNCA muestres el precio de un producto antes de haber verificado su disponibilidad en "items". El precio y la disponibilidad SIEMPRE se comunican juntos, nunca por separado.
+- NUNCA le digas al cliente cuántas unidades hay en stock — solo confirma disponibilidad o no disponibilidad.`,
     always_inject: true,
   },
   {
@@ -202,8 +205,9 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
   {
     topic: "flujo_creacion_orden_7",
     content: `PASO 4.5 — NOMBRE DEL CLIENTE:
-- Pregúntale el nombre completo para registrar en el pedido.
-- Si ya lo conoces por la tabla "users", el historial de conversación o por "collected_info" de órdenes anteriores, confírmalo: "¿El pedido va a nombre de X?" y solo pídelo si el cliente no tiene nombre registrado en ninguna fuente.`,
+- Si el cliente YA proporcionó su nombre durante esta conversación (en cualquier mensaje anterior), úsalo directamente SIN pedir confirmación. El cliente acaba de decirlo, no tiene sentido preguntarle de nuevo.
+- Si el nombre viene de datos previos (tabla "users" o "collected_info" de órdenes anteriores) y el cliente NO lo ha mencionado en esta conversación, confírmalo brevemente: "¿El pedido va a nombre de X?"
+- Solo pregunta el nombre si no lo conoces por ninguna fuente (ni conversación, ni tabla users, ni collected_info).`,
     always_inject: true,
   },
   {
@@ -258,10 +262,10 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
   {
     topic: "flujo_creacion_orden_13",
     content: `PASO 10 — CREACIÓN DE LA ORDEN:
-- Solo después de que el cliente confirme, crea la orden en la base de datos:
-  1. INSERT en "orders" con status='pending', shipping_city con la ciudad, shipping_address con la dirección exacta, payment_method con el método de pago, y collected_info con el JSON incluyendo nombre y teléfono del cliente (ej: '{"nombre": "Juan Pérez", "telefono": "3001234567"}').
-  2. INSERT en "order_items" con los productos correspondientes. Si el item es un skin, incluye device_reference con la marca y modelo del celular del cliente. Si es funda transparente o funda 3D, deja device_reference vacío.
-  3. Para items personalizados, incluye image_sent = true en el INSERT de order_items si el cliente ya envió la imagen. Si no la ha enviado, recuérdale antes de crear la orden.
+- Solo después de que el cliente confirme, crea la orden en la base de datos siguiendo los pasos técnicos del prompt (crear orden, luego insertar order_items).
+- Para productos con requires_device = true: incluye device_reference con la marca y modelo del celular (obtenido de items.brand + items.reference).
+- Para productos con requires_device = false: device_reference queda vacío.
+- Para items personalizados, incluye image_sent = true si el cliente ya envió la imagen. Si no la ha enviado, recuérdale antes de crear la orden.
 - Confirma al cliente que su pedido fue creado exitosamente con el número de orden.
 - IMPORTANTE: NUNCA crees la orden sin tener nombre, teléfono, ciudad, dirección y método de pago.`,
     always_inject: true,
