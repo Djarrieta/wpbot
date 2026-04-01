@@ -29,7 +29,7 @@ export default function LoginPage() {
         </p>
 
         <a
-          href={`/api/auth/google`}
+          href={`/api/auth/google?callbackUrl=${encodeURIComponent(callbackUrl)}`}
           className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors cursor-pointer no-underline"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">

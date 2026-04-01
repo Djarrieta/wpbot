@@ -3,6 +3,10 @@ import { AssistantController } from "./controllers/assistantController";
 import { AIService } from "./services/aiService";
 import { modules } from "./modules";
 import { service as productsService } from "./modules/products";
+import { service as itemsService } from "./modules/items";
+import { service as ordersService } from "./modules/orders";
+import { service as orderItemsService } from "./modules/order_items";
+import { service as shippingService } from "./modules/shipping";
 import { handleGoogleRedirect, handleGoogleCallback, handleGetSession, handleLogout, verifySession } from "./auth";
 import { optionalEnv } from "@wpbot/shared";
 import type { Route } from "./core/types";
@@ -57,7 +61,7 @@ const routes: Route[] = [
   {
     method: "GET",
     pathname: "/auth/google",
-    handler: () => handleGoogleRedirect(),
+    handler: (req) => handleGoogleRedirect(req),
   },
   {
     method: "GET",
@@ -119,6 +123,93 @@ const routes: Route[] = [
   },
   {
     method: "POST",
+    pathname: "/store/order",
+    handler: async (req) => {
+      const authResult = await requireAuth(req);
+      if ('error' in authResult) return authResult.error;
+      const userId = authResult.payload.dbUserId as number;
+      if (!userId) return Response.json({ error: "User not found in session" }, { status: 401 });
+
+      const body = await req.json() as {
+        items?: { item_id: number; quantity: number; device_reference?: string }[];
+        shipping_city?: string;
+        shipping_address?: string;
+      };
+
+      if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
+        return Response.json({ error: "items is required and must be a non-empty array" }, { status: 400 });
+      }
+      if (!body.shipping_city || !body.shipping_address) {
+        return Response.json({ error: "shipping_city and shipping_address are required" }, { status: 400 });
+      }
+
+      // Validate items exist and get prices
+      const orderItemsData: { item_id: number; quantity: number; unit_price: number; item_name: string; device_reference: string }[] = [];
+      for (const entry of body.items) {
+        if (!entry.item_id || !entry.quantity || entry.quantity < 1) {
+          return Response.json({ error: "Each item must have item_id and quantity >= 1" }, { status: 400 });
+        }
+        const item = await itemsService.getById(entry.item_id);
+        if (!item) {
+          return Response.json({ error: `Item ${entry.item_id} not found` }, { status: 404 });
+        }
+        if (item.stock < entry.quantity) {
+          return Response.json({ error: `Insufficient stock for item ${entry.item_id}` }, { status: 400 });
+        }
+        const product = await productsService.getById(item.product_id);
+        if (!product) {
+          return Response.json({ error: `Product for item ${entry.item_id} not found` }, { status: 404 });
+        }
+        orderItemsData.push({
+          item_id: entry.item_id,
+          quantity: entry.quantity,
+          unit_price: product.price,
+          item_name: product.name,
+          device_reference: entry.device_reference || `${item.brand} ${item.reference}`.trim(),
+        });
+      }
+
+      // Create order
+      const order = await ordersService.create({
+        user_id: userId,
+        date: new Date().toISOString(),
+        status: 'pending',
+        shipping_city: body.shipping_city,
+        shipping_address: body.shipping_address,
+        payment_method: '',
+        collected_info: {},
+      });
+
+      // Create order items and decrement stock
+      for (const oi of orderItemsData) {
+        await orderItemsService.create({
+          order_id: order.id!,
+          item_id: oi.item_id,
+          item_name: oi.item_name,
+          quantity: oi.quantity,
+          unit_price: oi.unit_price,
+          device_reference: oi.device_reference,
+          image_sent: false,
+        });
+        const item = await itemsService.getById(oi.item_id);
+        if (item) {
+          await itemsService.update(oi.item_id, { stock: item.stock - oi.quantity });
+        }
+      }
+
+      return Response.json(order, { status: 201 });
+    },
+  },
+  {
+    method: "GET",
+    pathname: "/store/shipping",
+    handler: async () => {
+      const cities = await shippingService.getAll();
+      return Response.json(cities);
+    },
+  },
+  {
+    method: "POST",
     pathname: "/users/merge",
     handler: async (req) => {
       const adminError = await requireAdmin(req);
@@ -143,7 +234,7 @@ const unblockPattern = /^\/chathistory\/unblock\/(\d+)$/;
 
 const COOKIE_NAME = "wpbot_session";
 
-async function requireAdmin(req: Request): Promise<Response | null> {
+async function getSessionPayload(req: Request): Promise<Record<string, unknown> | null> {
   const cookieHeader = req.headers.get("cookie") ?? "";
   const cookies: Record<string, string> = {};
   for (const part of cookieHeader.split(";")) {
@@ -151,11 +242,22 @@ async function requireAdmin(req: Request): Promise<Response | null> {
     if (k) cookies[k.trim()] = decodeURIComponent(v.join("="));
   }
   const token = cookies[COOKIE_NAME];
-  if (!token) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
+  if (!token) return null;
+  return verifySession(token);
+}
+
+async function requireAuth(req: Request): Promise<{ error: Response } | { payload: Record<string, unknown> }> {
+  const payload = await getSessionPayload(req);
+  if (!payload) {
+    return { error: Response.json({ error: "Authentication required" }, { status: 401 }) };
   }
-  const payload = await verifySession(token);
-  if (!payload || payload.role !== "admin") {
+  return { payload };
+}
+
+async function requireAdmin(req: Request): Promise<Response | null> {
+  const result = await requireAuth(req);
+  if ('error' in result) return result.error;
+  if (result.payload.role !== "admin") {
     return Response.json({ error: "Admin access required" }, { status: 403 });
   }
   return null; // authorized

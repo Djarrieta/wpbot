@@ -80,9 +80,12 @@ function clearCookie(name: string): string {
 
 // --- OAuth handlers ---
 
-export async function handleGoogleRedirect(): Promise<Response> {
+export async function handleGoogleRedirect(req: Request): Promise<Response> {
   const { googleClientId, webUrl } = getConfig();
+  const url = new URL(req.url);
+  const callbackUrl = url.searchParams.get("callbackUrl") ?? "/admin";
   const state = crypto.randomUUID();
+  const statePayload = JSON.stringify({ state, callbackUrl });
   const params = new URLSearchParams({
     client_id: googleClientId,
     redirect_uri: `${webUrl}/api/auth/google/callback`,
@@ -96,7 +99,7 @@ export async function handleGoogleRedirect(): Promise<Response> {
     status: 302,
     headers: {
       Location: `${GOOGLE_AUTH_URL}?${params}`,
-      "Set-Cookie": setCookie(OAUTH_STATE_COOKIE, state, { maxAge: 600 }),
+      "Set-Cookie": setCookie(OAUTH_STATE_COOKIE, statePayload, { maxAge: 600 }),
     },
   });
 }
@@ -109,9 +112,17 @@ export async function handleGoogleCallback(req: Request, usersService: UsersRepo
   const cookies = parseCookies(req);
   const savedState = cookies[OAUTH_STATE_COOKIE];
 
-  if (!code || !state || state !== savedState) {
+  let parsedState: { state: string; callbackUrl?: string };
+  try {
+    parsedState = JSON.parse(savedState ?? "");
+  } catch {
+    parsedState = { state: savedState ?? "" };
+  }
+
+  if (!code || !state || state !== parsedState.state) {
     return new Response("Invalid OAuth state", { status: 400 });
   }
+  const callbackUrl = parsedState.callbackUrl ?? "/admin";
 
   // Exchange code for tokens
   const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
@@ -169,7 +180,7 @@ export async function handleGoogleCallback(req: Request, usersService: UsersRepo
   });
 
   const headers = new Headers();
-  headers.set("Location", `${webUrl}/admin`);
+  headers.set("Location", `${webUrl}${callbackUrl}`);
   headers.append("Set-Cookie", setCookie(COOKIE_NAME, session, { maxAge: 60 * 60 * 24 * 30 }));
   headers.append("Set-Cookie", clearCookie(OAUTH_STATE_COOKIE));
 
