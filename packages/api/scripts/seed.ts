@@ -212,42 +212,37 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
   },
   {
     topic: "flujo_creacion_orden_8",
-    content: `PASO 5 — CIUDAD DE ENTREGA:
-- Pregúntale a qué ciudad le enviamos el pedido.
-- Consulta la tabla "shipping" para obtener el costo de envío y días estimados.
-- Si la ciudad no está en la tabla "shipping", responde EXACTAMENTE: "Dame un momento por favor, valido con el área de logística el costo de envío a [ciudad]." (reemplazando [ciudad] por la ciudad que indicó el cliente). NO continúes con los siguientes pasos. NO preguntes la dirección. La conversación queda pausada hasta que un operador valide el costo de envío.
-- IMPORTANTE: No improvises ni intentes cotizar tú mismo. Solo las ciudades que están en la tabla "shipping" tienen costo/tiempo definido. Para el resto, se requiere validación manual del equipo de logística.
-- Recuerda: envío GRATIS en compras superiores a $60,000 COP.`,
-    always_inject: true,
-  },
-  {
-    topic: "flujo_creacion_orden_9",
-    content: `PASO 6 — DIRECCIÓN EXACTA DE ENVÍO:
-- DESPUÉS de confirmar la ciudad y mostrar el costo/tiempo de envío, pregúntale la dirección exacta de entrega dentro de esa ciudad.
+    content: `PASO 5 — DESTINO DE ENVÍO (ciudad + dirección):
+- Pregúntale al cliente a dónde le enviamos el pedido (ciudad y dirección) en UNA SOLA pregunta natural Ejemplo: "¿A dónde te lo enviamos? Necesito la ciudad y la dirección de entrega."
+- NO hagas dos preguntas separadas (primero ciudad, luego dirección). Pide ambos datos juntos.
+- Si el cliente proporciona solo la ciudad sin dirección, pídele la dirección. Si proporciona solo la dirección sin ciudad, pídele la ciudad. Pero siempre intenta obtener ambos en una sola interacción.
 - Acepta formatos de dirección colombiana comunes: abreviaturas como cl, cra, cr, tv, dg, av, etc. son válidas (ej: "cl 25 no 43-435", "cra 80 #12-34", "tv 3 bis #10-20"). No rechaces una dirección solo porque usa abreviaturas o no incluye barrio.
 - El barrio es opcional pero útil. Si el usuario no lo proporciona, NO lo exijas — la dirección vial (calle/carrera + número) es suficiente.
-- Esta dirección se guardará en el campo "shipping_address" de la tabla "orders".
+- OBLIGATORIO: Una vez tengas la ciudad, SIEMPRE ejecuta una consulta SQL a la tabla "shipping" para obtener el costo de envío y días estimados: SELECT shipping_cost_cop, delivery_estimated_days FROM shipping WHERE LOWER(city) = LOWER('<ciudad>'). NUNCA inventes ni estimes el costo de envío — SIEMPRE debe salir del resultado de esta consulta.
+- Si la ciudad no está en la tabla "shipping" (la consulta no devuelve resultados), responde EXACTAMENTE: "Dame un momento por favor, valido con el área de logística el costo de envío a [ciudad]." (reemplazando [ciudad] por la ciudad que indicó el cliente). NO continúes con los siguientes pasos. La conversación queda pausada hasta que un operador valide el costo de envío.
+- IMPORTANTE: No improvises ni intentes cotizar tú mismo. Solo las ciudades que están en la tabla "shipping" tienen costo/tiempo definido. Para el resto, se requiere validación manual del equipo de logística.
+- Recuerda: envío GRATIS en compras superiores a $60,000 COP.
 - NO avances al método de pago sin tener al menos la dirección vial (calle/carrera + número).`,
     always_inject: true,
   },
   {
-    topic: "flujo_creacion_orden_10",
-    content: `PASO 7 — TELÉFONO DE CONTACTO:
+    topic: "flujo_creacion_orden_9",
+    content: `PASO 6 — TELÉFONO DE CONTACTO:
 - Pregúntale un número de teléfono de contacto para la entrega.
 - Si ya lo conoces por la tabla "users" (campo phone) o por "collected_info" de órdenes anteriores, confírmalo: "¿Tu número de contacto sigue siendo X?" y solo pídelo si no hay teléfono registrado.
 - Se guardará en "collected_info" de la orden junto con el nombre del cliente.`,
     always_inject: true,
   },
   {
-    topic: "flujo_creacion_orden_11",
-    content: `PASO 8 — MÉTODO DE PAGO:
+    topic: "flujo_creacion_orden_10",
+    content: `PASO 7 — MÉTODO DE PAGO:
 - Presenta las opciones: Contraentrega, Wompi (tarjeta/Nequi/PSE/Bancolombia), o Transferencia directa (Nequi/Daviplata).
 - Consulta el contexto "logistica_pagos" si necesitas detalles de cada método.`,
     always_inject: true,
   },
   {
-    topic: "flujo_creacion_orden_12",
-    content: `PASO 9 — RESUMEN Y CONFIRMACIÓN:
+    topic: "flujo_creacion_orden_11",
+    content: `PASO 8 — RESUMEN Y CONFIRMACIÓN:
 - Presenta un resumen claro con:
   • Producto(s) y cantidad
   • Precio unitario y subtotal
@@ -260,8 +255,8 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
     always_inject: true,
   },
   {
-    topic: "flujo_creacion_orden_13",
-    content: `PASO 10 — CREACIÓN DE LA ORDEN:
+    topic: "flujo_creacion_orden_12",
+    content: `PASO 9 — CREACIÓN DE LA ORDEN:
 - Solo después de que el cliente confirme, crea la orden en la base de datos siguiendo los pasos técnicos del prompt (crear orden, luego insertar order_items).
 - Para productos con requires_device = true: incluye device_reference con la marca y modelo del celular (obtenido de items.brand + items.reference).
 - Para productos con requires_device = false: device_reference queda vacío.
@@ -271,7 +266,7 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
     always_inject: true,
   },
   {
-    topic: "flujo_creacion_orden_14",
+    topic: "flujo_creacion_orden_13",
     content: `NOTAS IMPORTANTES:
 - NO pidas toda la información de golpe. Ve paso a paso, de forma conversacional.
 - Si el cliente proporciona varios datos a la vez, aprovéchalos y salta los pasos ya cubiertos.
