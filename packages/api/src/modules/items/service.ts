@@ -6,8 +6,7 @@ export type { Item };
 export function createItemsRepository() {
   return new PgRepository<Item>('items', [
     { name: 'product_id', type: 'INTEGER', constraints: 'NOT NULL' },
-    { name: 'brand', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
-    { name: 'reference', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+    { name: 'subgroup_id', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 0' },
     { name: 'stock', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 0' },
   ]);
 }

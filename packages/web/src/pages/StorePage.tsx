@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import type { Item, Product, Shipping, WithId } from "@wpbot/shared";
+import type { Item, Product, Group, Subgroup, Shipping, WithId } from "@wpbot/shared";
 import { SessionIcon } from "@/components/SessionIcon";
 import { useAuth } from "@/hooks/useAuth";
 
 type ProductWithItems = WithId<Product> & { items: WithId<Item>[] };
-type Device = { label: string; brand: string; reference: string };
+type Device = { label: string };
 
 type CartEntry = {
   product: ProductWithItems;
@@ -15,15 +15,21 @@ type CartEntry = {
   deviceLabel: string;
 };
 
+/** Maps subgroup_id → "Group Name SubgroupName" */
+type SubgroupLabelMap = Map<number, string>;
+
 type StoreData = {
   products: ProductWithItems[];
   devices: Device[];
+  subgroupLabels: SubgroupLabelMap;
 };
 
 async function fetchStore(): Promise<StoreData> {
-  const [productsRes, itemsRes] = await Promise.all([
+  const [productsRes, itemsRes, groupsRes, subgroupsRes] = await Promise.all([
     fetch("/api/products"),
     fetch("/api/items"),
+    fetch("/api/groups"),
+    fetch("/api/subgroups"),
   ]);
   if (!productsRes.ok)
     throw new Error(`Failed to fetch products: ${productsRes.status}`);
@@ -31,20 +37,22 @@ async function fetchStore(): Promise<StoreData> {
     throw new Error(`Failed to fetch items: ${itemsRes.status}`);
   const products: WithId<Product>[] = await productsRes.json();
   const items: WithId<Item>[] = await itemsRes.json();
+  const groups: WithId<Group>[] = groupsRes.ok ? await groupsRes.json() : [];
+  const subgroups: WithId<Subgroup>[] = subgroupsRes.ok ? await subgroupsRes.json() : [];
 
-  // Build unique device list from items that have brand+reference
-  const deviceSet = new Set<string>();
-  const devices: Device[] = [];
-  for (const item of items) {
-    if (item.brand && item.reference) {
-      const label = `${item.brand} ${item.reference}`;
-      if (!deviceSet.has(label)) {
-        deviceSet.add(label);
-        devices.push({ label, brand: item.brand, reference: item.reference });
-      }
-    }
-  }
-  devices.sort((a, b) => a.label.localeCompare(b.label));
+  // Build subgroup label map
+  const groupMap = new Map(groups.map((g) => [g.id, g.name]));
+  const subgroupLabels: SubgroupLabelMap = new Map(
+    subgroups.map((sg) => [
+      sg.id,
+      `${groupMap.get(sg.group_id) ?? "?"} ${sg.name}`,
+    ]),
+  );
+
+  // Build unique device list from all subgroups
+  const devices: Device[] = subgroups
+    .map((sg) => ({ label: subgroupLabels.get(sg.id)! }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   const filteredProducts = products
     .map((p) => ({
@@ -53,7 +61,7 @@ async function fetchStore(): Promise<StoreData> {
     }))
     .filter((p) => p.items.length > 0);
 
-  return { products: filteredProducts, devices };
+  return { products: filteredProducts, devices, subgroupLabels };
 }
 
 async function fetchShippingCities(): Promise<WithId<Shipping>[]> {
@@ -71,10 +79,12 @@ function formatPrice(price: number) {
 function ProductCard({
   product,
   devices,
+  subgroupLabels,
   onAddToCart,
 }: {
   product: ProductWithItems;
   devices: Device[];
+  subgroupLabels: SubgroupLabelMap;
   onAddToCart: (
     product: ProductWithItems,
     itemId: number,
@@ -98,7 +108,7 @@ function ProductCard({
       onAddToCart(
         product,
         selectedItemId,
-        item ? `${item.brand} ${item.reference}` : "",
+        item ? (subgroupLabels.get(item.subgroup_id) ?? "") : "",
       );
     } else {
       // Use the first item (for stock), pass the selected global device label
@@ -144,7 +154,7 @@ function ProductCard({
             >
               {product.items.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.brand} {item.reference}
+                  {subgroupLabels.get(item.subgroup_id) ?? `Item #${item.id}`}
                 </option>
               ))}
             </select>
@@ -625,6 +635,7 @@ export default function StorePage() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<ProductWithItems[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [subgroupLabels, setSubgroupLabels] = useState<SubgroupLabelMap>(new Map());
   const [shippingCities, setShippingCities] = useState<WithId<Shipping>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -639,9 +650,10 @@ export default function StorePage() {
   const cartCount = cart.reduce((s, e) => s + e.quantity, 0);
 
   function loadStore() {
-    return fetchStore().then(({ products: prods, devices: devs }) => {
+    return fetchStore().then(({ products: prods, devices: devs, subgroupLabels: labels }) => {
       setProducts(prods);
       setDevices(devs);
+      setSubgroupLabels(labels);
     });
   }
 
@@ -810,6 +822,7 @@ export default function StorePage() {
                 key={product.id}
                 product={product}
                 devices={devices}
+                subgroupLabels={subgroupLabels}
                 onAddToCart={handleAddToCart}
               />
             ))}

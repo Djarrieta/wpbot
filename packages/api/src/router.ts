@@ -7,6 +7,8 @@ import { service as itemsService } from "./modules/items";
 import { service as ordersService } from "./modules/orders";
 import { service as orderItemsService } from "./modules/order_items";
 import { service as shippingService } from "./modules/shipping";
+import { service as subgroupsService } from "./modules/subgroups";
+import { service as groupsService } from "./modules/groups";
 import { handleGoogleRedirect, handleGoogleCallback, handleGetSession, handleLogout, verifySession } from "./auth";
 import { optionalEnv } from "@wpbot/shared";
 import type { Route } from "./core/types";
@@ -160,12 +162,21 @@ const routes: Route[] = [
         if (!product) {
           return Response.json({ error: `Product for item ${entry.item_id} not found` }, { status: 404 });
         }
+        // Resolve device label from subgroup -> group
+        let deviceRef = entry.device_reference || '';
+        if (!deviceRef && item.subgroup_id) {
+          const subgroup = await subgroupsService.getById(item.subgroup_id);
+          if (subgroup) {
+            const group = await groupsService.getById(subgroup.group_id);
+            deviceRef = group ? `${group.name} ${subgroup.name}` : subgroup.name;
+          }
+        }
         orderItemsData.push({
           item_id: entry.item_id,
           quantity: entry.quantity,
           unit_price: product.price,
           item_name: product.name,
-          device_reference: entry.device_reference || `${item.brand} ${item.reference}`.trim(),
+          device_reference: deviceRef,
         });
       }
 
@@ -307,7 +318,7 @@ export async function router(req: Request): Promise<Response> {
   // Resource routes — public read for /items, admin required for everything else
   const resourceResponse = handleResourceRoutes(req.method, pathname, req);
   if (resourceResponse) {
-    const isPublicRead = req.method === "GET" && (pathname === "/products" || /^\/products\/\d+$/.test(pathname) || pathname === "/items" || /^\/items\/\d+$/.test(pathname));
+    const isPublicRead = req.method === "GET" && (pathname === "/products" || /^\/products\/\d+$/.test(pathname) || pathname === "/items" || /^\/items\/\d+$/.test(pathname) || pathname === "/groups" || /^\/groups\/\d+$/.test(pathname) || pathname === "/subgroups" || /^\/subgroups\/\d+$/.test(pathname));
     if (!isPublicRead) {
       const adminError = await requireAdmin(req);
       if (adminError) return withCors(adminError, WEB_ORIGIN);

@@ -2,64 +2,40 @@ import pg from "pg";
 
 const connectionString = process.env.PG_CONNECTION_STRING || "postgresql://wpbot:wpbot@localhost:4003/wpbot";
 
+const groups = ["Apple", "Samsung", "Xiaomi", "Motorola", "Huawei"];
+
+const subgroupsByGroup: Record<string, string[]> = {
+  Apple: ["iPhone 16", "iPhone 16 Pro", "iPhone 16 Pro Max", "iPhone 15", "iPhone 15 Pro Max", "iPhone 14", "iPhone 13"],
+  Samsung: ["Galaxy S25 Ultra", "Galaxy S25", "Galaxy S24 Ultra", "Galaxy S24", "Galaxy A55", "Galaxy A35", "Galaxy A15"],
+  Xiaomi: ["Poco X6 Pro", "Redmi Note 13 Pro", "Redmi Note 14 Pro", "Poco X7 Pro"],
+  Motorola: ["Moto G84", "Moto G54"],
+  Huawei: ["Nova 12i"],
+};
+
+// All subgroup names for variants that need every device
+const allSubgroups = Object.entries(subgroupsByGroup).flatMap(([group, subs]) =>
+  subs.map((sub) => ({ group, sub }))
+);
+
 const products = [
-  // Skins Texturizados (requires_device: false → 1 item each with no brand/reference)
+  // Skins Texturizados (requires_device: false → 1 item each with no subgroup)
   { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", type: "skin texturizado", price: 25000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 50 },
   { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", type: "skin texturizado", price: 28000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 40 },
   { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", price: 22000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 60 },
   // Skins Impresos
   { name: "Skin impreso Personalizado", description: "Skin impreso alta resolución", type: "skin impreso", price: 18000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 100 },
-  // Fundas Transparentes (requires_device: true → N items, one per model)
+  // Fundas Transparentes (requires_device: true → one item per subgroup)
   { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm", type: "funda transparente", price: 20000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
-    variants: [
-      { brand: "Xiaomi", reference: "Poco X6 Pro", stock: 50 },
-      { brand: "Xiaomi", reference: "Redmi Note 13 Pro", stock: 50 },
-      { brand: "Xiaomi", reference: "Redmi Note 14 Pro", stock: 50 },
-      { brand: "Xiaomi", reference: "Poco X7 Pro", stock: 50 },
-      { brand: "Apple", reference: "iPhone 16", stock: 50 },
-      { brand: "Apple", reference: "iPhone 16 Pro", stock: 50 },
-      { brand: "Apple", reference: "iPhone 16 Pro Max", stock: 50 },
-      { brand: "Apple", reference: "iPhone 15", stock: 50 },
-      { brand: "Apple", reference: "iPhone 15 Pro Max", stock: 50 },
-      { brand: "Apple", reference: "iPhone 14", stock: 50 },
-      { brand: "Apple", reference: "iPhone 13", stock: 50 },
-      { brand: "Samsung", reference: "Galaxy S25 Ultra", stock: 50 },
-      { brand: "Samsung", reference: "Galaxy S25", stock: 50 },
-      { brand: "Samsung", reference: "Galaxy S24 Ultra", stock: 50 },
-      { brand: "Samsung", reference: "Galaxy S24", stock: 50 },
-      { brand: "Samsung", reference: "Galaxy A55", stock: 50 },
-      { brand: "Samsung", reference: "Galaxy A35", stock: 50 },
-      { brand: "Samsung", reference: "Galaxy A15", stock: 50 },
-      { brand: "Motorola", reference: "Moto G84", stock: 50 },
-      { brand: "Motorola", reference: "Moto G54", stock: 50 },
-      { brand: "Huawei", reference: "Nova 12i", stock: 50 },
-    ],
+    variants: allSubgroups.map(({ group, sub }) => ({ group, sub, stock: 50 })),
   },
   // Fundas 3D
   { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente", type: "funda 3d", price: 40000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
-    variants: [
-      { brand: "Xiaomi", reference: "Poco X6 Pro", stock: 15 },
-      { brand: "Xiaomi", reference: "Redmi Note 13 Pro", stock: 20 },
-      { brand: "Xiaomi", reference: "Redmi Note 14 Pro", stock: 20 },
-      { brand: "Xiaomi", reference: "Poco X7 Pro", stock: 15 },
-      { brand: "Apple", reference: "iPhone 16", stock: 20 },
-      { brand: "Apple", reference: "iPhone 16 Pro", stock: 20 },
-      { brand: "Apple", reference: "iPhone 16 Pro Max", stock: 15 },
-      { brand: "Apple", reference: "iPhone 15", stock: 25 },
-      { brand: "Apple", reference: "iPhone 15 Pro Max", stock: 15 },
-      { brand: "Apple", reference: "iPhone 14", stock: 20 },
-      { brand: "Apple", reference: "iPhone 13", stock: 20 },
-      { brand: "Samsung", reference: "Galaxy S25 Ultra", stock: 20 },
-      { brand: "Samsung", reference: "Galaxy S25", stock: 20 },
-      { brand: "Samsung", reference: "Galaxy S24 Ultra", stock: 15 },
-      { brand: "Samsung", reference: "Galaxy S24", stock: 20 },
-      { brand: "Samsung", reference: "Galaxy A55", stock: 25 },
-      { brand: "Samsung", reference: "Galaxy A35", stock: 25 },
-      { brand: "Samsung", reference: "Galaxy A15", stock: 30 },
-      { brand: "Motorola", reference: "Moto G84", stock: 20 },
-      { brand: "Motorola", reference: "Moto G54", stock: 20 },
-      { brand: "Huawei", reference: "Nova 12i", stock: 15 },
-    ],
+    variants: allSubgroups.map(({ group, sub }) => {
+      // Vary stock by brand
+      const stock = group === "Samsung" && sub.includes("A") ? 25 :
+                    group === "Huawei" ? 15 : 20;
+      return { group, sub, stock };
+    }),
   },
 ];
 
@@ -187,7 +163,7 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
     topic: "flujo_creacion_orden_5",
     content: `PASO 3 — MODELO DE CELULAR Y CONFIRMACIÓN DE DISPONIBILIDAD + PRECIO:
 - Si el producto requiere especificar modelo de celular, pregúntale la marca y modelo/referencia de su celular.
-- Verifica disponibilidad buscando en la tabla "items" por product_id + brand + reference y comprobando que stock > 0.
+- Verifica disponibilidad buscando en la tabla "items" haciendo JOIN con subgroups y groups: SELECT i.id, i.stock FROM items i JOIN subgroups sg ON sg.id = i.subgroup_id JOIN groups g ON g.id = sg.group_id WHERE i.product_id = <product_id> AND g.name = '<marca>' AND sg.name ILIKE '%<modelo>%' AND i.stock > 0.
 - Si NO hay stock o no existe la variante para ese celular, infórmale amablemente que no está disponible para ese modelo y sugiere alternativas (otros modelos disponibles del mismo producto, u otros productos similares).
 - Si el producto NO requiere modelo de celular, verifica stock directamente en "items" por product_id.
 - SOLO DESPUÉS de verificar disponibilidad en "items", confirma al cliente el precio (obtenido de products.price) junto con la disponibilidad en UNA SOLA respuesta. Ejemplo: "Tenemos disponible la Funda Transparente TPU para tu Samsung Galaxy S24. El precio es $20,000 COP."
@@ -258,7 +234,7 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
     topic: "flujo_creacion_orden_12",
     content: `PASO 9 — CREACIÓN DE LA ORDEN:
 - Solo después de que el cliente confirme, crea la orden en la base de datos siguiendo los pasos técnicos del prompt (crear orden, luego insertar order_items).
-- Para productos con requires_device = true: incluye device_reference con la marca y modelo del celular (obtenido de items.brand + items.reference).
+- Para productos con requires_device = true: incluye device_reference con la marca y modelo del celular (obtenido de groups.name + subgroups.name via items.subgroup_id).
 - Para productos con requires_device = false: device_reference queda vacío.
 - Para items personalizados, incluye image_sent = true si el cliente ya envió la imagen. Si no la ha enviado, recuérdale antes de crear la orden.
 - Confirma al cliente que su pedido fue creado exitosamente con el número de orden.
@@ -303,9 +279,17 @@ async function seed() {
       CREATE TABLE IF NOT EXISTS items (
         id SERIAL PRIMARY KEY,
         product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-        brand TEXT NOT NULL DEFAULT '',
-        reference TEXT NOT NULL DEFAULT '',
+        subgroup_id INTEGER NOT NULL DEFAULT 0,
         stock INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE IF NOT EXISTS groups (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL DEFAULT ''
+      );
+      CREATE TABLE IF NOT EXISTS subgroups (
+        id SERIAL PRIMARY KEY,
+        group_id INTEGER NOT NULL DEFAULT 0,
+        name TEXT NOT NULL DEFAULT ''
       );
       CREATE TABLE IF NOT EXISTS users (
         id BIGSERIAL PRIMARY KEY,
@@ -367,12 +351,30 @@ async function seed() {
     `);
 
     // Clear existing data
-    await client.query("TRUNCATE products, items, users, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
+    await client.query("TRUNCATE products, items, groups, subgroups, users, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
     await client.query("TRUNCATE user_identities RESTART IDENTITY CASCADE");
+
+    // Seed groups and subgroups first (items reference subgroup_id)
+    console.log("Seeding groups & subgroups...");
+    const groupIdMap = new Map<string, number>();
+    for (const name of groups) {
+      const res = await client.query("INSERT INTO groups (name) VALUES ($1) RETURNING id", [name]);
+      groupIdMap.set(name, res.rows[0].id);
+      console.log(`  Created group: ${name} (id: ${res.rows[0].id})`);
+    }
+    const subgroupIdMap = new Map<string, number>(); // key: "Group Sub"
+    for (const [groupName, subs] of Object.entries(subgroupsByGroup)) {
+      const groupId = groupIdMap.get(groupName)!;
+      for (const sub of subs) {
+        const res = await client.query("INSERT INTO subgroups (group_id, name) VALUES ($1, $2) RETURNING id", [groupId, sub]);
+        subgroupIdMap.set(`${groupName}|${sub}`, res.rows[0].id);
+      }
+      console.log(`  Created ${subs.length} subgroups for ${groupName}`);
+    }
 
     console.log("Seeding products & items...");
     for (const product of products) {
-      const { variants, stock, ...productData } = product as typeof product & { variants?: { brand: string; reference: string; stock: number }[]; stock?: number };
+      const { variants, stock, ...productData } = product as typeof product & { variants?: { group: string; sub: string; stock: number }[]; stock?: number };
       const pRes = await client.query(
         "INSERT INTO products (name, description, type, price, image_url, requires_device) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
         [productData.name, productData.description, productData.type, productData.price, productData.image_url, productData.requires_device]
@@ -382,17 +384,18 @@ async function seed() {
 
       if (variants && variants.length > 0) {
         for (const v of variants) {
+          const subgroupId = subgroupIdMap.get(`${v.group}|${v.sub}`) ?? 0;
           await client.query(
-            "INSERT INTO items (product_id, brand, reference, stock) VALUES ($1, $2, $3, $4)",
-            [productId, v.brand, v.reference, v.stock]
+            "INSERT INTO items (product_id, subgroup_id, stock) VALUES ($1, $2, $3)",
+            [productId, subgroupId, v.stock]
           );
         }
         console.log(`    Created ${variants.length} item variants`);
       } else {
-        // Non-device product: single item with no brand/reference
+        // Non-device product: single item with no subgroup
         await client.query(
-          "INSERT INTO items (product_id, brand, reference, stock) VALUES ($1, $2, $3, $4)",
-          [productId, "", "", stock ?? 0]
+          "INSERT INTO items (product_id, subgroup_id, stock) VALUES ($1, $2, $3)",
+          [productId, 0, stock ?? 0]
         );
         console.log(`    Created 1 item (generic)`);
       }

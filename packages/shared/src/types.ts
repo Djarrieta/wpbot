@@ -8,11 +8,21 @@ export type Product = {
   requires_device: boolean;
 };
 
+export type Group = {
+  id?: number;
+  name: string;
+};
+
+export type Subgroup = {
+  id?: number;
+  group_id: number;
+  name: string;
+};
+
 export type Item = {
   id?: number;
   product_id: number;
-  brand: string;
-  reference: string;
+  subgroup_id: number;
   stock: number;
 };
 

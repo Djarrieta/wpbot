@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import type { Item, OrderItem, WithId } from "@wpbot/shared";
+import { useState, useEffect, type FormEvent } from "react";
+import type { Item, Group, Subgroup, OrderItem, WithId } from "@wpbot/shared";
 import { Button } from "@/components/Button";
 import { SearchSelect } from "@/components/SearchSelect";
 import { api as itemsApi } from "../items/api";
+import { api as groupsApi } from "../groups/api";
+import { api as subgroupsApi } from "../subgroups/api";
 
 interface OrderItemFormProps {
   initial?: WithId<OrderItem>;
@@ -32,12 +34,29 @@ export function OrderItemForm({
   const [imageSent, setImageSent] = useState<boolean>(
     initial?.image_sent ?? false,
   );
+  const [subgroupLabels, setSubgroupLabels] = useState<Map<number, string>>(new Map());
+
+  useEffect(() => {
+    Promise.all([groupsApi.fetchAll(), subgroupsApi.fetchAll()]).then(
+      ([groups, subgroups]) => {
+        const gMap = new Map(groups.map((g) => [g.id, g.name]));
+        setSubgroupLabels(
+          new Map(
+            subgroups.map((sg) => [
+              sg.id,
+              `${gMap.get(sg.group_id) ?? "?"} ${sg.name}`,
+            ]),
+          ),
+        );
+      },
+    );
+  }, []);
 
   function handleItemChange(id: number, record: WithId<Item> | null) {
     setSelectedItemId(id);
     setSelectedItem(record);
     if (record) {
-      setUnitPrice(String(record.price));
+      setUnitPrice(String((record as any).price ?? ""));
     }
   }
 
@@ -47,11 +66,11 @@ export function OrderItemForm({
     onSubmit({
       order_id: initial?.order_id ?? 0,
       item_id: selectedItemId,
-      item_name: item?.name ?? initial?.item_name ?? "",
+      item_name: item ? ((item as any).name ?? initial?.item_name ?? "") : initial?.item_name ?? "",
       quantity: Number(quantity),
       unit_price: Number(unitPrice),
       device_reference: item
-        ? [item.brand, item.reference].filter(Boolean).join(" ")
+        ? (subgroupLabels.get(item.subgroup_id) ?? "")
         : initial?.device_reference ?? "",
       image_sent: imageSent,
     });
@@ -77,9 +96,12 @@ export function OrderItemForm({
           placeholder="Buscar artículo..."
           required
           autoFocus
-          renderOption={(item) =>
-            `${item.name} — $${item.price}${item.brand ? ` (${item.brand} ${item.reference ?? ""})` : ""}`
-          }
+          renderOption={(item) => {
+            const sgLabel = subgroupLabels.get(item.subgroup_id as number);
+            const name = (item as any).name ?? `Item #${item.id}`;
+            const price = (item as any).price;
+            return `${name}${price != null ? ` — $${price}` : ""}${sgLabel ? ` (${sgLabel})` : ""}`;
+          }}
         />
       </label>
 

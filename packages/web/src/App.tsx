@@ -32,6 +32,14 @@ const ChatHistoryPage = lazy(() =>
     default: m.ChatHistoryPage,
   })),
 );
+const GroupsPage = lazy(() =>
+  import("@/modules/groups/Page").then((m) => ({ default: m.GroupsPage })),
+);
+const SubgroupsPage = lazy(() =>
+  import("@/modules/subgroups/Page").then((m) => ({
+    default: m.SubgroupsPage,
+  })),
+);
 
 function Fallback() {
   return <PageSkeleton />;
@@ -54,6 +62,8 @@ export function App() {
             <Route path="/admin/context" element={<ContextPage />} />
             <Route path="/admin/shipping" element={<ShippingPage />} />
             <Route path="/admin/chathistory" element={<ChatHistoryPage />} />
+            <Route path="/admin/groups" element={<GroupsPage />} />
+            <Route path="/admin/subgroups" element={<SubgroupsPage />} />
           </Route>
         </Route>
       </Routes>
