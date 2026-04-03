@@ -34,19 +34,12 @@ export function SessionIcon() {
     );
   }
 
-  const isAdmin = user.role === "admin";
-  const Wrapper = isAdmin ? Link : "div";
-  const wrapperProps = isAdmin
-    ? {
-        to: "/admin",
-        className:
-          "flex items-center gap-2 no-underline transition-colors cursor-pointer",
-        title: user.email ?? undefined,
-      }
-    : { className: "flex items-center gap-2", title: user.email ?? undefined };
-
   return (
-    <Wrapper {...(wrapperProps as any)}>
+    <Link
+      to="/profile"
+      className="flex items-center gap-2 no-underline transition-colors cursor-pointer"
+      title={user.email ?? undefined}
+    >
       {user.image ? (
         <img
           src={user.image}
@@ -62,6 +55,6 @@ export function SessionIcon() {
       <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:inline">
         {user.name ?? user.email}
       </span>
-    </Wrapper>
+    </Link>
   );
 }

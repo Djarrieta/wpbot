@@ -996,6 +996,14 @@ export default function StorePage() {
             >
               Nosotros
             </Link>
+            {user?.role === "admin" && (
+              <Link
+                to="/admin"
+                className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
+              >
+                Admin
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => setCartOpen(true)}

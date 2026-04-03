@@ -228,6 +228,26 @@ const routes: Route[] = [
   },
   {
     method: "GET",
+    pathname: "/store/orders",
+    handler: async (req) => {
+      const authResult = await requireAuth(req);
+      if ('error' in authResult) return authResult.error;
+      const userId = authResult.payload.dbUserId as number;
+      if (!userId) return Response.json({ error: "User not found in session" }, { status: 401 });
+      const orders = await ordersService.getAll({ user_id: String(userId) });
+      // Attach items to each order
+      const results = [];
+      for (const order of orders) {
+        const items = await orderItemsService.getAll({ order_id: String(order.id!) });
+        results.push({ ...order, items });
+      }
+      // Sort by most recent first
+      results.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+      return Response.json(results);
+    },
+  },
+  {
+    method: "GET",
     pathname: "/store/profile",
     handler: async (req) => {
       const authResult = await requireAuth(req);
@@ -247,14 +267,17 @@ const routes: Route[] = [
       if ('error' in authResult) return authResult.error;
       const userId = authResult.payload.dbUserId as number;
       if (!userId) return Response.json({ error: "User not found in session" }, { status: 401 });
-      const body = await req.json() as { name?: string; phone?: string };
+      const body = await req.json() as { name?: string; phone?: string; shipping_city_id?: number; shipping_address?: string };
       if (!body.name || typeof body.name !== 'string' || !body.name.trim()) {
         return Response.json({ error: "name is required" }, { status: 400 });
       }
       if (!body.phone || typeof body.phone !== 'string' || !body.phone.trim()) {
         return Response.json({ error: "phone is required" }, { status: 400 });
       }
-      const updated = await usersService.update(userId, { name: body.name.trim(), phone: body.phone.trim() });
+      const updateData: Record<string, unknown> = { name: body.name.trim(), phone: body.phone.trim() };
+      if (body.shipping_city_id !== undefined) updateData.shipping_city_id = body.shipping_city_id || null;
+      if (body.shipping_address !== undefined) updateData.shipping_address = body.shipping_address?.trim() ?? '';
+      const updated = await usersService.update(userId, updateData);
       return Response.json(updated);
     },
   },

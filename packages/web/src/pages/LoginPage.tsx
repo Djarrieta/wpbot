@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 export default function LoginPage() {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/admin";
+  const rawCallback = searchParams.get("callbackUrl");
+  const callbackUrl = rawCallback ?? "/admin";
 
   if (loading) {
     return (
@@ -15,7 +16,8 @@ export default function LoginPage() {
   }
 
   if (user) {
-    return <Navigate to={callbackUrl} replace />;
+    const dest = user.role !== "admin" && callbackUrl.startsWith("/admin") ? "/" : callbackUrl;
+    return <Navigate to={dest} replace />;
   }
 
   return (

@@ -7,6 +7,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 const StorePage = lazy(() => import("@/pages/StorePage"));
 const AboutPage = lazy(() => import("@/pages/AboutPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 
 const ItemsPage = lazy(() =>
@@ -52,6 +53,7 @@ export function App() {
         <Route path="/" element={<StorePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route element={<AuthGuard />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<DashboardPage />} />

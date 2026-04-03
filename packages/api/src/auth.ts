@@ -179,8 +179,11 @@ export async function handleGoogleCallback(req: Request, usersService: UsersRepo
     role,
   });
 
+  // Non-admin users should not be sent to /admin routes
+  const finalRedirect = role !== 'admin' && callbackUrl.startsWith('/admin') ? '/' : callbackUrl;
+
   const headers = new Headers();
-  headers.set("Location", `${webUrl}${callbackUrl}`);
+  headers.set("Location", `${webUrl}${finalRedirect}`);
   headers.append("Set-Cookie", setCookie(COOKIE_NAME, session, { maxAge: 60 * 60 * 24 * 30 }));
   headers.append("Set-Cookie", clearCookie(OAUTH_STATE_COOKIE));
 
