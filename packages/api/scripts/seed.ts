@@ -22,7 +22,7 @@ const productTypes = [
   { name: "Skin Texturizado", description: "Vinilo adhesivo premium con texturas táctiles de alta gama (fibra de carbono, cuero, madera)", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
   { name: "Funda Impresa", description: "Funda rígida con impresión personalizada en alta resolución", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
   { name: "Skin Impreso", description: "Vinilo adhesivo con impresión personalizada de alta resolución en cualquier diseño", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
-  { name: "Funda Transparente", description: "Funda de silicona flexible TPU ultraligera de 2mm que permite lucir el diseño del celular", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Lisas", description: "Funda de silicona flexible TPU ultraligera de 2mm que permite lucir el diseño del celular", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
 ];
 
 const products = [
@@ -32,9 +32,15 @@ const products = [
   { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", typeName: "Skin Texturizado", price: 22000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 60 },
   // Skins Impresos
   { name: "Skin impreso Personalizado", description: "Skin impreso alta resolución", typeName: "Skin Impreso", price: 18000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 100 },
-  // Fundas Transparentes (requires_device: true → one item per subgroup)
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm", typeName: "Funda Transparente", price: 20000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
+  // Fundas Lisas (requires_device: true → one item per subgroup)
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm que permite lucir el diseño del celular", typeName: "Funda Lisas", price: 20000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
     variants: allSubgroups.map(({ group, sub }) => ({ group, sub, stock: 50 })),
+  },
+  { name: "Funda Negra TPU", description: "Funda de silicona flexible (TPU) color negro mate ultraligera de 2mm", typeName: "Funda Lisas", price: 20000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
+    variants: allSubgroups.map(({ group, sub }) => ({ group, sub, stock: 40 })),
+  },
+  { name: "Funda Blanca TPU", description: "Funda de silicona flexible (TPU) color blanco ultraligera de 2mm", typeName: "Funda Lisas", price: 20000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
+    variants: allSubgroups.map(({ group, sub }) => ({ group, sub, stock: 35 })),
   },
   // Fundas 3D
   { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente", typeName: "Funda 3D", price: 40000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
