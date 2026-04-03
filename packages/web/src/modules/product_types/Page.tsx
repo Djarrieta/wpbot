@@ -14,6 +14,7 @@ export function ProductTypesPage() {
       columns={[
         { key: "id", header: "ID" },
         { key: "name", header: "Nombre" },
+        { key: "description", header: "Descripción" },
       ]}
       FormComponent={ProductTypeForm}
     />

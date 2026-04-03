@@ -11,6 +11,18 @@ const fields: FormField[] = [
     placeholder: "Ej: Skin Texturizado, Funda 3D",
     required: true,
   },
+  {
+    name: "description",
+    label: "Descripción",
+    type: "textarea",
+    placeholder: "Descripción del tipo de producto",
+  },
+  {
+    name: "image_url",
+    label: "URL de Imagen",
+    type: "text",
+    placeholder: "https://...",
+  },
 ];
 
 interface ProductTypeFormProps {

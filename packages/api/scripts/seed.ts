@@ -18,10 +18,11 @@ const allSubgroups = Object.entries(subgroupsByGroup).flatMap(([group, subs]) =>
 );
 
 const productTypes = [
-  { name: "Skin Texturizado" },
-  { name: "Skin Impreso" },
-  { name: "Funda Transparente" },
-  { name: "Funda 3D" },
+  { name: "Funda 3D", description: "Carcasa con tecnología lenticular 3D que genera efectos de profundidad y movimiento", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Skin Texturizado", description: "Vinilo adhesivo premium con texturas táctiles de alta gama (fibra de carbono, cuero, madera)", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Impresa", description: "Funda rígida con impresión personalizada en alta resolución", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Skin Impreso", description: "Vinilo adhesivo con impresión personalizada de alta resolución en cualquier diseño", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
+  { name: "Funda Transparente", description: "Funda de silicona flexible TPU ultraligera de 2mm que permite lucir el diseño del celular", image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400" },
 ];
 
 const products = [
@@ -43,6 +44,10 @@ const products = [
                     group === "Huawei" ? 15 : 20;
       return { group, sub, stock };
     }),
+  },
+  // Fundas Impresas
+  { name: "Funda Impresa Personalizada", description: "Funda con impresión personalizada en alta resolución sobre carcasa rígida", typeName: "Funda Impresa", price: 35000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
+    variants: allSubgroups.map(({ group, sub }) => ({ group, sub, stock: 30 })),
   },
 ];
 
@@ -276,7 +281,9 @@ async function seed() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS product_types (
         id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        image_url TEXT NOT NULL DEFAULT ''
       );
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
@@ -371,7 +378,7 @@ async function seed() {
     console.log("Seeding product types...");
     const productTypeIdMap = new Map<string, number>();
     for (const pt of productTypes) {
-      const res = await client.query("INSERT INTO product_types (name) VALUES ($1) RETURNING id", [pt.name]);
+      const res = await client.query("INSERT INTO product_types (name, description, image_url) VALUES ($1, $2, $3) RETURNING id", [pt.name, pt.description, pt.image_url]);
       productTypeIdMap.set(pt.name, res.rows[0].id);
       console.log(`  Created product type: ${pt.name} (id: ${res.rows[0].id})`);
     }
