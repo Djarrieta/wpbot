@@ -20,6 +20,8 @@ interface SubgroupFormProps {
   onSubmit: (data: Omit<Subgroup, "id">) => void;
   onCancel: () => void;
   loading?: boolean;
+  /** When provided, group_id is fixed and not editable */
+  fixedGroupId?: number;
 }
 
 export function SubgroupForm({
@@ -27,30 +29,40 @@ export function SubgroupForm({
   onSubmit,
   onCancel,
   loading,
+  fixedGroupId,
 }: SubgroupFormProps) {
   const [groups, setGroups] = useState<WithId<Group>[]>([]);
 
   useEffect(() => {
-    groupsApi.fetchAll().then(setGroups);
-  }, []);
+    if (fixedGroupId == null) {
+      groupsApi.fetchAll().then(setGroups);
+    }
+  }, [fixedGroupId]);
 
-  const fields: FormField[] = [
-    {
-      name: "group_id",
-      label: "Grupo",
-      type: "select",
-      options: groups.map((g) => ({ value: String(g.id), label: g.name })),
-      required: true,
-    },
-    ...staticFields,
-  ];
+  const fields: FormField[] =
+    fixedGroupId != null
+      ? staticFields
+      : [
+          {
+            name: "group_id",
+            label: "Grupo",
+            type: "select",
+            options: groups.map((g) => ({
+              value: String(g.id),
+              label: g.name,
+            })),
+            required: true,
+          },
+          ...staticFields,
+        ];
 
   return (
     <GenericForm<WithId<Subgroup>>
       fields={fields}
       initial={initial}
       onSubmit={(data) => {
-        data.group_id = Number(data.group_id);
+        data.group_id =
+          fixedGroupId != null ? fixedGroupId : Number(data.group_id);
         onSubmit(data);
       }}
       onCancel={onCancel}
