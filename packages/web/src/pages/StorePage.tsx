@@ -35,13 +35,14 @@ type StoreData = {
 };
 
 async function fetchStore(): Promise<StoreData> {
-  const [productsRes, itemsRes, groupsRes, subgroupsRes, productTypesRes] = await Promise.all([
-    fetch("/api/products"),
-    fetch("/api/items"),
-    fetch("/api/groups"),
-    fetch("/api/subgroups"),
-    fetch("/api/product_types"),
-  ]);
+  const [productsRes, itemsRes, groupsRes, subgroupsRes, productTypesRes] =
+    await Promise.all([
+      fetch("/api/products"),
+      fetch("/api/items"),
+      fetch("/api/groups"),
+      fetch("/api/subgroups"),
+      fetch("/api/product_types"),
+    ]);
   if (!productsRes.ok)
     throw new Error(`Failed to fetch products: ${productsRes.status}`);
   if (!itemsRes.ok)
@@ -919,7 +920,12 @@ export default function StorePage() {
 
   function loadStore() {
     return fetchStore().then(
-      ({ products: prods, devices: devs, subgroupLabels: labels, productTypes: types }) => {
+      ({
+        products: prods,
+        devices: devs,
+        subgroupLabels: labels,
+        productTypes: types,
+      }) => {
         setProducts(prods);
         setDevices(devs);
         setSubgroupLabels(labels);
@@ -1116,15 +1122,6 @@ export default function StorePage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white m-0 mb-1">
-            Productos
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 m-0">
-            Explora nuestro catálogo de productos
-          </p>
-        </div>
-
         {error && (
           <div className="bg-red-900/20 border border-red-600 text-red-400 px-4 py-3 rounded-md mb-6">
             {error}
@@ -1150,9 +1147,28 @@ export default function StorePage() {
               .filter((pt) => products.some((p) => p.product_type_id === pt.id))
               .map((pt) => (
                 <section key={pt.id}>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    {pt.name}
-                  </h3>
+                  {/* Product type header card */}
+                  <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm mb-6">
+                    <div className="flex flex-col sm:flex-row">
+                      {pt.image_url && (
+                        <img
+                          src={pt.image_url}
+                          alt={pt.name}
+                          className="w-full sm:w-56 h-40 sm:h-auto object-cover flex-shrink-0"
+                        />
+                      )}
+                      <div className="p-6 flex flex-col justify-center">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white m-0 mb-2">
+                          {pt.name}
+                        </h3>
+                        {pt.description && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 m-0 leading-relaxed">
+                            {pt.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {products
                       .filter((p) => p.product_type_id === pt.id)
@@ -1170,14 +1186,19 @@ export default function StorePage() {
                 </section>
               ))}
             {/* Products without a matching type */}
-            {products.some((p) => !productTypes.find((pt) => pt.id === p.product_type_id)) && (
+            {products.some(
+              (p) => !productTypes.find((pt) => pt.id === p.product_type_id),
+            ) && (
               <section>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                   Otros
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {products
-                    .filter((p) => !productTypes.find((pt) => pt.id === p.product_type_id))
+                    .filter(
+                      (p) =>
+                        !productTypes.find((pt) => pt.id === p.product_type_id),
+                    )
                     .map((product) => (
                       <ProductCard
                         key={product.id}
