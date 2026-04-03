@@ -22,7 +22,12 @@ interface SubgroupFormProps {
   loading?: boolean;
 }
 
-export function SubgroupForm({ initial, onSubmit, onCancel, loading }: SubgroupFormProps) {
+export function SubgroupForm({
+  initial,
+  onSubmit,
+  onCancel,
+  loading,
+}: SubgroupFormProps) {
   const [groups, setGroups] = useState<WithId<Group>[]>([]);
 
   useEffect(() => {

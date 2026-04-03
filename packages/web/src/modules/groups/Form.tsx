@@ -20,7 +20,12 @@ interface GroupFormProps {
   loading?: boolean;
 }
 
-export function GroupForm({ initial, onSubmit, onCancel, loading }: GroupFormProps) {
+export function GroupForm({
+  initial,
+  onSubmit,
+  onCancel,
+  loading,
+}: GroupFormProps) {
   return (
     <GenericForm<WithId<Group>>
       fields={fields}

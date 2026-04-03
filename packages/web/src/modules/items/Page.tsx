@@ -11,7 +11,9 @@ import { api as subgroupsApi } from "../subgroups/api";
 
 export function ItemsPage() {
   const [productMap, setProductMap] = useState<Map<number, string>>(new Map());
-  const [subgroupLabel, setSubgroupLabel] = useState<Map<number, string>>(new Map());
+  const [subgroupLabel, setSubgroupLabel] = useState<Map<number, string>>(
+    new Map(),
+  );
 
   useEffect(() => {
     productsApi.fetchAll().then((products) => {
@@ -49,7 +51,7 @@ export function ItemsPage() {
           header: "Dispositivo",
           render: (v) => {
             const id = Number(v);
-            return id ? subgroupLabel.get(id) ?? `#${id}` : "—";
+            return id ? (subgroupLabel.get(id) ?? `#${id}`) : "—";
           },
         },
         { key: "stock", header: "Stock" },

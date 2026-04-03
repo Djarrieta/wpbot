@@ -51,7 +51,10 @@ export function ItemForm({
       name: "subgroup_id",
       label: "Subgrupo (dispositivo)",
       type: "select",
-      options: [{ value: "0", label: "— Sin dispositivo —" }, ...subgroupOptions],
+      options: [
+        { value: "0", label: "— Sin dispositivo —" },
+        ...subgroupOptions,
+      ],
     },
     {
       name: "stock",
