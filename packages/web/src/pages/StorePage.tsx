@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import type {
   Item,
@@ -74,7 +74,7 @@ async function fetchStore(): Promise<StoreData> {
   const filteredProducts = products
     .map((p) => ({
       ...p,
-      items: items.filter((i) => i.product_id === p.id && i.stock > 0),
+      items: items.filter((i) => i.product_id === p.id),
     }))
     .filter((p) => p.items.length > 0);
 
@@ -97,12 +97,14 @@ function ProductCard({
   product,
   devices,
   subgroupLabels,
+  typeName,
   onAddToCart,
   onBuyNow,
 }: {
   product: ProductWithItems;
   devices: Device[];
   subgroupLabels: SubgroupLabelMap;
+  typeName?: string;
   onAddToCart: (
     product: ProductWithItems,
     itemId: number,
@@ -114,8 +116,6 @@ function ProductCard({
     deviceLabel: string,
   ) => void;
 }) {
-  // For requires_device products: selector picks from product.items
-  // For !requires_device products: selector picks from global devices, item is the first (stock)
   const hasDeviceItems = product.requires_device && product.items.length > 0;
 
   const [selectedItemId, setSelectedItemId] = useState<number>(
@@ -146,41 +146,78 @@ function ProductCard({
     onBuyNow(product, itemId, deviceLabel);
   }
 
+  const totalStock = product.items.reduce((s, i) => s + i.stock, 0);
+  const isOutOfStock = totalStock === 0;
+
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-      {product.image_url && (
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className="w-full h-48 object-cover"
-        />
-      )}
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white m-0">
-            {product.name}
-          </h3>
-          <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap ml-3">
+    <div className={`group rounded-2xl border bg-white dark:bg-gray-900 overflow-hidden shadow-sm transition-all duration-300 flex flex-col ${isOutOfStock ? "border-gray-200 dark:border-gray-800 opacity-75" : "border-gray-200 dark:border-gray-800 hover:shadow-lg"}`}>
+      {/* Image */}
+      <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className={`w-full h-52 object-cover transition-transform duration-500 ${isOutOfStock ? "grayscale" : "group-hover:scale-105"}`}
+          />
+        ) : (
+          <div className="w-full h-52 flex items-center justify-center text-gray-300 dark:text-gray-600">
+            <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+            </svg>
+          </div>
+        )}
+        {typeName && (
+          <span className="absolute top-3 left-3 bg-indigo-600/90 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
+            {typeName}
+          </span>
+        )}
+        {isOutOfStock ? (
+          <span className="absolute top-3 right-3 bg-red-600/90 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
+            Agotado
+          </span>
+        ) : totalStock <= 5 ? (
+          <span className="absolute top-3 right-3 bg-amber-500/90 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
+            ¡Últimas unidades!
+          </span>
+        ) : null}
+      </div>
+
+      {/* Content */}
+      <div className="p-5 flex flex-col flex-1">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white m-0 leading-snug">
+          {product.name}
+        </h3>
+        {product.description && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 m-0 mt-1.5 line-clamp-2 leading-relaxed">
+            {product.description}
+          </p>
+        )}
+
+        {/* Price */}
+        <div className="mt-3 mb-3">
+          <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
             {formatPrice(product.price)}
           </span>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 m-0 line-clamp-3">
-          {product.description || "Sin descripción"}
-        </p>
 
-        <div className="mt-3">
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Selector */}
+        {!isOutOfStock && (
+        <div className="mt-2">
           <label
             htmlFor={`model-${product.id}`}
-            className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"
+            className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5"
           >
-            Selecciona tu modelo
+            {hasDeviceItems ? "Modelo" : "Dispositivo"}
           </label>
           {hasDeviceItems ? (
             <select
               id={`model-${product.id}`}
               value={selectedItemId}
               onChange={(e) => setSelectedItemId(Number(e.target.value))}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
             >
               {product.items.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -193,7 +230,7 @@ function ProductCard({
               id={`model-${product.id}`}
               value={selectedDevice}
               onChange={(e) => setSelectedDevice(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
             >
               {devices.map((d) => (
                 <option key={d.label} value={d.label}>
@@ -203,48 +240,35 @@ function ProductCard({
             </select>
           )}
         </div>
+        )}
 
+        {/* Actions */}
         <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={handleAdd}
-            className="flex-1 rounded-lg border border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 font-medium py-2 px-3 text-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 bg-transparent"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
-              />
-            </svg>
-            Agregar
-          </button>
-          <button
-            type="button"
-            onClick={handleBuy}
-            className="flex-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-3 text-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-              />
-            </svg>
-            Comprar
-          </button>
+          {isOutOfStock ? (
+            <div className="flex-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 font-medium py-2.5 px-3 text-sm text-center">
+              No disponible
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-400 font-medium py-2.5 px-3 text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 bg-transparent"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Agregar
+              </button>
+              <button
+                type="button"
+                onClick={handleBuy}
+                className="flex-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-3 text-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                Comprar
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -914,9 +938,44 @@ export default function StorePage() {
   const [cartOpen, setCartOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTypeId, setActiveTypeId] = useState<number | null>(null);
   const toast = useToast();
+  const sectionRefs = useRef<Map<number | string, HTMLElement>>(new Map());
 
   const cartCount = cart.reduce((s, e) => s + e.quantity, 0);
+
+  // Filtered products based on search and category
+  const filteredProducts = useMemo(() => {
+    let result = products;
+    if (activeTypeId !== null) {
+      result = result.filter((p) => p.product_type_id === activeTypeId);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.description && p.description.toLowerCase().includes(q)),
+      );
+    }
+    return result;
+  }, [products, activeTypeId, searchQuery]);
+
+  // Active category types (those that have products)
+  const activeTypes = useMemo(
+    () => productTypes.filter((pt) => products.some((p) => p.product_type_id === pt.id)),
+    [productTypes, products],
+  );
+
+  const typeNameMap = useMemo(
+    () => new Map(productTypes.map((pt) => [pt.id, pt.name])),
+    [productTypes],
+  );
+
+  function scrollToSection(id: number | string) {
+    sectionRefs.current.get(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   function loadStore() {
     return fetchStore().then(
@@ -1061,32 +1120,33 @@ export default function StorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <Link
             to="/"
             className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent m-0 no-underline"
           >
             wpbot Store
           </Link>
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-4 sm:gap-6">
             <Link
               to="/"
-              className="text-sm font-medium text-gray-900 dark:text-white no-underline transition-colors"
+              className="text-sm font-medium text-gray-900 dark:text-white no-underline transition-colors hidden sm:inline"
             >
               Tienda
             </Link>
             <Link
               to="/about"
-              className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
+              className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors hidden sm:inline"
             >
               Nosotros
             </Link>
             {user?.role === "admin" && (
               <Link
                 to="/admin"
-                className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors"
+                className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 no-underline transition-colors hidden sm:inline"
               >
                 Admin
               </Link>
@@ -1094,24 +1154,14 @@ export default function StorePage() {
             <button
               type="button"
               onClick={() => setCartOpen(true)}
-              className="relative text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 bg-transparent border-none cursor-pointer transition-colors"
+              className="relative text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 bg-transparent border-none cursor-pointer transition-colors p-1"
               title="Carrito"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
               </svg>
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                   {cartCount > 9 ? "9+" : cartCount}
                 </span>
               )}
@@ -1121,9 +1171,79 @@ export default function StorePage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      {/* ── Hero ── */}
+      <section className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-700 text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
+          <h1 className="text-3xl sm:text-4xl font-extrabold m-0 mb-3 tracking-tight">
+            Encuentra lo que necesitas
+          </h1>
+          <p className="text-indigo-100 text-base sm:text-lg m-0 mb-8 max-w-xl mx-auto">
+            Accesorios y productos de calidad para tu dispositivo
+          </p>
+          {/* Search bar */}
+          <div className="max-w-lg mx-auto relative">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar productos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-full bg-white/95 dark:bg-gray-800/95 text-gray-900 dark:text-white text-sm py-3.5 pl-12 pr-4 outline-none shadow-lg border-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/50"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Category chips ── */}
+      {activeTypes.length > 1 && (
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-[53px] z-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex gap-2 overflow-x-auto scrollbar-none">
+            <button
+              type="button"
+              onClick={() => { setActiveTypeId(null); scrollToSection("top"); }}
+              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all cursor-pointer border ${
+                activeTypeId === null
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "bg-transparent text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+              }`}
+            >
+              Todos
+            </button>
+            {activeTypes.map((pt) => (
+              <button
+                key={pt.id}
+                type="button"
+                onClick={() => { setActiveTypeId(activeTypeId === pt.id ? null : pt.id); scrollToSection(pt.id); }}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all cursor-pointer border ${
+                  activeTypeId === pt.id
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-transparent text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                }`}
+              >
+                {pt.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Main content ── */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full">
         {error && (
-          <div className="bg-red-900/20 border border-red-600 text-red-400 px-4 py-3 rounded-md mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
             {error}
           </div>
         )}
@@ -1131,70 +1251,121 @@ export default function StorePage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="h-48 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse"
-              />
+              <div key={i} className="rounded-2xl bg-white dark:bg-gray-900 overflow-hidden shadow-sm">
+                <div className="h-52 bg-gray-100 dark:bg-gray-800 animate-pulse" />
+                <div className="p-5 space-y-3">
+                  <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded animate-pulse w-2/3" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse w-full" />
+                  <div className="h-6 bg-gray-100 dark:bg-gray-800 rounded animate-pulse w-1/3 mt-2" />
+                </div>
+              </div>
             ))}
           </div>
-        ) : products.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-16">
-            No hay productos disponibles.
-          </p>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-20">
+            <svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <p className="text-gray-500 dark:text-gray-400 text-lg font-medium mb-1">
+              {searchQuery ? "No se encontraron resultados" : "No hay productos disponibles"}
+            </p>
+            {searchQuery && (
+              <p className="text-gray-400 dark:text-gray-500 text-sm">
+                Intenta con otra búsqueda o{" "}
+                <button
+                  type="button"
+                  onClick={() => { setSearchQuery(""); setActiveTypeId(null); }}
+                  className="text-indigo-600 dark:text-indigo-400 underline bg-transparent border-none cursor-pointer text-sm"
+                >
+                  ver todos los productos
+                </button>
+              </p>
+            )}
+          </div>
+        ) : searchQuery.trim() || activeTypeId !== null ? (
+          /* Flat grid when searching or filtering by a single category */
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {filteredProducts.length} producto{filteredProducts.length !== 1 ? "s" : ""} encontrado{filteredProducts.length !== 1 ? "s" : ""}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  devices={devices}
+                  subgroupLabels={subgroupLabels}
+                  typeName={typeNameMap.get(product.product_type_id)}
+                  onAddToCart={handleAddToCart}
+                  onBuyNow={handleBuyNow}
+                />
+              ))}
+            </div>
+          </div>
         ) : (
-          <div className="space-y-12">
-            {productTypes
-              .filter((pt) => products.some((p) => p.product_type_id === pt.id))
-              .map((pt) => (
-                <section key={pt.id}>
-                  {/* Product type header card */}
-                  <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm mb-6">
-                    <div className="flex flex-col sm:flex-row">
-                      {pt.image_url && (
-                        <img
-                          src={pt.image_url}
-                          alt={pt.name}
-                          className="w-full sm:w-56 h-40 sm:h-auto object-cover flex-shrink-0"
-                        />
+          /* Grouped by product type */
+          <div className="space-y-14">
+            {activeTypes.map((pt) => {
+              const sectionProducts = filteredProducts.filter((p) => p.product_type_id === pt.id);
+              if (sectionProducts.length === 0) return null;
+              return (
+                <section
+                  key={pt.id}
+                  ref={(el) => { if (el) sectionRefs.current.set(pt.id, el); }}
+                  className="scroll-mt-28"
+                >
+                  {/* Category header */}
+                  <div className="flex items-center gap-4 mb-6">
+                    {pt.image_url && (
+                      <img
+                        src={pt.image_url}
+                        alt={pt.name}
+                        className="w-14 h-14 rounded-xl object-cover flex-shrink-0 shadow-sm"
+                      />
+                    )}
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white m-0">
+                        {pt.name}
+                      </h2>
+                      {pt.description && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 m-0 mt-0.5">
+                          {pt.description}
+                        </p>
                       )}
-                      <div className="p-6 flex flex-col justify-center">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white m-0 mb-2">
-                          {pt.name}
-                        </h3>
-                        {pt.description && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 m-0 leading-relaxed">
-                            {pt.description}
-                          </p>
-                        )}
-                      </div>
                     </div>
+                    <span className="ml-auto text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full font-medium shrink-0">
+                      {sectionProducts.length} producto{sectionProducts.length !== 1 ? "s" : ""}
+                    </span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products
-                      .filter((p) => p.product_type_id === pt.id)
-                      .map((product) => (
-                        <ProductCard
-                          key={product.id}
-                          product={product}
-                          devices={devices}
-                          subgroupLabels={subgroupLabels}
-                          onAddToCart={handleAddToCart}
-                          onBuyNow={handleBuyNow}
-                        />
-                      ))}
+                    {sectionProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        devices={devices}
+                        subgroupLabels={subgroupLabels}
+                        onAddToCart={handleAddToCart}
+                        onBuyNow={handleBuyNow}
+                      />
+                    ))}
                   </div>
                 </section>
-              ))}
+              );
+            })}
             {/* Products without a matching type */}
-            {products.some(
+            {filteredProducts.some(
               (p) => !productTypes.find((pt) => pt.id === p.product_type_id),
             ) && (
               <section>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  Otros
-                </h3>
+                <div className="flex items-center gap-4 mb-6">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white m-0">
+                      Otros
+                    </h2>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products
+                  {filteredProducts
                     .filter(
                       (p) =>
                         !productTypes.find((pt) => pt.id === p.product_type_id),
@@ -1215,6 +1386,27 @@ export default function StorePage() {
           </div>
         )}
       </main>
+
+      {/* ── Footer ── */}
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Link
+              to="/"
+              className="text-lg font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent no-underline"
+            >
+              wpbot Store
+            </Link>
+            <nav className="flex items-center gap-6">
+              <Link to="/" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 no-underline transition-colors">Tienda</Link>
+              <Link to="/about" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 no-underline transition-colors">Nosotros</Link>
+            </nav>
+            <p className="text-xs text-gray-400 dark:text-gray-500 m-0">
+              &copy; {new Date().getFullYear()} wpbot Store
+            </p>
+          </div>
+        </div>
+      </footer>
 
       {/* Floating cart button (mobile-friendly) */}
       {cartCount > 0 && !cartOpen && !checkoutOpen && (

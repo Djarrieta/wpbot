@@ -27,7 +27,7 @@ const productTypes = [
 
 const products = [
   // Skins Texturizados (requires_device: false → 1 item each with no subgroup)
-  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", typeName: "Skin Texturizado", price: 25000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 50 },
+  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", typeName: "Skin Texturizado", price: 25000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 3 },
   { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", typeName: "Skin Texturizado", price: 28000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 40 },
   { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", typeName: "Skin Texturizado", price: 22000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 60 },
   // Skins Impresos
@@ -102,10 +102,15 @@ const contextData: { topic: string; content: string; always_inject: boolean }[] 
   },
   {
     topic: "productos_fundas_y_carcasas",
-    content: "Contamos con dos tipos de protección externa: 1) La Funda Transparente de silicona flexible (TPU) con solo 2 milímetros de grosor, diseñada para ser ultraligera y permitir lucir el diseño del celular o un skin. 2) La Carcasa 3D, nuestro producto insignia, que incorpora tecnología lenticular para crear efectos visuales de movimiento y profundidad, fabricada en materiales de ingeniería altamente resistentes a impactos y caídas.",
+    content: "Contamos con tres tipos de protección externa: 1) La Funda Transparente de silicona flexible (TPU) con solo 2 milímetros de grosor, diseñada para ser ultraligera y permitir lucir el diseño del celular o un skin. 2) La Funda Impresa, una funda rígida con impresión personalizada en alta resolución sobre la carcasa, ideal para quienes quieren un diseño único sin el efecto lenticular. 3) La Carcasa 3D, nuestro producto insignia, que incorpora tecnología lenticular para crear efectos visuales de movimiento y profundidad, fabricada en materiales de ingeniería altamente resistentes a impactos y caídas.",
     always_inject: false,
   },
 
+  {
+    topic: "productos_fundas_impresas",
+    content: "La Funda Impresa Personalizada es una carcasa rígida con impresión personalizada en alta resolución. El cliente puede elegir cualquier diseño de nuestra galería o subir su propia imagen. A diferencia de la Funda 3D, no tiene efecto lenticular, pero ofrece una impresión nítida y duradera con colores vibrantes sobre una carcasa resistente. Es ideal para quienes quieren un diseño personalizado con buena protección a un precio más accesible que la Funda 3D.",
+    always_inject: false,
+  },
   {
     topic: "productos_carcasas_3d_efectos",
     content: "Nuestras Carcasas 3D utilizan tecnología lenticular de última generación. Al mover el celular, el diseño reacciona creando efectos de profundidad (3D real) o de movimiento (cambio entre dos imágenes diferentes). Es el producto ideal para quienes buscan un accesorio dinámico que no pasa desapercibido y que convierte cualquier diseño, desde anime hasta fotos familiares, en una pieza con vida propia.",
@@ -153,7 +158,7 @@ PASO 1 — BIENVENIDA Y DETECCIÓN DE INTENCIÓN:
   {
     topic: "flujo_creacion_orden_3",
     content: `PASO 2 — PRODUCTO DESEADO:
-- Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda transparente, funda 3D, etc.
+- Identifica qué tipo de producto quiere: skin texturizado, skin impreso, funda transparente, funda impresa, funda 3D, etc.
 - Si el diseño es personalizado, pídele que envíe la imagen o describa el diseño.
 - Si el producto es personalizado (el nombre contiene 'Personalizado/a'), el cliente DEBERÁ enviar una imagen con su diseño. Infórmale que necesita enviar la imagen. NO valides el contenido de la imagen.
 - Busca el producto en la tabla "products" por nombre y/o tipo para identificarlo internamente.
