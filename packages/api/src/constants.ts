@@ -6,3 +6,5 @@ export const HUMAN_ESCALATION_MESSAGE =
 
 export const LOGISTICS_ESCALATION_PATTERN =
   'valido con el área de logística';
+
+export const SUMMARY_THRESHOLD = 20; // Number of messages after which to trigger summarization

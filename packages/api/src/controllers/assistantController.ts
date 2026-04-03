@@ -38,10 +38,21 @@ export class AssistantController {
       .map((c) => `- ${c.schemaText()}`)
       .join('\n');
 
-    const history = await this.chatHistoryService.getByUserId(userId);
-    const conversationHistory = history.length > 0
-      ? history.map((h) => `${h.role === 'user' ? 'Usuario' : 'Asistente'}: ${h.message}`).join('\n')
-      : 'No hay conversación previa.';
+    const summary = await this.chatHistoryService.getLatestSummary(userId);
+    let conversationHistory: string;
+
+    if (summary) {
+      const recentMessages = await this.chatHistoryService.getMessagesSinceSummary(userId);
+      const recentHistory = recentMessages
+        .map((h) => `${h.role === 'user' ? 'Usuario' : 'Asistente'}: ${h.message}`)
+        .join('\n');
+      conversationHistory = `RESUMEN DE CONVERSACIÓN ANTERIOR:\n${summary.message}\n\nCONVERSACIÓN RECIENTE:\n${recentHistory || 'No hay mensajes recientes.'}`;
+    } else {
+      const history = await this.chatHistoryService.getByUserId(userId);
+      conversationHistory = history.length > 0
+        ? history.map((h) => `${h.role === 'user' ? 'Usuario' : 'Asistente'}: ${h.message}`).join('\n')
+        : 'No hay conversación previa.';
+    }
 
     const userInfo = await this.usersService.getById(userId);
 
@@ -132,6 +143,13 @@ export class AssistantController {
         await this.chatHistoryService.markRequiresHuman(assistantMessage.id!);
       }
 
+      // Fire-and-forget: generate summary if needed
+      if (await this.chatHistoryService.shouldSummarize(userId)) {
+        this.generateSummary(userId).catch((err) =>
+          console.error("Summary generation failed:", err),
+        );
+      }
+
       return Response.json({ response });
     } catch (error) {
       console.error("Error processing assistant request:", error);
@@ -147,5 +165,19 @@ export class AssistantController {
 
       return Response.json({ response: HUMAN_ESCALATION_MESSAGE });
     }
+  }
+
+  private async generateSummary(userId: number): Promise<void> {
+    const messages = await this.chatHistoryService.getMessagesSinceSummary(userId);
+    if (messages.length === 0) return;
+
+    const conversation = messages
+      .map((m) => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.message}`)
+      .join('\n');
+
+    const summaryPrompt = `Resume la siguiente conversación entre un usuario y un asistente de ventas. Mantén los datos clave: productos mencionados, preferencias del usuario, órdenes creadas, información personal proporcionada (nombre, dirección, teléfono), y cualquier compromiso o pendiente. El resumen debe ser conciso pero completo para que un asistente pueda continuar la conversación sin perder contexto.\n\nCONVERSACIÓN:\n${conversation}\n\nRESUMEN:`;
+
+    const summaryText = await this.responseGenerator.generateResponse(summaryPrompt);
+    await this.chatHistoryService.saveSummary(userId, summaryText);
   }
 }
