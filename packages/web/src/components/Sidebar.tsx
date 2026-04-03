@@ -1,22 +1,27 @@
 import { Link, useLocation } from "react-router";
 import { modules } from "@/modules";
 
-const navItems = [
-  { href: "/admin", label: "Panel", icon: "📊" },
-  ...modules.map((m) => ({ href: m.basePath, label: m.label, icon: m.icon })),
-];
+const adminItem = { href: "/admin", label: "Panel", icon: "📊" };
+const moduleItems = modules.map((m) => ({
+  href: m.basePath,
+  label: m.label,
+  icon: m.icon,
+}));
 
 interface SidebarProps {
   user?: {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    role?: string;
   } | null;
   onLogout?: () => void;
 }
 
 export function Sidebar({ user, onLogout }: SidebarProps) {
   const { pathname } = useLocation();
+  const isAdmin = user?.role === "admin";
+  const navItems = [...(isAdmin ? [adminItem] : []), ...moduleItems];
 
   return (
     <aside className="w-60 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">

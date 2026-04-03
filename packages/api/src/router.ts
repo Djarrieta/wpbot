@@ -389,7 +389,7 @@ export async function router(req: Request): Promise<Response> {
   // Resource routes — public read for /items, admin required for everything else
   const resourceResponse = handleResourceRoutes(req.method, pathname, req);
   if (resourceResponse) {
-    const isPublicRead = req.method === "GET" && (pathname === "/products" || /^\/products\/\d+$/.test(pathname) || pathname === "/items" || /^\/items\/\d+$/.test(pathname) || pathname === "/groups" || /^\/groups\/\d+$/.test(pathname) || pathname === "/subgroups" || /^\/subgroups\/\d+$/.test(pathname));
+    const isPublicRead = req.method === "GET" && (pathname === "/products" || /^\/products\/\d+$/.test(pathname) || pathname === "/items" || /^\/items\/\d+$/.test(pathname) || pathname === "/groups" || /^\/groups\/\d+$/.test(pathname) || pathname === "/subgroups" || /^\/subgroups\/\d+$/.test(pathname) || pathname === "/context" || /^\/context\/\d+$/.test(pathname));
     if (!isPublicRead) {
       const adminError = await requireAdmin(req);
       if (adminError) return withCors(adminError, WEB_ORIGIN);
