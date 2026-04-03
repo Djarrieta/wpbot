@@ -7,6 +7,7 @@ import orders from './orders';
 import context from './context';
 import shipping from './shipping';
 import chathistory from './chathistory';
+import productTypes from './product_types';
 
 export const modules: ModuleConfig[] = [
   products,
@@ -17,4 +18,5 @@ export const modules: ModuleConfig[] = [
   context,
   shipping,
   chathistory,
+  productTypes,
 ];

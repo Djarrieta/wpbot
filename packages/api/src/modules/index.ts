@@ -9,6 +9,7 @@ import context, { init as initContext } from './context';
 import shipping, { init as initShipping } from './shipping';
 import groups, { init as initGroups } from './groups';
 import subgroups, { init as initSubgroups } from './subgroups';
+import productTypes, { init as initProductTypes } from './product_types';
 
 export const modules: ResourceRoute[] = [
   products,
@@ -21,9 +22,10 @@ export const modules: ResourceRoute[] = [
   shipping,
   groups,
   subgroups,
+  productTypes,
 ];
 
 export async function initModules() {
-  await Promise.all([initProducts(), initItems(), initUsers(), initChatHistory(), initOrders(), initOrderItems(), initContext(), initShipping(), initGroups(), initSubgroups()]);
+  await Promise.all([initProducts(), initItems(), initUsers(), initChatHistory(), initOrders(), initOrderItems(), initContext(), initShipping(), initGroups(), initSubgroups(), initProductTypes()]);
 }
 

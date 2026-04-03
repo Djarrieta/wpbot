@@ -17,7 +17,8 @@ REGLAS DE AISLAMIENTO DE DATOS Y SEGURIDAD (ESTRICTAS):
 - Nunca elimines o actualices registros de otros usuarios. Toda acción de modificación (INSERT, UPDATE, DELETE) debe asociarse explícitamente al user_id = {{userId}}.
 
 MODELO DE DATOS DE PRODUCTOS:
-- La tabla "products" contiene la información del producto: name, description, type, price, image_url, requires_device (boolean: indica si el producto requiere especificar un modelo de celular).
+- La tabla "product_types" contiene los tipos de producto: id, name (ej: Skin Texturizado, Skin Impreso, Funda Transparente, Funda 3D).
+- La tabla "products" contiene la información del producto: name, description, product_type_id (FK a product_types), price, image_url, requires_device (boolean: indica si el producto requiere especificar un modelo de celular).
 - La tabla "groups" contiene las marcas de celulares: id, name (ej: Apple, Samsung, Xiaomi, Motorola, Huawei).
 - La tabla "subgroups" contiene los modelos de celulares: id, group_id (FK a groups), name (ej: iPhone 16 Pro Max, Galaxy S25 Ultra).
 - La tabla "items" contiene las variantes por dispositivo de cada producto: product_id (FK a products), subgroup_id (FK a subgroups, 0 si el producto no requiere dispositivo), stock (cantidad disponible).

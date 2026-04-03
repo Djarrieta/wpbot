@@ -17,19 +17,26 @@ const allSubgroups = Object.entries(subgroupsByGroup).flatMap(([group, subs]) =>
   subs.map((sub) => ({ group, sub }))
 );
 
+const productTypes = [
+  { name: "Skin Texturizado" },
+  { name: "Skin Impreso" },
+  { name: "Funda Transparente" },
+  { name: "Funda 3D" },
+];
+
 const products = [
   // Skins Texturizados (requires_device: false → 1 item each with no subgroup)
-  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", type: "skin texturizado", price: 25000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 50 },
-  { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", type: "skin texturizado", price: 28000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 40 },
-  { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", type: "skin texturizado", price: 22000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 60 },
+  { name: "Skin Fibra de Carbono", description: "Skin texturizado premium con acabado fibra de carbono 3M", typeName: "Skin Texturizado", price: 25000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 50 },
+  { name: "Skin Cuero Negro", description: "Skin texturizado acabado cuero premium Oracal", typeName: "Skin Texturizado", price: 28000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 40 },
+  { name: "Skin Madera Natural", description: "Skin texturizado efecto madera natural", typeName: "Skin Texturizado", price: 22000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 60 },
   // Skins Impresos
-  { name: "Skin impreso Personalizado", description: "Skin impreso alta resolución", type: "skin impreso", price: 18000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 100 },
+  { name: "Skin impreso Personalizado", description: "Skin impreso alta resolución", typeName: "Skin Impreso", price: 18000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: false, stock: 100 },
   // Fundas Transparentes (requires_device: true → one item per subgroup)
-  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm", type: "funda transparente", price: 20000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
+  { name: "Funda Transparente TPU", description: "Funda transparente de silicona flexible (TPU) ultraligera de 2mm", typeName: "Funda Transparente", price: 20000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
     variants: allSubgroups.map(({ group, sub }) => ({ group, sub, stock: 50 })),
   },
   // Fundas 3D
-  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente", type: "funda 3d", price: 40000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
+  { name: "Funda 3D Personalizada", description: "Carcasa 3D lenticular con diseño personalizado del cliente", typeName: "Funda 3D", price: 40000, image_url: "https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&w=400", requires_device: true,
     variants: allSubgroups.map(({ group, sub }) => {
       // Vary stock by brand
       const stock = group === "Samsung" && sub.includes("A") ? 25 :
@@ -267,11 +274,15 @@ async function seed() {
   try {
     // Create tables matching the API's PgRepository schema exactly
     await client.query(`
+      CREATE TABLE IF NOT EXISTS product_types (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL
+      );
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT NOT NULL DEFAULT '',
-        type TEXT NOT NULL DEFAULT 'skin texturizado',
+        product_type_id INTEGER NOT NULL DEFAULT 0,
         price DOUBLE PRECISION NOT NULL DEFAULT 0,
         image_url TEXT NOT NULL DEFAULT '',
         requires_device BOOLEAN NOT NULL DEFAULT false
@@ -353,8 +364,17 @@ async function seed() {
     `);
 
     // Clear existing data
-    await client.query("TRUNCATE products, items, groups, subgroups, users, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
+    await client.query("TRUNCATE product_types, products, items, groups, subgroups, users, orders, order_items, chat_history, context, shipping RESTART IDENTITY CASCADE");
     await client.query("TRUNCATE user_identities RESTART IDENTITY CASCADE");
+
+    // Seed product types
+    console.log("Seeding product types...");
+    const productTypeIdMap = new Map<string, number>();
+    for (const pt of productTypes) {
+      const res = await client.query("INSERT INTO product_types (name) VALUES ($1) RETURNING id", [pt.name]);
+      productTypeIdMap.set(pt.name, res.rows[0].id);
+      console.log(`  Created product type: ${pt.name} (id: ${res.rows[0].id})`);
+    }
 
     // Seed groups and subgroups first (items reference subgroup_id)
     console.log("Seeding groups & subgroups...");
@@ -376,10 +396,11 @@ async function seed() {
 
     console.log("Seeding products & items...");
     for (const product of products) {
-      const { variants, stock, ...productData } = product as typeof product & { variants?: { group: string; sub: string; stock: number }[]; stock?: number };
+      const { variants, stock, typeName, ...productData } = product as typeof product & { variants?: { group: string; sub: string; stock: number }[]; stock?: number };
+      const productTypeId = productTypeIdMap.get(typeName) ?? 0;
       const pRes = await client.query(
-        "INSERT INTO products (name, description, type, price, image_url, requires_device) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-        [productData.name, productData.description, productData.type, productData.price, productData.image_url, productData.requires_device]
+        "INSERT INTO products (name, description, product_type_id, price, image_url, requires_device) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+        [productData.name, productData.description, productTypeId, productData.price, productData.image_url, productData.requires_device]
       );
       const productId = pRes.rows[0].id;
       console.log(`  Created product: ${productData.name} (id: ${productId})`);

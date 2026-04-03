@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import type {
   Item,
   Product,
+  ProductType,
   Group,
   Subgroup,
   Shipping,
@@ -30,14 +31,16 @@ type StoreData = {
   products: ProductWithItems[];
   devices: Device[];
   subgroupLabels: SubgroupLabelMap;
+  productTypes: WithId<ProductType>[];
 };
 
 async function fetchStore(): Promise<StoreData> {
-  const [productsRes, itemsRes, groupsRes, subgroupsRes] = await Promise.all([
+  const [productsRes, itemsRes, groupsRes, subgroupsRes, productTypesRes] = await Promise.all([
     fetch("/api/products"),
     fetch("/api/items"),
     fetch("/api/groups"),
     fetch("/api/subgroups"),
+    fetch("/api/product_types"),
   ]);
   if (!productsRes.ok)
     throw new Error(`Failed to fetch products: ${productsRes.status}`);
@@ -48,6 +51,9 @@ async function fetchStore(): Promise<StoreData> {
   const groups: WithId<Group>[] = groupsRes.ok ? await groupsRes.json() : [];
   const subgroups: WithId<Subgroup>[] = subgroupsRes.ok
     ? await subgroupsRes.json()
+    : [];
+  const productTypes: WithId<ProductType>[] = productTypesRes.ok
+    ? await productTypesRes.json()
     : [];
 
   // Build subgroup label map
@@ -71,7 +77,7 @@ async function fetchStore(): Promise<StoreData> {
     }))
     .filter((p) => p.items.length > 0);
 
-  return { products: filteredProducts, devices, subgroupLabels };
+  return { products: filteredProducts, devices, subgroupLabels, productTypes };
 }
 
 async function fetchShippingCities(): Promise<WithId<Shipping>[]> {
@@ -880,6 +886,7 @@ export default function StorePage() {
   const [subgroupLabels, setSubgroupLabels] = useState<SubgroupLabelMap>(
     new Map(),
   );
+  const [productTypes, setProductTypes] = useState<WithId<ProductType>[]>([]);
   const [shippingCities, setShippingCities] = useState<WithId<Shipping>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -912,10 +919,11 @@ export default function StorePage() {
 
   function loadStore() {
     return fetchStore().then(
-      ({ products: prods, devices: devs, subgroupLabels: labels }) => {
+      ({ products: prods, devices: devs, subgroupLabels: labels, productTypes: types }) => {
         setProducts(prods);
         setDevices(devs);
         setSubgroupLabels(labels);
+        setProductTypes(types);
       },
     );
   }
@@ -1137,17 +1145,52 @@ export default function StorePage() {
             No hay productos disponibles.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                devices={devices}
-                subgroupLabels={subgroupLabels}
-                onAddToCart={handleAddToCart}
-                onBuyNow={handleBuyNow}
-              />
-            ))}
+          <div className="space-y-12">
+            {productTypes
+              .filter((pt) => products.some((p) => p.product_type_id === pt.id))
+              .map((pt) => (
+                <section key={pt.id}>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    {pt.name}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products
+                      .filter((p) => p.product_type_id === pt.id)
+                      .map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          devices={devices}
+                          subgroupLabels={subgroupLabels}
+                          onAddToCart={handleAddToCart}
+                          onBuyNow={handleBuyNow}
+                        />
+                      ))}
+                  </div>
+                </section>
+              ))}
+            {/* Products without a matching type */}
+            {products.some((p) => !productTypes.find((pt) => pt.id === p.product_type_id)) && (
+              <section>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                  Otros
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products
+                    .filter((p) => !productTypes.find((pt) => pt.id === p.product_type_id))
+                    .map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        devices={devices}
+                        subgroupLabels={subgroupLabels}
+                        onAddToCart={handleAddToCart}
+                        onBuyNow={handleBuyNow}
+                      />
+                    ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </main>

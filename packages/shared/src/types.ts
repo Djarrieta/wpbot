@@ -1,8 +1,13 @@
+export type ProductType = {
+  id?: number;
+  name: string;
+};
+
 export type Product = {
   id?: number;
   name: string;
   description: string;
-  type: 'skin texturizado' | 'skin impreso' | 'funda transparente' | 'funda 3d';
+  product_type_id: number;
   price: number;
   image_url: string;
   requires_device: boolean;

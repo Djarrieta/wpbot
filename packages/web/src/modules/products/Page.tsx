@@ -1,11 +1,21 @@
 "use client";
 
-import type { Product, WithId } from "@wpbot/shared";
+import { useEffect, useState } from "react";
+import type { Product, ProductType, WithId } from "@wpbot/shared";
 import { CrudPage } from "@/components/CrudPage";
 import { ProductForm } from "./Form";
 import { api } from "./api";
+import { api as productTypesApi } from "@/modules/product_types/api";
 
 export function ProductsPage() {
+  const [productTypes, setProductTypes] = useState<Map<number, string>>(new Map());
+
+  useEffect(() => {
+    productTypesApi.fetchAll().then((types) => {
+      setProductTypes(new Map(types.map((t) => [t.id, t.name])));
+    }).catch(() => {});
+  }, []);
+
   return (
     <CrudPage<WithId<Product>>
       entityName="Producto"
@@ -14,7 +24,11 @@ export function ProductsPage() {
       columns={[
         { key: "id", header: "ID" },
         { key: "name", header: "Nombre" },
-        { key: "type", header: "Tipo" },
+        {
+          key: "product_type_id",
+          header: "Tipo",
+          render: (v) => productTypes.get(Number(v)) ?? `#${v}`,
+        },
         {
           key: "price",
           header: "Precio",
