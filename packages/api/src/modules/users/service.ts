@@ -10,6 +10,8 @@ const USER_COLUMNS: ColumnDef[] = [
   { name: 'email', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
   { name: 'phone', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
   { name: 'role', type: 'TEXT', constraints: "NOT NULL DEFAULT 'client'" },
+  { name: 'shipping_city_id', type: 'INTEGER', constraints: 'DEFAULT NULL' },
+  { name: 'shipping_address', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
 ];
 
 export class UsersRepository extends PgRepository<User> {
@@ -28,7 +30,9 @@ export class UsersRepository extends PgRepository<User> {
         name TEXT NOT NULL DEFAULT '',
         email TEXT NOT NULL DEFAULT '',
         phone TEXT NOT NULL DEFAULT '',
-        role TEXT NOT NULL DEFAULT 'client'
+        role TEXT NOT NULL DEFAULT 'client',
+        shipping_city_id INTEGER DEFAULT NULL,
+        shipping_address TEXT NOT NULL DEFAULT ''
       )
     `);
     // Unique constraint on email (only for non-empty values) to enable email-based matching

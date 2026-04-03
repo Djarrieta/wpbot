@@ -32,6 +32,8 @@ export type User = {
   email?: string;
   phone?: string;
   role?: string;
+  shipping_city_id?: number;
+  shipping_address?: string;
 };
 
 export type UserIdentity = {
@@ -46,7 +48,7 @@ export type ChatHistory = {
   id?: number;
   user_id: number;
   message: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'summary';
   timestamp: string;
   requires_human?: boolean;
 };

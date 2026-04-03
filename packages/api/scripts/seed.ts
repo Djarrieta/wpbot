@@ -296,7 +296,9 @@ async function seed() {
         name TEXT NOT NULL DEFAULT '',
         email TEXT NOT NULL DEFAULT '',
         phone TEXT NOT NULL DEFAULT '',
-        role TEXT NOT NULL DEFAULT 'client'
+        role TEXT NOT NULL DEFAULT 'client',
+        shipping_city_id INTEGER DEFAULT NULL,
+        shipping_address TEXT NOT NULL DEFAULT ''
       );
       CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users (email) WHERE email != '';
       CREATE TABLE IF NOT EXISTS user_identities (
@@ -404,8 +406,8 @@ async function seed() {
     console.log("Seeding users...");
     for (const user of users) {
       const res = await client.query(
-        "INSERT INTO users (id, name, email, phone, role) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-        [user.id, user.name, user.email, user.phone, user.role]
+        "INSERT INTO users (id, name, email, phone, role, shipping_city_id, shipping_address) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+        [user.id, user.name, user.email, user.phone, user.role, null, '']
       );
       console.log(`  Created user: ${user.name} (id: ${res.rows[0].id}, role: ${user.role})`);
     }

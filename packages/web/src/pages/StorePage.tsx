@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import type { Item, Product, Group, Subgroup, Shipping, WithId } from "@wpbot/shared";
+import type {
+  Item,
+  Product,
+  Group,
+  Subgroup,
+  Shipping,
+  WithId,
+} from "@wpbot/shared";
 import { SessionIcon } from "@/components/SessionIcon";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -38,7 +45,9 @@ async function fetchStore(): Promise<StoreData> {
   const products: WithId<Product>[] = await productsRes.json();
   const items: WithId<Item>[] = await itemsRes.json();
   const groups: WithId<Group>[] = groupsRes.ok ? await groupsRes.json() : [];
-  const subgroups: WithId<Subgroup>[] = subgroupsRes.ok ? await subgroupsRes.json() : [];
+  const subgroups: WithId<Subgroup>[] = subgroupsRes.ok
+    ? await subgroupsRes.json()
+    : [];
 
   // Build subgroup label map
   const groupMap = new Map(groups.map((g) => [g.id, g.name]));
@@ -333,23 +342,182 @@ function CartDrawer({
   );
 }
 
+/* ── Profile Modal ── */
+
+function ProfileModal({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/store/profile", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setName(data.name ?? "");
+          setPhone(data.phone ?? "");
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError("Ingresa tu nombre");
+      return;
+    }
+    if (!phone.trim()) {
+      setError("Ingresa tu teléfono");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/store/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name: name.trim(), phone: phone.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res
+          .json()
+          .catch(() => ({ error: "Error al guardar" }));
+        setError(data.error ?? "Error al guardar");
+        return;
+      }
+      onSaved();
+    } catch {
+      setError("Error de conexión");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-xl w-full max-w-md">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white m-0">
+              Completa tu perfil
+            </h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer bg-transparent border-none text-xl leading-none"
+            >
+              &times;
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 m-0 mb-4">
+            Necesitamos tu nombre y teléfono para procesar el pedido.
+          </p>
+
+          {loading ? (
+            <div className="py-8 text-center text-sm text-gray-400">
+              Cargando...
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="profile-name"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Nombre
+                </label>
+                <input
+                  id="profile-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Tu nombre completo"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="profile-phone"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Teléfono
+                </label>
+                <input
+                  id="profile-phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Tu número de teléfono"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-900/20 border border-red-600 text-red-400 px-3 py-2 rounded-md text-sm">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 text-sm transition-colors cursor-pointer"
+              >
+                {submitting ? "Guardando..." : "Guardar y continuar"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Checkout Modal ── */
+
+const PAYMENT_METHODS = [
+  { value: "contraentrega", label: "Contraentrega" },
+  { value: "transferencia", label: "Transferencia bancaria" },
+] as const;
 
 function CheckoutModal({
   cart,
   shippingCities,
+  defaultCityId,
+  defaultAddress,
   onClose,
   onSuccess,
 }: {
   cart: CartEntry[];
   shippingCities: WithId<Shipping>[];
+  defaultCityId?: number;
+  defaultAddress?: string;
   onClose: () => void;
   onSuccess: () => void;
 }) {
   const [shippingCityId, setShippingCityId] = useState<number>(
-    shippingCities[0]?.id ?? 0,
+    defaultCityId && shippingCities.some((c) => c.id === defaultCityId)
+      ? defaultCityId
+      : (shippingCities[0]?.id ?? 0),
   );
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState(defaultAddress ?? "");
+  const [paymentMethod, setPaymentMethod] = useState<string>(
+    PAYMENT_METHODS[0].value,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -368,6 +536,10 @@ function CheckoutModal({
       setError("Selecciona una ciudad de envío");
       return;
     }
+    if (!paymentMethod) {
+      setError("Selecciona un método de pago");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -383,6 +555,7 @@ function CheckoutModal({
           })),
           shipping_city: selectedShipping.city,
           shipping_address: address.trim(),
+          payment_method: paymentMethod,
         }),
       });
       if (!res.ok) {
@@ -491,6 +664,27 @@ function CheckoutModal({
                 placeholder="Calle, número, barrio..."
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="checkout-payment"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Método de pago
+              </label>
+              <select
+                id="checkout-payment"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              >
+                {PAYMENT_METHODS.map((pm) => (
+                  <option key={pm.value} value={pm.value}>
+                    {pm.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-1">
@@ -635,14 +829,34 @@ export default function StorePage() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<ProductWithItems[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
-  const [subgroupLabels, setSubgroupLabels] = useState<SubgroupLabelMap>(new Map());
+  const [subgroupLabels, setSubgroupLabels] = useState<SubgroupLabelMap>(
+    new Map(),
+  );
   const [shippingCities, setShippingCities] = useState<WithId<Shipping>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Cart state
-  const [cart, setCart] = useState<CartEntry[]>([]);
+  // Cart state — persist to localStorage
+  const [cart, setCart] = useState<CartEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem("wpbot_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("wpbot_cart", JSON.stringify(cart));
+    } catch {}
+  }, [cart]);
+  // Profile data for auto-filling checkout
+  const [profileShipping, setProfileShipping] = useState<{
+    cityId?: number;
+    address?: string;
+  }>({});
   const [cartOpen, setCartOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -650,11 +864,13 @@ export default function StorePage() {
   const cartCount = cart.reduce((s, e) => s + e.quantity, 0);
 
   function loadStore() {
-    return fetchStore().then(({ products: prods, devices: devs, subgroupLabels: labels }) => {
-      setProducts(prods);
-      setDevices(devs);
-      setSubgroupLabels(labels);
-    });
+    return fetchStore().then(
+      ({ products: prods, devices: devs, subgroupLabels: labels }) => {
+        setProducts(prods);
+        setDevices(devs);
+        setSubgroupLabels(labels);
+      },
+    );
   }
 
   useEffect(() => {
@@ -670,10 +886,6 @@ export default function StorePage() {
     itemId: number,
     deviceLabel: string,
   ) {
-    if (!user) {
-      navigate("/login?callbackUrl=/");
-      return;
-    }
     const item = product.items.find((i) => i.id === itemId);
     if (!item) return;
 
@@ -722,7 +934,35 @@ export default function StorePage() {
   }
 
   function handleCheckout() {
+    if (!user) {
+      navigate("/login?callbackUrl=/");
+      return;
+    }
     setCartOpen(false);
+    // Check profile completeness before opening checkout
+    fetch("/api/store/profile", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setProfileShipping({
+            cityId: data.shipping_city_id || undefined,
+            address: data.shipping_address || undefined,
+          });
+        }
+        if (!data || !data.name || !data.phone) {
+          setProfileOpen(true);
+        } else {
+          setCheckoutOpen(true);
+        }
+      })
+      .catch(() => {
+        // On error, try checkout anyway
+        setCheckoutOpen(true);
+      });
+  }
+
+  function handleProfileSaved() {
+    setProfileOpen(false);
     setCheckoutOpen(true);
   }
 
@@ -849,11 +1089,21 @@ export default function StorePage() {
         />
       )}
 
+      {/* Profile modal */}
+      {profileOpen && (
+        <ProfileModal
+          onClose={() => setProfileOpen(false)}
+          onSaved={handleProfileSaved}
+        />
+      )}
+
       {/* Checkout modal */}
       {checkoutOpen && (
         <CheckoutModal
           cart={cart}
           shippingCities={shippingCities}
+          defaultCityId={profileShipping.cityId}
+          defaultAddress={profileShipping.address}
           onClose={() => setCheckoutOpen(false)}
           onSuccess={handleOrderSuccess}
         />

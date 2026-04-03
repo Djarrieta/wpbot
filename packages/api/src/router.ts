@@ -136,6 +136,7 @@ const routes: Route[] = [
         items?: { item_id: number; quantity: number; device_reference?: string }[];
         shipping_city?: string;
         shipping_address?: string;
+        payment_method?: string;
       };
 
       if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
@@ -143,6 +144,10 @@ const routes: Route[] = [
       }
       if (!body.shipping_city || !body.shipping_address) {
         return Response.json({ error: "shipping_city and shipping_address are required" }, { status: 400 });
+      }
+      const validPaymentMethods = ['contraentrega', 'transferencia'];
+      if (!body.payment_method || !validPaymentMethods.includes(body.payment_method)) {
+        return Response.json({ error: "payment_method must be 'contraentrega' or 'transferencia'" }, { status: 400 });
       }
 
       // Validate items exist and get prices
@@ -187,9 +192,19 @@ const routes: Route[] = [
         status: 'pending',
         shipping_city: body.shipping_city,
         shipping_address: body.shipping_address,
-        payment_method: '',
+        payment_method: body.payment_method,
         collected_info: {},
       });
+
+      // Save shipping info to user profile if not already set
+      const currentUser = await usersService.getById(userId);
+      if (currentUser && (!currentUser.shipping_city_id || !currentUser.shipping_address)) {
+        const shippingCity = (await shippingService.getAll()).find(s => s.city === body.shipping_city);
+        const updates: Record<string, unknown> = {};
+        if (!currentUser.shipping_city_id && shippingCity) updates.shipping_city_id = shippingCity.id;
+        if (!currentUser.shipping_address) updates.shipping_address = body.shipping_address;
+        if (Object.keys(updates).length > 0) await usersService.update(userId, updates);
+      }
 
       // Create order items and decrement stock
       for (const oi of orderItemsData) {
@@ -209,6 +224,38 @@ const routes: Route[] = [
       }
 
       return Response.json(order, { status: 201 });
+    },
+  },
+  {
+    method: "GET",
+    pathname: "/store/profile",
+    handler: async (req) => {
+      const authResult = await requireAuth(req);
+      if ('error' in authResult) return authResult.error;
+      const userId = authResult.payload.dbUserId as number;
+      if (!userId) return Response.json({ error: "User not found in session" }, { status: 401 });
+      const user = await usersService.getById(userId);
+      if (!user) return Response.json({ error: "User not found" }, { status: 404 });
+      return Response.json({ id: user.id, name: user.name, email: user.email, phone: user.phone, shipping_city_id: user.shipping_city_id, shipping_address: user.shipping_address });
+    },
+  },
+  {
+    method: "PUT",
+    pathname: "/store/profile",
+    handler: async (req) => {
+      const authResult = await requireAuth(req);
+      if ('error' in authResult) return authResult.error;
+      const userId = authResult.payload.dbUserId as number;
+      if (!userId) return Response.json({ error: "User not found in session" }, { status: 401 });
+      const body = await req.json() as { name?: string; phone?: string };
+      if (!body.name || typeof body.name !== 'string' || !body.name.trim()) {
+        return Response.json({ error: "name is required" }, { status: 400 });
+      }
+      if (!body.phone || typeof body.phone !== 'string' || !body.phone.trim()) {
+        return Response.json({ error: "phone is required" }, { status: 400 });
+      }
+      const updated = await usersService.update(userId, { name: body.name.trim(), phone: body.phone.trim() });
+      return Response.json(updated);
     },
   },
   {
