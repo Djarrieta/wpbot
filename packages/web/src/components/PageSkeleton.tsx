@@ -1,6 +1,6 @@
 export function PageSkeleton() {
   return (
-    <div className="w-full max-w-5xl animate-pulse">
+    <div className="w-full max-w-5xl animate-pulse mx-auto">
       <div className="flex justify-between items-center mb-4">
         <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded" />
         <div className="flex gap-2">
