@@ -10,6 +10,7 @@ import type {
 import { ORDER_STATUS_LABELS } from "@wpbot/shared";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionIcon } from "@/components/SessionIcon";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 type OrderWithItems = WithId<Order> & { items: WithId<OrderItem>[] };
 
@@ -37,6 +38,7 @@ export default function ProfilePage() {
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [cancellingOrder, setCancellingOrder] = useState<number | null>(null);
   const [confirmCancelId, setConfirmCancelId] = useState<number | null>(null);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   // Form state
   const [name, setName] = useState("");
@@ -294,7 +296,7 @@ export default function ProfilePage() {
           <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
-              onClick={logout}
+              onClick={() => setConfirmLogout(true)}
               className="text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-transparent border-none cursor-pointer"
             >
               Cerrar sesión
@@ -449,50 +451,36 @@ export default function ProfilePage() {
         </div>
       </main>
 
-      {/* Cancel order confirmation modal */}
-      {confirmCancelId !== null && (
-        <div
-          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-          onMouseDown={() => setConfirmCancelId(null)}
-        >
-          <div
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl w-[400px] max-w-[90vw] shadow-2xl"
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="m-0 text-lg font-semibold text-gray-900 dark:text-white">
-                Cancelar pedido
-              </h3>
-            </div>
-            <div className="p-5">
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">
-                ¿Estás seguro de que deseas cancelar el pedido #
-                {confirmCancelId}? Esta acción no se puede deshacer.
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setConfirmCancelId(null)}
-                  disabled={cancellingOrder !== null}
-                  className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  No, mantener
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleCancelOrder(confirmCancelId)}
-                  disabled={cancellingOrder !== null}
-                  className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {cancellingOrder !== null
-                    ? "Cancelando..."
-                    : "Sí, cancelar pedido"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={confirmCancelId !== null}
+        title="Cancelar pedido"
+        message={
+          <>
+            ¿Estás seguro de que deseas cancelar el pedido #{confirmCancelId}?
+            Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Sí, cancelar pedido"
+        cancelLabel="No, mantener"
+        loadingLabel="Cancelando..."
+        variant="danger"
+        loading={cancellingOrder !== null}
+        onConfirm={() => confirmCancelId && handleCancelOrder(confirmCancelId)}
+        onCancel={() => setConfirmCancelId(null)}
+      />
+
+      <ConfirmModal
+        open={confirmLogout}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que deseas cerrar sesión?"
+        confirmLabel="Cerrar sesión"
+        variant="danger"
+        onConfirm={() => {
+          setConfirmLogout(false);
+          logout();
+        }}
+        onCancel={() => setConfirmLogout(false)}
+      />
     </div>
   );
 }

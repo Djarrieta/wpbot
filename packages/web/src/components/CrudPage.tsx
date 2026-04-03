@@ -8,6 +8,7 @@ import {
 import { Table } from "./Table";
 import { Button } from "./Button";
 import { Modal } from "./Modal";
+import { ConfirmModal } from "./ConfirmModal";
 import { PageSkeleton } from "./PageSkeleton";
 import type { ApiClient } from "@/lib/createApiClient";
 
@@ -263,32 +264,24 @@ export function CrudPage<T extends { id: number }>({
         )}
       </Modal>
 
-      <Modal
+      <ConfirmModal
         open={deleting !== null}
         title={`Eliminar ${entityName}`}
-        onClose={() => setDeleting(null)}
-      >
-        {deleting && (
-          <div>
-            <p className="mb-6 text-left text-gray-700 dark:text-gray-300">
+        message={
+          deleting && (
+            <>
               ¿Estás seguro que deseas eliminar{" "}
               <strong>{String(deleting[nameField])}</strong>?
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setDeleting(null)}
-                disabled={saving}
-              >
-                Cancelar
-              </Button>
-              <Button variant="danger" onClick={handleDelete} disabled={saving}>
-                {saving ? "Eliminando..." : "Eliminar"}
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+            </>
+          )
+        }
+        confirmLabel="Eliminar"
+        loadingLabel="Eliminando..."
+        variant="danger"
+        loading={saving}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleting(null)}
+      />
 
       {children}
     </div>

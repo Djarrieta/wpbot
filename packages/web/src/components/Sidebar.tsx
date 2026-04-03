@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { modules } from "@/modules";
+import { ConfirmModal } from "./ConfirmModal";
 
 const adminItem = { href: "/admin", label: "Panel", icon: "📊" };
 const moduleItems = modules.map((m) => ({
@@ -20,6 +22,7 @@ interface SidebarProps {
 
 export function Sidebar({ user, onLogout }: SidebarProps) {
   const { pathname } = useLocation();
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const isAdmin = user?.role === "admin";
   const navItems = [...(isAdmin ? [adminItem] : []), ...moduleItems];
 
@@ -80,11 +83,23 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
           </div>
           <button
             type="button"
-            onClick={onLogout}
+            onClick={() => setConfirmLogout(true)}
             className="w-full mt-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors text-left cursor-pointer bg-transparent border-none"
           >
             Cerrar sesión
           </button>
+          <ConfirmModal
+            open={confirmLogout}
+            title="Cerrar sesión"
+            message="¿Estás seguro de que deseas cerrar sesión?"
+            confirmLabel="Cerrar sesión"
+            variant="danger"
+            onConfirm={() => {
+              setConfirmLogout(false);
+              onLogout?.();
+            }}
+            onCancel={() => setConfirmLogout(false)}
+          />
         </div>
       )}
     </aside>
