@@ -16,7 +16,10 @@ export default function LoginPage() {
   }
 
   if (user) {
-    const dest = user.role !== "admin" && callbackUrl.startsWith("/admin") ? "/" : callbackUrl;
+    const dest =
+      user.role !== "admin" && callbackUrl.startsWith("/admin")
+        ? "/"
+        : callbackUrl;
     return <Navigate to={dest} replace />;
   }
 

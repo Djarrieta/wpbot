@@ -278,14 +278,19 @@ export default function ProfilePage() {
 
         <div className="space-y-4">
           {ordersLoading ? (
-            <div className="text-gray-400 text-center py-8">Cargando pedidos...</div>
+            <div className="text-gray-400 text-center py-8">
+              Cargando pedidos...
+            </div>
           ) : orders.length === 0 ? (
             <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-6 text-center text-gray-500">
               No tienes pedidos aún.
             </div>
           ) : (
             orders.map((order) => {
-              const total = order.items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+              const total = order.items.reduce(
+                (s, i) => s + i.quantity * i.unit_price,
+                0,
+              );
               const isExpanded = expandedOrder === order.id;
               return (
                 <div
@@ -294,7 +299,9 @@ export default function ProfilePage() {
                 >
                   <button
                     type="button"
-                    onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                    onClick={() =>
+                      setExpandedOrder(isExpanded ? null : order.id)
+                    }
                     className="w-full text-left px-5 py-4 bg-transparent border-none cursor-pointer flex items-center justify-between"
                   >
                     <div className="flex items-center gap-4 flex-wrap">
@@ -310,7 +317,9 @@ export default function ProfilePage() {
                       <span className="text-sm font-medium text-gray-900 dark:text-white">
                         ${total.toLocaleString("es-CO")}
                       </span>
-                      <span className={`text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}>
+                      <span
+                        className={`text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                      >
                         ▾
                       </span>
                     </div>
@@ -321,23 +330,36 @@ export default function ProfilePage() {
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400 mt-3 mb-3">
                         <div>Ciudad: {order.shipping_city || "—"}</div>
                         <div>Pago: {order.payment_method || "—"}</div>
-                        <div className="col-span-2">Dirección: {order.shipping_address || "—"}</div>
+                        <div className="col-span-2">
+                          Dirección: {order.shipping_address || "—"}
+                        </div>
                       </div>
                       {order.items.length === 0 ? (
-                        <p className="text-sm text-gray-400 py-2">Sin artículos</p>
+                        <p className="text-sm text-gray-400 py-2">
+                          Sin artículos
+                        </p>
                       ) : (
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800">
                               <th className="pb-1 font-medium">Artículo</th>
-                              <th className="pb-1 font-medium text-center">Cant.</th>
-                              <th className="pb-1 font-medium text-right">Precio</th>
-                              <th className="pb-1 font-medium text-right">Subtotal</th>
+                              <th className="pb-1 font-medium text-center">
+                                Cant.
+                              </th>
+                              <th className="pb-1 font-medium text-right">
+                                Precio
+                              </th>
+                              <th className="pb-1 font-medium text-right">
+                                Subtotal
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
                             {order.items.map((item) => (
-                              <tr key={item.id} className="border-b border-gray-50 dark:border-gray-800/50">
+                              <tr
+                                key={item.id}
+                                className="border-b border-gray-50 dark:border-gray-800/50"
+                              >
                                 <td className="py-1.5 text-gray-700 dark:text-gray-300">
                                   {item.item_name || `#${item.item_id}`}
                                 </td>
@@ -348,14 +370,20 @@ export default function ProfilePage() {
                                   ${item.unit_price.toLocaleString("es-CO")}
                                 </td>
                                 <td className="py-1.5 text-right text-gray-700 dark:text-gray-300 font-medium">
-                                  ${(item.quantity * item.unit_price).toLocaleString("es-CO")}
+                                  $
+                                  {(
+                                    item.quantity * item.unit_price
+                                  ).toLocaleString("es-CO")}
                                 </td>
                               </tr>
                             ))}
                           </tbody>
                           <tfoot>
                             <tr>
-                              <td colSpan={3} className="pt-2 text-right font-semibold text-gray-700 dark:text-gray-300">
+                              <td
+                                colSpan={3}
+                                className="pt-2 text-right font-semibold text-gray-700 dark:text-gray-300"
+                              >
                                 Total
                               </td>
                               <td className="pt-2 text-right font-bold text-gray-900 dark:text-white">
@@ -378,17 +406,40 @@ export default function ProfilePage() {
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pending: { label: "Pendiente", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  confirmed: { label: "Confirmado", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
-  shipped: { label: "Enviado", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400" },
-  delivered: { label: "Entregado", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-  cancelled: { label: "Cancelado", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
+  pending: {
+    label: "Pendiente",
+    color:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  },
+  confirmed: {
+    label: "Confirmado",
+    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  },
+  shipped: {
+    label: "Enviado",
+    color:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  },
+  delivered: {
+    label: "Entregado",
+    color:
+      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  },
+  cancelled: {
+    label: "Cancelado",
+    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  },
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const mapped = STATUS_MAP[status] ?? { label: status, color: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300" };
+  const mapped = STATUS_MAP[status] ?? {
+    label: status,
+    color: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+  };
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${mapped.color}`}>
+    <span
+      className={`text-xs px-2 py-0.5 rounded-full font-medium ${mapped.color}`}
+    >
       {mapped.label}
     </span>
   );
