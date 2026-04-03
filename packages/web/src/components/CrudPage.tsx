@@ -9,6 +9,7 @@ import { Table } from "./Table";
 import { Button } from "./Button";
 import { Modal } from "./Modal";
 import { ConfirmModal } from "./ConfirmModal";
+import { useToast, ToastContainer } from "./Toast";
 import { PageSkeleton } from "./PageSkeleton";
 import type { ApiClient } from "@/lib/createApiClient";
 
@@ -68,6 +69,7 @@ export function CrudPage<T extends { id: number }>({
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<T | null>(null);
   const [deleting, setDeleting] = useState<T | null>(null);
+  const toast = useToast();
 
   const loadData = useCallback(async () => {
     try {
@@ -100,6 +102,7 @@ export function CrudPage<T extends { id: number }>({
       setSaving(true);
       await api.create(formData);
       setShowCreate(false);
+      toast.success(`${entityName} creado exitosamente`);
       loadData();
     } catch (e) {
       setError(
@@ -118,6 +121,7 @@ export function CrudPage<T extends { id: number }>({
       setSaving(true);
       await api.update(editing.id, formData);
       setEditing(null);
+      toast.success(`${entityName} actualizado exitosamente`);
       loadData();
     } catch (e) {
       setError(
@@ -136,6 +140,7 @@ export function CrudPage<T extends { id: number }>({
       setSaving(true);
       await api.delete(deleting.id);
       setDeleting(null);
+      toast.success(`${entityName} eliminado exitosamente`);
       loadData();
     } catch (e) {
       setError(
@@ -284,6 +289,8 @@ export function CrudPage<T extends { id: number }>({
       />
 
       {children}
+
+      <ToastContainer toasts={toast.toasts} />
     </div>
   );
 }

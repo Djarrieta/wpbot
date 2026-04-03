@@ -11,6 +11,7 @@ import { ORDER_STATUS_LABELS } from "@wpbot/shared";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionIcon } from "@/components/SessionIcon";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useToast, ToastContainer } from "@/components/Toast";
 
 type OrderWithItems = WithId<Order> & { items: WithId<OrderItem>[] };
 
@@ -32,7 +33,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const toast = useToast();
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
@@ -113,7 +114,6 @@ export default function ProfilePage() {
     }
     setSaving(true);
     setError(null);
-    setSuccess(false);
     try {
       const res = await fetch("/api/store/profile", {
         method: "PUT",
@@ -133,8 +133,7 @@ export default function ProfilePage() {
         setError(data.error ?? "Error al guardar");
         return;
       }
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      toast.success("Perfil actualizado correctamente");
     } catch {
       setError("Error de conexión");
     } finally {
@@ -275,12 +274,6 @@ export default function ProfilePage() {
             {error && (
               <div className="bg-red-900/20 border border-red-600 text-red-400 px-3 py-2 rounded-md text-sm">
                 {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="bg-green-900/20 border border-green-600 text-green-400 px-3 py-2 rounded-md text-sm">
-                Perfil actualizado correctamente
               </div>
             )}
 
@@ -481,6 +474,8 @@ export default function ProfilePage() {
         }}
         onCancel={() => setConfirmLogout(false)}
       />
+
+      <ToastContainer toasts={toast.toasts} />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import type {
   WithId,
 } from "@wpbot/shared";
 import { SessionIcon } from "@/components/SessionIcon";
+import { useToast, ToastContainer } from "@/components/Toast";
 import { useAuth } from "@/hooks/useAuth";
 
 type ProductWithItems = WithId<Product> & { items: WithId<Item>[] };
@@ -842,21 +843,6 @@ function CartButton({
   );
 }
 
-/* ── Toast notification ── */
-
-function Toast({ message, onDone }: { message: string; onDone: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onDone, 2000);
-    return () => clearTimeout(t);
-  }, [onDone]);
-
-  return (
-    <div className="fixed bottom-24 right-6 z-40 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium px-4 py-2.5 rounded-lg shadow-lg animate-[fadeIn_0.2s_ease-out]">
-      {message}
-    </div>
-  );
-}
-
 /* ── Main Store Page ── */
 
 export default function StorePage() {
@@ -894,7 +880,7 @@ export default function StorePage() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const toast = useToast();
 
   const cartCount = cart.reduce((s, e) => s + e.quantity, 0);
 
@@ -941,7 +927,7 @@ export default function StorePage() {
       }
       return [...prev, { product, item, quantity: 1, deviceLabel }];
     });
-    setToast(`${product.name} agregado al carrito`);
+    toast.info(`${product.name} agregado al carrito`);
   }
 
   function handleUpdateQuantity(cartKey: string, delta: number) {
@@ -1014,6 +1000,7 @@ export default function StorePage() {
     setCheckoutOpen(false);
     setCart([]);
     setShowSuccess(true);
+    toast.success("¡Pedido creado exitosamente!");
     loadStore().catch(() => {});
   }
 
@@ -1128,8 +1115,7 @@ export default function StorePage() {
         <CartButton count={cartCount} onClick={() => setCartOpen(true)} />
       )}
 
-      {/* Toast */}
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+      <ToastContainer toasts={toast.toasts} />
 
       {/* Cart drawer */}
       {cartOpen && (
