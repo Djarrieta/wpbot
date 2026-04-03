@@ -1,6 +1,7 @@
 "use client";
 
 import type { Order, WithId } from "@wpbot/shared";
+import { ORDER_STATUSES, ORDER_STATUS_LABELS } from "@wpbot/shared";
 import { GenericForm, type FormField } from "@/components/GenericForm";
 
 const fields: FormField[] = [
@@ -21,8 +22,11 @@ const fields: FormField[] = [
   {
     name: "status",
     label: "Estado",
-    type: "text",
-    placeholder: "pendiente",
+    type: "select",
+    options: ORDER_STATUSES.map((s) => ({
+      value: s,
+      label: ORDER_STATUS_LABELS[s],
+    })),
   },
   {
     name: "shipping_city",

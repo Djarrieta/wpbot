@@ -312,6 +312,7 @@ const routes: Route[] = [
 
 // Regex to match /chathistory/unblock/:userId
 const unblockPattern = /^\/chathistory\/unblock\/(\d+)$/;
+const cancelOrderPattern = /^\/store\/orders\/(\d+)\/cancel$/;
 
 const COOKIE_NAME = "wpbot_session";
 
@@ -404,6 +405,24 @@ export async function router(req: Request): Promise<Response> {
   if (route) {
     const res = await route.handler(req);
     return withCors(res, WEB_ORIGIN);
+  }
+
+  // Custom route: POST /store/orders/:id/cancel
+  const cancelOrderMatch = req.method === "POST" && pathname.match(cancelOrderPattern);
+  if (cancelOrderMatch) {
+    const authResult = await requireAuth(req);
+    if ('error' in authResult) return withCors(authResult.error, WEB_ORIGIN);
+    const userId = authResult.payload.dbUserId as number;
+    if (!userId) return withCors(Response.json({ error: "User not found in session" }, { status: 401 }), WEB_ORIGIN);
+    const orderId = parseInt(cancelOrderMatch[1]!, 10);
+    const order = await ordersService.getById(orderId);
+    if (!order) return withCors(Response.json({ error: "Order not found" }, { status: 404 }), WEB_ORIGIN);
+    if (order.user_id !== userId) return withCors(Response.json({ error: "Forbidden" }, { status: 403 }), WEB_ORIGIN);
+    if (order.status !== 'pending' && order.status !== 'confirmed') {
+      return withCors(Response.json({ error: "Solo se pueden cancelar órdenes pendientes o confirmadas" }, { status: 400 }), WEB_ORIGIN);
+    }
+    const updated = await ordersService.update(orderId, { status: 'cancelled' });
+    return withCors(Response.json(updated), WEB_ORIGIN);
   }
 
   // Custom route: POST /chathistory/unblock/:userId

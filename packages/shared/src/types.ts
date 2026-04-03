@@ -53,11 +53,22 @@ export type ChatHistory = {
   requires_human?: boolean;
 };
 
+export const ORDER_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: 'Pendiente',
+  confirmed: 'Confirmado',
+  shipped: 'Enviado',
+  delivered: 'Entregado',
+  cancelled: 'Cancelado',
+};
+
 export type Order = {
   id?: number;
   user_id: number;
   date: string;
-  status?: string;
+  status?: OrderStatus;
   shipping_city?: string;
   shipping_address?: string;
   payment_method?: string;

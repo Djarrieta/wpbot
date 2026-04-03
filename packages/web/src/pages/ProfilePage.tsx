@@ -1,6 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
-import type { Order, OrderItem, Shipping, WithId } from "@wpbot/shared";
+import type {
+  Order,
+  OrderItem,
+  OrderStatus,
+  Shipping,
+  WithId,
+} from "@wpbot/shared";
+import { ORDER_STATUS_LABELS } from "@wpbot/shared";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionIcon } from "@/components/SessionIcon";
 
@@ -28,6 +35,8 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
+  const [cancellingOrder, setCancellingOrder] = useState<number | null>(null);
+  const [confirmCancelId, setConfirmCancelId] = useState<number | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -67,6 +76,28 @@ export default function ProfilePage() {
         .finally(() => setOrdersLoading(false));
     }
   }, [authLoading, user, navigate]);
+
+  const handleCancelOrder = useCallback(async (orderId: number) => {
+    setCancellingOrder(orderId);
+    try {
+      const res = await fetch(`/api/store/orders/${orderId}/cancel`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Error al cancelar pedido");
+      }
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: "cancelled" } : o)),
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error al cancelar pedido");
+    } finally {
+      setCancellingOrder(null);
+      setConfirmCancelId(null);
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -393,6 +424,22 @@ export default function ProfilePage() {
                           </tfoot>
                         </table>
                       )}
+
+                      {(order.status === "pending" ||
+                        order.status === "confirmed") && (
+                        <div className="mt-3 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setConfirmCancelId(order.id)}
+                            disabled={cancellingOrder === order.id}
+                            className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-800 font-medium disabled:opacity-50 transition-colors cursor-pointer"
+                          >
+                            {cancellingOrder === order.id
+                              ? "Cancelando..."
+                              : "Cancelar pedido"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -401,46 +448,75 @@ export default function ProfilePage() {
           )}
         </div>
       </main>
+
+      {/* Cancel order confirmation modal */}
+      {confirmCancelId !== null && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+          onMouseDown={() => setConfirmCancelId(null)}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl w-[400px] max-w-[90vw] shadow-2xl"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="m-0 text-lg font-semibold text-gray-900 dark:text-white">
+                Cancelar pedido
+              </h3>
+            </div>
+            <div className="p-5">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">
+                ¿Estás seguro de que deseas cancelar el pedido #
+                {confirmCancelId}? Esta acción no se puede deshacer.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmCancelId(null)}
+                  disabled={cancellingOrder !== null}
+                  className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  No, mantener
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCancelOrder(confirmCancelId)}
+                  disabled={cancellingOrder !== null}
+                  className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {cancellingOrder !== null
+                    ? "Cancelando..."
+                    : "Sí, cancelar pedido"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pending: {
-    label: "Pendiente",
-    color:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  },
-  confirmed: {
-    label: "Confirmado",
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  },
-  shipped: {
-    label: "Enviado",
-    color:
-      "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  },
-  delivered: {
-    label: "Entregado",
-    color:
-      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  },
-  cancelled: {
-    label: "Cancelado",
-    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  },
+const STATUS_COLORS: Record<OrderStatus, string> = {
+  pending:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  confirmed: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  shipped:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  delivered:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const mapped = STATUS_MAP[status] ?? {
-    label: status,
-    color: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-  };
+  const key = status as OrderStatus;
+  const label = ORDER_STATUS_LABELS[key] ?? status;
+  const color =
+    STATUS_COLORS[key] ??
+    "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
   return (
-    <span
-      className={`text-xs px-2 py-0.5 rounded-full font-medium ${mapped.color}`}
-    >
-      {mapped.label}
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${color}`}>
+      {label}
     </span>
   );
 }
