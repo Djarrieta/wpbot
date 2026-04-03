@@ -90,11 +90,17 @@ function ProductCard({
   devices,
   subgroupLabels,
   onAddToCart,
+  onBuyNow,
 }: {
   product: ProductWithItems;
   devices: Device[];
   subgroupLabels: SubgroupLabelMap;
   onAddToCart: (
+    product: ProductWithItems,
+    itemId: number,
+    deviceLabel: string,
+  ) => void;
+  onBuyNow: (
     product: ProductWithItems,
     itemId: number,
     deviceLabel: string,
@@ -111,18 +117,25 @@ function ProductCard({
     devices[0]?.label ?? "",
   );
 
-  function handleAdd() {
+  function getSelection(): { itemId: number; deviceLabel: string } {
     if (hasDeviceItems) {
       const item = product.items.find((i) => i.id === selectedItemId);
-      onAddToCart(
-        product,
-        selectedItemId,
-        item ? (subgroupLabels.get(item.subgroup_id) ?? "") : "",
-      );
-    } else {
-      // Use the first item (for stock), pass the selected global device label
-      onAddToCart(product, product.items[0].id, selectedDevice);
+      return {
+        itemId: selectedItemId,
+        deviceLabel: item ? (subgroupLabels.get(item.subgroup_id) ?? "") : "",
+      };
     }
+    return { itemId: product.items[0].id, deviceLabel: selectedDevice };
+  }
+
+  function handleAdd() {
+    const { itemId, deviceLabel } = getSelection();
+    onAddToCart(product, itemId, deviceLabel);
+  }
+
+  function handleBuy() {
+    const { itemId, deviceLabel } = getSelection();
+    onBuyNow(product, itemId, deviceLabel);
   }
 
   return (
@@ -183,26 +196,48 @@ function ProductCard({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleAdd}
-          className="mt-4 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 text-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
+        <div className="mt-4 flex gap-2">
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="flex-1 rounded-lg border border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 font-medium py-2 px-3 text-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 bg-transparent"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
-            />
-          </svg>
-          Agregar al carrito
-        </button>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
+              />
+            </svg>
+            Agregar
+          </button>
+          <button
+            type="button"
+            onClick={handleBuy}
+            className="flex-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-3 text-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+            Comprar
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -933,6 +968,15 @@ export default function StorePage() {
     );
   }
 
+  function handleBuyNow(
+    product: ProductWithItems,
+    itemId: number,
+    deviceLabel: string,
+  ) {
+    handleAddToCart(product, itemId, deviceLabel);
+    handleCheckout();
+  }
+
   function handleCheckout() {
     if (!user) {
       navigate("/login?callbackUrl=/");
@@ -1072,6 +1116,7 @@ export default function StorePage() {
                 devices={devices}
                 subgroupLabels={subgroupLabels}
                 onAddToCart={handleAddToCart}
+                onBuyNow={handleBuyNow}
               />
             ))}
           </div>
