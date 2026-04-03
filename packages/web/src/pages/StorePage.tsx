@@ -381,14 +381,18 @@ function CartDrawer({
 /* ── Profile Modal ── */
 
 function ProfileModal({
+  shippingCities,
   onClose,
   onSaved,
 }: {
+  shippingCities: WithId<Shipping>[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [shippingCityId, setShippingCityId] = useState<number>(0);
+  const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -400,6 +404,15 @@ function ProfileModal({
         if (data) {
           setName(data.name ?? "");
           setPhone(data.phone ?? "");
+          setShippingCityId(
+            data.shipping_city_id &&
+              shippingCities.some((c) => c.id === data.shipping_city_id)
+              ? data.shipping_city_id
+              : (shippingCities[0]?.id ?? 0),
+          );
+          setAddress(data.shipping_address ?? "");
+        } else {
+          setShippingCityId(shippingCities[0]?.id ?? 0);
         }
       })
       .catch(() => {})
@@ -416,6 +429,14 @@ function ProfileModal({
       setError("Ingresa tu teléfono");
       return;
     }
+    if (!address.trim()) {
+      setError("Ingresa tu dirección de envío");
+      return;
+    }
+    if (!shippingCityId) {
+      setError("Selecciona una ciudad de envío");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -423,7 +444,12 @@ function ProfileModal({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name: name.trim(), phone: phone.trim() }),
+        body: JSON.stringify({
+          name: name.trim(),
+          phone: phone.trim(),
+          shipping_city_id: shippingCityId,
+          shipping_address: address.trim(),
+        }),
       });
       if (!res.ok) {
         const data = await res
@@ -460,7 +486,7 @@ function ProfileModal({
             </button>
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 m-0 mb-4">
-            Necesitamos tu nombre y teléfono para procesar el pedido.
+            Necesitamos tus datos para procesar el pedido.
           </p>
 
           {loading ? (
@@ -498,6 +524,48 @@ function ProfileModal({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Tu número de teléfono"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="profile-city"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Ciudad de envío
+                </label>
+                {shippingCities.length > 0 ? (
+                  <select
+                    id="profile-city"
+                    value={shippingCityId}
+                    onChange={(e) => setShippingCityId(Number(e.target.value))}
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                  >
+                    {shippingCities.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.city}, {c.department}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 m-0">
+                    No hay ciudades de envío configuradas
+                  </p>
+                )}
+              </div>
+              <div>
+                <label
+                  htmlFor="profile-address"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Dirección de envío
+                </label>
+                <input
+                  id="profile-address"
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Tu dirección completa"
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                 />
               </div>
@@ -765,47 +833,6 @@ function CheckoutModal({
 
 /* ── Success Modal ── */
 
-function OrderSuccessModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-xl w-full max-w-sm p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-green-600 dark:text-green-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        </div>
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white m-0 mb-2">
-          ¡Pedido creado!
-        </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 m-0 mb-6">
-          Tu pedido ha sido registrado exitosamente. Nos pondremos en contacto
-          contigo para coordinar el pago y envío.
-        </p>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 text-sm transition-colors cursor-pointer"
-        >
-          Aceptar
-        </button>
-      </div>
-    </div>
-  );
-}
-
 /* ── Floating Cart Button ── */
 
 function CartButton({
@@ -879,7 +906,6 @@ export default function StorePage() {
   const [cartOpen, setCartOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const toast = useToast();
 
   const cartCount = cart.reduce((s, e) => s + e.quantity, 0);
@@ -927,7 +953,6 @@ export default function StorePage() {
       }
       return [...prev, { product, item, quantity: 1, deviceLabel }];
     });
-    toast.info(`${product.name} agregado al carrito`);
   }
 
   function handleUpdateQuantity(cartKey: string, delta: number) {
@@ -979,7 +1004,13 @@ export default function StorePage() {
             address: data.shipping_address || undefined,
           });
         }
-        if (!data || !data.name || !data.phone) {
+        if (
+          !data ||
+          !data.name ||
+          !data.phone ||
+          !data.shipping_address ||
+          !data.shipping_city_id
+        ) {
           setProfileOpen(true);
         } else {
           setCheckoutOpen(true);
@@ -993,13 +1024,24 @@ export default function StorePage() {
 
   function handleProfileSaved() {
     setProfileOpen(false);
-    setCheckoutOpen(true);
+    // Re-fetch profile to pass updated shipping data to CheckoutModal
+    fetch("/api/store/profile", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setProfileShipping({
+            cityId: data.shipping_city_id || undefined,
+            address: data.shipping_address || undefined,
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCheckoutOpen(true));
   }
 
   function handleOrderSuccess() {
     setCheckoutOpen(false);
     setCart([]);
-    setShowSuccess(true);
     toast.success("¡Pedido creado exitosamente!");
     loadStore().catch(() => {});
   }
@@ -1131,6 +1173,7 @@ export default function StorePage() {
       {/* Profile modal */}
       {profileOpen && (
         <ProfileModal
+          shippingCities={shippingCities}
           onClose={() => setProfileOpen(false)}
           onSaved={handleProfileSaved}
         />
@@ -1146,11 +1189,6 @@ export default function StorePage() {
           onClose={() => setCheckoutOpen(false)}
           onSuccess={handleOrderSuccess}
         />
-      )}
-
-      {/* Success modal */}
-      {showSuccess && (
-        <OrderSuccessModal onClose={() => setShowSuccess(false)} />
       )}
     </div>
   );

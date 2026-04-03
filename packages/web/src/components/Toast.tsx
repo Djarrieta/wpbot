@@ -34,21 +34,15 @@ export function useToast(duration = 3000) {
     [show],
   );
 
-  const info = useCallback(
-    (message: string) => show(message, "info"),
-    [show],
-  );
+  const info = useCallback((message: string) => show(message, "info"), [show]);
 
   return { toasts, show, success, error, info };
 }
 
 const variantStyles: Record<ToastVariant, string> = {
-  success:
-    "bg-green-600 dark:bg-green-500 text-white",
-  error:
-    "bg-red-600 dark:bg-red-500 text-white",
-  info:
-    "bg-gray-900 dark:bg-white text-white dark:text-gray-900",
+  success: "bg-green-600 dark:bg-green-500 text-white",
+  error: "bg-red-600 dark:bg-red-500 text-white",
+  info: "bg-gray-900 dark:bg-white text-white dark:text-gray-900",
 };
 
 export function ToastContainer({ toasts }: { toasts: ToastItem[] }) {

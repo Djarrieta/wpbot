@@ -80,27 +80,33 @@ export default function ProfilePage() {
     }
   }, [authLoading, user, navigate]);
 
-  const handleCancelOrder = useCallback(async (orderId: number) => {
-    setCancellingOrder(orderId);
-    try {
-      const res = await fetch(`/api/store/orders/${orderId}/cancel`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Error al cancelar pedido");
+  const handleCancelOrder = useCallback(
+    async (orderId: number) => {
+      setCancellingOrder(orderId);
+      try {
+        const res = await fetch(`/api/store/orders/${orderId}/cancel`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error ?? "Error al cancelar pedido");
+        }
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.id === orderId ? { ...o, status: "cancelled" } : o,
+          ),
+        );
+        toast.success("Pedido cancelado correctamente");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Error al cancelar pedido");
+      } finally {
+        setCancellingOrder(null);
+        setConfirmCancelId(null);
       }
-      setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: "cancelled" } : o)),
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al cancelar pedido");
-    } finally {
-      setCancellingOrder(null);
-      setConfirmCancelId(null);
-    }
-  }, []);
+    },
+    [toast],
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
