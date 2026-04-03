@@ -12,9 +12,12 @@ wpbot/
 │   ├── telegram/     # Telegram bot package
 │   ├── web/          # React frontend dashboard
 │   └── whatsapp/     # WhatsApp webhook bot package
+├── pgdata/           # PostgreSQL data (Podman volume)
 ├── scripts/
 │   └── reset-db.sh   # Utility script to reset database
+├── tasks/            # Task documentation
 ├── .env.example      # Example environment variables
+├── Tasks.md          # Task list
 ├── package.json      # Monorepo configuration
 └── README.md
 ```
@@ -101,6 +104,34 @@ bun run db:reset
 - `GET /items/:id` — Get item by ID
 - `PUT /items/:id` — Update item
 - `DELETE /items/:id` — Delete item
+
+## Arquitectura de Prompts
+
+El comportamiento del asistente se configura en dos capas complementarias:
+
+### Prompt (`packages/api/src/prompts.ts`)
+
+Instrucciones técnicas y de comportamiento mantenidas por desarrolladores:
+
+- Permisos SQL (qué tablas puede leer/escribir)
+- Reglas de respuesta (formato, tono, naturalidad)
+- Aislamiento de datos por usuario
+- Modelo de datos y ejemplos de queries
+
+Cualquier cambio sobre **cómo** responde el bot (comportamiento, estilo, restricciones) va aquí.
+
+### Context (tabla `context`, editable desde el dashboard web)
+
+Contenido de negocio editable por el admin desde la sección "Contexto" del dashboard:
+
+- Mensaje de bienvenida
+- Información de la empresa y productos
+- Flujo de pedidos, métodos de pago, envíos
+- Preguntas frecuentes
+
+Cualquier cambio sobre **qué** dice el bot (contenido de negocio) va aquí.
+
+Los contextos con `always_inject = true` se inyectan siempre en el prompt. Los de `always_inject = false` se consultan bajo demanda cuando la pregunta del usuario se relaciona con ese tema.
 
 ## Adding a New Module
 
